@@ -45,7 +45,7 @@ MH_tbl = tibble("N(y, 1/12)" = Norm_MH_samples, "Unif(y - 1/2, y+1/2)" = Unif_MH
 ggplot(MH_tbl, mapping = aes(x = value, color = `Proposal Distribution q(x|y)`)) +
   geom_function(mapping = aes(linetype = "True Posterior"), fun = dbeta, args = list(shape1 = 1 + heads, shape2 = 1 + tosses - heads), colour = "black") +
   geom_function(mapping = aes(linetype = "Prior"), fun = ~1, colour = "black", linetype = "dashed") +
-  geom_freqpoly(aes(y = after_stat(density)), binwidth = 0.04, position = "dodge") +
+  geom_freqpoly(aes(y = after_stat(density)), binwidth = 0.03, position = "dodge") +
   scale_linetype_manual(
     values = c(
       "Prior" = "dashed",
