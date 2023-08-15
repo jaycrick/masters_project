@@ -143,17 +143,19 @@ ggplot(pois_MH_tbl, mapping = aes(x = Samples, fill = "Sampled posterior")) +
   theme_bw()
 
 both_MH_tbl <- tibble(Binomial = binom_MH_samples, Poisson = pois_MH_samples) %>%
-  pivot_longer(everything(), names_to = "Likelihood")
+  pivot_longer(everything(), names_to = "Sampled Posterior")
 
 ggplot(both_MH_tbl, mapping = aes(x = value)) +
-  geom_histogram(aes(y = after_stat(density), fill = Likelihood), bins = 40, position = "dodge", colour = "black") +
-  geom_line(data = true_post_pois, mapping = aes(x = x, y = y, linetype = "Poisson likelihood"), size = 1) +
-  geom_line(data = true_post_binom, mapping = aes(x = x, y = y, linetype = "Binomial posterior"), size = 1) +
+  geom_histogram(aes(y = after_stat(density), fill = `Sampled Posterior`), bins = 40, position = "dodge", colour = "black") +
+  geom_line(data = true_post_pois, mapping = aes(x = x, y = y, linetype = "Poisson")) +
+  geom_line(data = true_post_binom, mapping = aes(x = x, y = y, linetype = "Binomial")) +
+  theme_bw() +
+  labs(title = "Samples from the Posterior Distribution\nof the Rate of Leaving the Infectious\nCompartment in an SIS Model", x = "gamma", y = "Density", colour = NULL, linetype = "True Posterior") +
   theme(text = element_text(family = "serif"),
         legend.position = "bottom",
         legend.box="vertical",
         plot.title = element_text(hjust = 0.5)) +
   scale_y_continuous(expand = expansion(0), limits = c(0, 350)) +
-  scale_x_continuous(expand = expansion(0)) +
-  labs(title = "Samples from gamma", x = "gamma", y = "Density", colour = NULL, fill = NULL) +
-  theme_bw()
+  scale_x_continuous(expand = expansion(0))
+
+ggsave("C:/Users/jckricket/Dropbox/Apps/Overleaf/M_Scimat_Thesis/images/SIS_gamma_pred.pdf", width = 5, height = 5)
