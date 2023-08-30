@@ -9,7 +9,7 @@ prob_heads = runif(1)
 
 tosses = 10
 
-heads = rbinom(1, tosses, prob_heads)
+heads = 6
 
 rho_accept = function(x, y) {
   if (y < 0 | y > 1){
