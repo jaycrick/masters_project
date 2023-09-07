@@ -5,8 +5,6 @@ library(here)
 
 # Coin Toss Example ----------
 
-prob_heads = runif(1)
-
 tosses = 10
 
 heads = 6
@@ -59,7 +57,7 @@ ggplot(MH_tbl, mapping = aes(x = value, color = `Proposal Distribution q(x|y)`))
         plot.title = element_text(hjust = 0.5)) +
   scale_y_continuous(expand = expansion(0), limits = c(0, 3)) +
   scale_x_continuous(expand = expansion(0), limits = c(0,1)) +
-  labs(title = "Metropolis Hastings Coin Toss Posterior samples", x = "Probability of Heads", y = "Density", fill=NULL, linetype = NULL)
+  labs(title = "Metropolis Hastings Coin Toss Posterior Samples", x = "Probability of Heads", y = "Density", fill=NULL, linetype = NULL)
 
 ggsave("C:/Users/jckricket/Dropbox/Apps/Overleaf/M_Scimat_Thesis/images/coin_MH_R.pdf", width = 5, height = 5)
 
