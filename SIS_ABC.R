@@ -1,5 +1,5 @@
 library(pacman)
-pacman::p_load("deSolve", "tidyverse")
+pacman::p_load("deSolve", "tidyverse", "latex2exp")
 
 # Task 1 ----
 set.seed(4503)
@@ -33,7 +33,11 @@ ggplot(abc_samples, mapping = aes(x = beta_samp, y = gamma_samp)) +
   stat_density_2d(aes(fill = ..level..), geom = "polygon", colour="white") +
   theme_bw() +
   scale_x_continuous(expand = expansion(0), limits = c(0, 3)) +
-  scale_y_continuous(expand = expansion(0), limits = c(0, 1.5))
+  scale_y_continuous(expand = expansion(0), limits = c(0, 1.5)) +
+  labs(
+    x = TeX(r"(\beta)"),
+    y = TeX(r"(\gamma)")
+  )
 
 # ggplot(abc_samples, mapping = aes(x = gamma_samp)) +
 #   geom_histogram(bins = 80) +

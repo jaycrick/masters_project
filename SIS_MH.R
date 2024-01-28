@@ -1,10 +1,10 @@
 library(pacman)
-pacman::p_load("deSolve", "tidyverse")
+pacman::p_load("deSolve", "tidyverse", "latex2exp")
 
 # Task 1 ----
 set.seed(4503)
 SIS_beta <- 0.5
-SIS_gamma <- rgamma(1, 2, 6) # should be 0.2311
+SIS_gamma <- 0.231 # from rgamma(1, 2, 6)
 pop_size = 25000 #population of Whitehorse 25000
 
 parameters <- c(beta = SIS_beta, gamma = SIS_gamma)
@@ -43,7 +43,7 @@ I_t = function(t, b = SIS_beta, g = SIS_gamma, population = pop_size, initial_in
 }
 
 SIS_plot <- ggplot(long_outputs, aes(x = time, y = proportions, colour = state)) +
-  geom_line(size = 0.75) +
+  geom_line(linewidth = 0.75) +
   theme_bw() +
   scale_x_continuous(expand = expansion(0)) +
   xlab("Days since first infection") +
@@ -58,9 +58,7 @@ sample_day_prop_i <- long_outputs %>%
   select(state, proportions)
 
 set.seed(4503)
-binom_estimate = rbinom(1, round(pop_size*(1 - sample_day_prop_i$proportions), 0), SIS_beta*sample_day_prop_i$proportions) #1179
-pois_estimate = rpois(1, SIS_beta*sample_day_prop_i$proportions*(1 - sample_day_prop_i$proportions)*pop_size) #1151
-norm_estimate = rnorm(1, SIS_beta*sample_day_prop_i$proportions*pop_size*(1 - sample_day_prop_i$proportions), sqrt(pop_size*(1 - sample_day_prop_i$proportions)*SIS_beta*sample_day_prop_i$proportions)) #1136.783
+binom_estimate = 1184
 
 binom_rho_accept = function(x, y, cases = binom_estimate, population = pop_size) {
   log_likihood_ratio = dbinom(cases, (population - round(I_t(sample_day, g = y), 0)), SIS_beta*I_t(sample_day, g = y)/population, log = T) + dgamma(y, 2, 6, log = T) -
@@ -150,12 +148,12 @@ ggplot(both_MH_tbl, mapping = aes(x = value)) +
   geom_line(data = true_post_pois, mapping = aes(x = x, y = y, linetype = "Poisson")) +
   geom_line(data = true_post_binom, mapping = aes(x = x, y = y, linetype = "Binomial")) +
   theme_bw() +
-  labs(title = "Samples from the Posterior Distribution\nof the Rate of Leaving the Infectious\nCompartment in an SIS Model", x = "gamma", y = "Density", colour = NULL, linetype = "True Posterior") +
-  theme(text = element_text(family = "serif"),
-        legend.position = "bottom",
-        legend.box="vertical",
-        plot.title = element_text(hjust = 0.5)) +
   scale_y_continuous(expand = expansion(0), limits = c(0, 350)) +
-  scale_x_continuous(expand = expansion(0))
+  scale_x_continuous(expand = expansion(0)) +
+  theme(text = element_text(family = "serif"),
+        # legend.position = "bottom",
+        # legend.box="vertical",
+        plot.title = element_text(hjust = 0.5)) +
+  labs(title = "Samples from the Posterior Distribution\nof the Rate of Leaving the Infectious\nCompartment in an SIS Model", x = TeX(r"($\gamma$)"), y = "Density", colour = NULL, linetype = "True Posterior")
 
-ggsave("C:/Users/jckricket/Dropbox/Apps/Overleaf/M_Scimat_Thesis/images/SIS_gamma_pred.pdf", width = 5, height = 5)
+ggsave("C:/Users/jckricket/Dropbox/Apps/Overleaf/M_Scimat_Thesis/images/SIS_gamma_pred.pdf", width = 6, height = 3)
