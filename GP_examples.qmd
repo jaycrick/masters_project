@@ -217,3 +217,98 @@ plt.xlabel("x")
 plt.ylabel("f(x)")
 plt.show()
 ```
+
+Now we construct a GP for the same function with quadratic prior
+
+```{python}
+num_obs_quad=4
+
+my_seed_quad=np.random.default_rng(seed=687)
+
+
+index_vals_quad = np.expand_dims( # this makes the size of the sample (3,1)
+    my_seed_quad.uniform(low=-1., high=1., size=num_obs_quad),
+    axis=-1 # last axis
+    )
+
+obs_vals_quad = cub_fn(index_vals_quad)
+
+def custom_mean_fn(x):
+    # You can define your own mean function here
+    # For example, a linear mean function: return 2.0 * x
+    return - x[..., 0]**2
+
+my_GP_quad = tfd.GaussianProcess(
+      kernel=tfk.ExponentiatedQuadratic(
+          amplitude=tf.Variable(1., dtype=np.float64, name="amplitude_quad"),
+          length_scale=tf.Variable(1., dtype=np.float64, name="length_scale_quad")
+      ),
+      index_points=index_vals_quad,
+      mean_fn=custom_mean_fn)
+
+print(my_GP_quad.trainable_variables)
+```
+
+```{python}
+Adam_optim = tf.optimizers.Adam() # somehow need this again? maybe when you do the optimize function it stores info?
+
+@tf.function()
+def optimize_quad():
+  with tf.GradientTape() as tape:
+    loss = -my_GP_quad.log_prob(obs_vals_quad)
+  grads = tape.gradient(loss, my_GP_quad.trainable_variables)
+  Adam_optim.apply_gradients(zip(grads, my_GP_quad.trainable_variables))
+  return loss
+
+
+num_iters_quad = 5000
+
+lls_quad = np.zeros(num_iters_quad, np.float64)
+for i in range(num_iters_quad):
+  loss_quad = optimize_quad()
+  lls_quad[i] = loss_quad
+
+amp_fin_quad = my_GP_quad.trainable_variables[0].numpy()
+len_fin_quad = my_GP_quad.trainable_variables[1].numpy()
+
+print('Trained parameters:')
+print('amplitude_quad: {}'.format(amp_fin))
+print('length_scale_quad: {}'.format(len_fin))
+
+plt.figure(figsize=(7, 4))
+plt.plot(lls_quad)
+plt.xlabel("Training iteration")
+plt.ylabel("Log likelihood")
+plt.show()
+```
+
+```{python}
+optimized_kernel_quad = tfk.ExponentiatedQuadratic(amp_fin_quad, len_fin_quad)
+gprm_quad = tfd.GaussianProcessRegressionModel(
+    kernel=optimized_kernel_quad,
+    index_points=predictive_index_points_,
+    observation_index_points=index_vals_quad,
+    observations=obs_vals_quad,
+    predictive_noise_variance=0.,
+    mean_fn=custom_mean_fn)
+
+num_samples_quad = 50
+samples_quad = gprm_quad.sample(num_samples_quad)
+```
+
+```{python}
+plt.figure(figsize=(7, 4))
+plt.plot(predictive_index_points_, cub_fn(predictive_index_points_),
+         label='True fn')
+plt.scatter(index_vals_quad[:, 0], obs_vals_quad,
+            label='Observations')
+for i in range(num_samples_quad):
+  plt.plot(predictive_index_points_, samples_quad[i, :], c='r', alpha=.1,
+           label='Posterior Sample' if i == 0 else None)
+leg = plt.legend(loc='upper right')
+for lh in leg.legendHandles: 
+    lh.set_alpha(1)
+plt.xlabel("x")
+plt.ylabel("f(x)")
+plt.show()
+```
