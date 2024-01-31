@@ -2,8 +2,7 @@
 jupyter: python3
 ---
 
-TODO
-- GP with different prior
+# Imports
 
 ```{python}
 import sys
@@ -22,7 +21,7 @@ tfk = tfp.math.psd_kernels
 import matplotlib.pyplot as plt
 ```
 
-Linear model with no variance
+# GP for Noiseless Cubic Target Function
 
 ```{python}
 my_seed = np.random.default_rng(seed=591) # For replicability
@@ -116,14 +115,14 @@ for i in range(num_samples):
   plt.plot(predictive_index_points_, samples[i, :], c='r', alpha=.1,
            label='Posterior Sample' if i == 0 else None)
 leg = plt.legend(loc='upper right')
-for lh in leg.legendHandles: 
+for lh in leg.legend_handles: 
     lh.set_alpha(1)
 plt.xlabel("x")
 plt.ylabel("f(x)")
 plt.show()
 ```
 
-Now we construct a GP for the same function with observation error
+# GP for Cubic Target Function with Noise
 
 ```{python}
 num_obs_err=20
@@ -211,14 +210,14 @@ for i in range(num_samples_err):
   plt.plot(predictive_index_points_, samples_err[i, :], c='r', alpha=.1,
            label='Posterior Sample' if i == 0 else None)
 leg = plt.legend(loc='upper right')
-for lh in leg.legendHandles: 
+for lh in leg.legend_handles: 
     lh.set_alpha(1)
 plt.xlabel("x")
 plt.ylabel("f(x)")
 plt.show()
 ```
 
-Now we construct a GP for the same function with quadratic prior
+# GP with Quadratic Mean Function for Cubic Target Function
 
 ```{python}
 num_obs_quad=4
@@ -306,9 +305,103 @@ for i in range(num_samples_quad):
   plt.plot(predictive_index_points_, samples_quad[i, :], c='r', alpha=.1,
            label='Posterior Sample' if i == 0 else None)
 leg = plt.legend(loc='upper right')
-for lh in leg.legendHandles: 
+for lh in leg.legend_handles: 
     lh.set_alpha(1)
 plt.xlabel("x")
 plt.ylabel("f(x)")
 plt.show()
+```
+
+# GP for 2 observations with Differing Observation Variance
+
+```{python}
+
+def varying_variance(num_low, num_high, var_low, var_high):
+  seed_low=np.random.default_rng(seed=973)
+  seed_high=np.random.default_rng(seed=8973)
+  seed_other=np.random.default_rng(seed=873)
+
+  samples_low_ = seed_low.normal(scale = np.sqrt(var_low), size = num_low) #+ np.ones(num_low)
+  samples_high_ = seed_high.normal(scale = np.sqrt(var_high), size = num_high) + np.ones(num_high)
+
+  x_indices_ = np.expand_dims( # this makes the size of the sample (3,1)
+    np.concatenate((np.zeros(num_low), np.ones(num_high))),
+    axis=-1 # last axis
+    )
+  y_vals_ = np.concatenate((samples_low_, samples_high_))
+
+  GP_ = tfd.GaussianProcess(
+      kernel=tfk.ExponentiatedQuadratic(
+          amplitude=tf.Variable(1., dtype=np.float64, name="amplitude"),
+          length_scale=tf.Variable(1., dtype=np.float64, name="length_scale")
+      ),
+      observation_noise_variance=tf.Variable(1., dtype=np.float64, name="observation_noise_variance"),
+      index_points=x_indices_
+      )
+
+  optimizer_ = tf.optimizers.Adam() # somehow need this again? maybe when you do the optimize function it stores info?
+
+  @tf.function()
+  def optimize_():
+    with tf.GradientTape() as tape:
+      loss = -GP_.log_prob(y_vals_)
+    grads = tape.gradient(loss, GP_.trainable_variables)
+    optimizer_.apply_gradients(zip(grads, GP_.trainable_variables))
+    return loss
+
+
+  num_iters_ = 5000
+
+  lls_ = np.zeros(num_iters_, np.float64)
+  for i in range(num_iters_):
+    loss_ = optimize_()
+    lls_[i] = loss_
+
+  amp_fin_ = GP_.trainable_variables[0].numpy()
+  len_fin_ = GP_.trainable_variables[1].numpy()
+  noise_fin_ = GP_.trainable_variables[2].numpy()
+
+  predictive_index_points_ = np.linspace(-.2, 1.2, 20, dtype=np.float64)
+  # Reshape to [200, 1] -- 1 is the dimensionality of the feature space.
+  predictive_index_points_ = predictive_index_points_[..., np.newaxis]
+
+  optimized_kernel_ = tfk.ExponentiatedQuadratic(amp_fin_, len_fin_)
+  gprm_ = tfd.GaussianProcessRegressionModel(
+      kernel=optimized_kernel_,
+      index_points=predictive_index_points_,
+      observation_index_points=x_indices_,
+      observations=y_vals_,
+      observation_noise_variance=noise_fin_,
+      predictive_noise_variance=0.)
+
+  num_fn_samples_ = 50
+  tf.random.set_seed(25626)
+  samples_ = gprm_.sample(num_fn_samples_)
+  plt.figure(figsize=(7, 4))
+  plt.scatter(x_indices_[:, 0], y_vals_,
+              label='Observations')
+  for i in range(num_fn_samples_):
+    plt.plot(predictive_index_points_, samples_[i, :], c='r', alpha=.1,
+            label='Posterior Sample' if i == 0 else None)
+  leg = plt.legend(loc='upper left')
+  for lh in leg.legend_handles: 
+      lh.set_alpha(1)
+  plt.xlabel("x")
+  plt.ylabel("f(x)")
+  plt.show()
+
+  return amp_fin_, len_fin_, noise_fin_
+
+varying_variance(100, 2, 0.01, 1)
+
+```
+
+## Experimenting with Differing Numbers of Observations
+
+```{python}
+varying_variance(3, 3, 0.01, 1)
+varying_variance(3, 10, 0.01, 1)
+varying_variance(3, 100, 0.01, 1)
+varying_variance(10, 3, 0.01, 1)
+varying_variance(100, 3, 0.01, 1)
 ```
