@@ -162,7 +162,7 @@ pv_champ_gamma_L, pv_champ_lambda, pv_champ_f, pv_champ_r)
 ```{python}
 my_seed = np.random.default_rng(seed=1795)  # For replicability
 
-num_samples = 100
+num_samples = 1000
 
 variables_names = ["alpha", "beta", "gamma_L", "lambda", "f", "r"]
 
@@ -235,45 +235,69 @@ print(random_discrepencies.head())
 Time taken for function1: 187.48960775700016
 Time taken for function2: 204.06618941299985
 
+## Constrain Variables to be Positive
+
+```{python}
+constrain_positive = tfb.Shift(np.finfo(np.float64).tiny)(tfb.Exp())
+```
+
 ## Custom Quadratic Mean Function
 ```{python}
-
 class quad_mean_fn(tf.Module):
     def __init__(self):
         super(quad_mean_fn, self).__init__()
-        self.amp_alpha_mean = tf.Variable(
-            500.0, dtype=np.float64, name="amp_alpha_mean"
+        self.amp_alpha_mean = tfp.util.TransformedVariable(
+            bijector=constrain_positive,
+            initial_value=500.0,
+            dtype=np.float64,
+            name="amp_alpha_mean",
         )
-        self.alpha_tp = tf.Variable(
-            pv_champ_alpha, dtype=np.float64, name="alpha_tp"
+        self.alpha_tp = tf.Variable(pv_champ_alpha, dtype=np.float64, name="alpha_tp")
+        self.amp_beta_mean = tfp.util.TransformedVariable(
+            bijector=constrain_positive,
+            initial_value=350.0,
+            dtype=np.float64,
+            name="amp_beta_mean",
         )
-        self.amp_beta_mean = tf.Variable(
-            350.0, dtype=np.float64, name="amp_beta_mean"
-        )
-        self.beta_tp = tf.Variable(
-            pv_champ_beta, dtype=np.float64, name="beta_tp"
-        )
-        self.amp_gamma_L_mean = tf.Variable(
-            60.0, dtype=np.float64, name="amp_gamma_L_mean"
+        self.beta_tp = tf.Variable(pv_champ_beta, dtype=np.float64, name="beta_tp")
+        self.amp_gamma_L_mean = tfp.util.TransformedVariable(
+            bijector=constrain_positive,
+            initial_value=60.0,
+            dtype=np.float64,
+            name="amp_gamma_L_mean",
         )
         self.gamma_L_tp = tf.Variable(
             pv_champ_gamma_L, dtype=np.float64, name="gamma_L_tp"
         )
-        self.amp_lambda_mean = tf.Variable(
-            50.0, dtype=np.float64, name="amp_lambda_mean"
+        self.amp_lambda_mean = tfp.util.TransformedVariable(
+            bijector=constrain_positive,
+            initial_value=50.0,
+            dtype=np.float64,
+            name="amp_lambda_mean",
         )
         self.lambda_tp = tf.Variable(
             pv_champ_lambda, dtype=np.float64, name="lambda_tp"
         )
-        self.amp_f_mean = tf.Variable(550.0, dtype=np.float64, name="amp_f_mean")
-        self.f_tp = tf.Variable(
-            pv_champ_f, dtype=np.float64, name="f_tp"
+        self.amp_f_mean = tfp.util.TransformedVariable(
+            bijector=constrain_positive,
+            initial_value=550.0,
+            dtype=np.float64,
+            name="amp_f_mean",
         )
-        self.amp_r_mean = tf.Variable(1200.0, dtype=np.float64, name="amp_r_mean")
-        self.r_tp = tf.Variable(
-            pv_champ_r, dtype=np.float64, name="r_tp"
+        self.f_tp = tf.Variable(pv_champ_f, dtype=np.float64, name="f_tp")
+        self.amp_r_mean = tfp.util.TransformedVariable(
+            bijector=constrain_positive,
+            initial_value=1200.0,
+            dtype=np.float64,
+            name="amp_r_mean",
         )
-        self.bias_mean = tf.Variable(200., dtype=np.float64, name="bias_mean")
+        self.r_tp = tf.Variable(pv_champ_r, dtype=np.float64, name="r_tp")
+        self.bias_mean = tfp.util.TransformedVariable(
+            bijector=constrain_positive,
+            initial_value=200.0,
+            dtype=np.float64,
+            name="bias_mean",
+        )
 
     def __call__(self, x):
         return (
@@ -285,6 +309,7 @@ class quad_mean_fn(tf.Module):
             + self.amp_r_mean * (x[..., 5] - self.r_tp) ** 2
             + self.bias_mean
         )
+
 ```
 
 ## Making the ARD Kernel
@@ -293,30 +318,31 @@ class quad_mean_fn(tf.Module):
 index_vals = random_indices_df.values
 obs_vals = random_discrepencies.values
 
-amplitude_champ = tf.Variable(150., dtype=np.float64, name="amplitude_champ")
-# length_scale_champ = tf.Variable(0.02, dtype=np.float64, name="length_scale_champ")
-observation_noise_variance_champ = tf.Variable(
-    1000., dtype=np.float64, name="observation_noise_variance_champ"
+amplitude_champ = tfp.util.TransformedVariable(
+    bijector=constrain_positive,
+    initial_value=150.0,
+    dtype=np.float64,
+    name="amplitude_champ",
+)
+
+observation_noise_variance_champ = tfp.util.TransformedVariable(
+    bijector=constrain_positive,
+    initial_value=1000.0,
+    dtype=np.float64,
+    name="observation_noise_variance_champ",
 )
 ```
 
 ```{python}
-len_alpha = tf.Variable(0.2, dtype=np.float64, name="amp_alpha_mean")
-len_beta = tf.Variable(550., dtype=np.float64, name="amp_beta_mean")
-len_gamma_L = tf.Variable(400., dtype=np.float64, name="amp_gamma_L_mean")
-len_lambda = tf.Variable(600., dtype=np.float64, name="amp_lambda_mean")
-len_f = tf.Variable(100., dtype=np.float64, name="amp_f_mean")
-len_r = tf.Variable(900., dtype=np.float64, name="amp_r_mean")
-
-length_scales_champ = tf.Variable(
-    [0.01, 0.01, 0.35, 0.02, 0.27, 0.2],
+length_scales_champ = tfp.util.TransformedVariable(
+    bijector=constrain_positive,
+    initial_value=[0.01, 0.01, 0.35, 0.02, 0.27, 0.2],
     dtype=np.float64,
     name="length_scales_champ",
 )
 ```
 
 ```{python}
-
 kernel_champ = tfk.FeatureScaled(tfk.ExponentiatedQuadratic(
     amplitude=amplitude_champ), scale_diag=length_scales_champ)
 ```
@@ -351,20 +377,14 @@ lls_ = np.zeros(num_iters, np.float64)
 for i in range(num_iters):
     loss = optimize()
     lls_[i] = loss
-
-amp_fin = champ_GP.trainable_variables[0].numpy()
-obs_fin = champ_GP.trainable_variables[1].numpy()
-alpha_amp_fin = champ_GP.trainable_variables[2].numpy()
-beta_amp_fin = champ_GP.trainable_variables[3].numpy()
-gamma_L_amp_fin = champ_GP.trainable_variables[4].numpy()
-lambda_amp_fin = champ_GP.trainable_variables[5].numpy()
-f_amp_fin = champ_GP.trainable_variables[6].numpy()
-r_amp_fin = champ_GP.trainable_variables[7].numpy()
-bias_fin = champ_GP.trainable_variables[8].numpy()
-
+```
+```{python}
 print("Trained parameters:")
 for var in champ_GP.trainable_variables:
-    print("{} is {}".format(var.name, var.numpy().round(decimals = 2)))
+    if "tp" in var.name:
+        print("{} is {}".format(var.name, var.numpy().round(3)))
+    else:
+        print("{} is {}".format(var.name, constrain_positive.forward(var).numpy().round(3)))
 ```
 
 ```{python}
