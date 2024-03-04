@@ -441,6 +441,7 @@ champ_GP_reg = tfd.GaussianProcessRegressionModel(
     observations=obs_vals,
     observation_noise_variance=observation_noise_variance_champ,
     predictive_noise_variance=0.,
+    mean_fn=quad_mean_fn(),
 )
 
 num_samples = 50
