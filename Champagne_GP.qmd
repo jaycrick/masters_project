@@ -7,7 +7,7 @@ jupyter: python3
 ---
 
 # TODO
-- Constrain the variables to be positive
+- Change to Latin Hypercube Sampling for initial samples
 - Change from MLE to cross validation
 
 
@@ -248,21 +248,21 @@ class quad_mean_fn(tf.Module):
         super(quad_mean_fn, self).__init__()
         self.amp_alpha_mean = tfp.util.TransformedVariable(
             bijector=constrain_positive,
-            initial_value=500.0,
+            initial_value=400.0,
             dtype=np.float64,
             name="amp_alpha_mean",
         )
         self.alpha_tp = tf.Variable(pv_champ_alpha, dtype=np.float64, name="alpha_tp")
         self.amp_beta_mean = tfp.util.TransformedVariable(
             bijector=constrain_positive,
-            initial_value=350.0,
+            initial_value=50.0,
             dtype=np.float64,
             name="amp_beta_mean",
         )
         self.beta_tp = tf.Variable(pv_champ_beta, dtype=np.float64, name="beta_tp")
         self.amp_gamma_L_mean = tfp.util.TransformedVariable(
             bijector=constrain_positive,
-            initial_value=60.0,
+            initial_value=500.0,
             dtype=np.float64,
             name="amp_gamma_L_mean",
         )
@@ -271,7 +271,7 @@ class quad_mean_fn(tf.Module):
         )
         self.amp_lambda_mean = tfp.util.TransformedVariable(
             bijector=constrain_positive,
-            initial_value=50.0,
+            initial_value=16000.0,
             dtype=np.float64,
             name="amp_lambda_mean",
         )
@@ -280,21 +280,21 @@ class quad_mean_fn(tf.Module):
         )
         self.amp_f_mean = tfp.util.TransformedVariable(
             bijector=constrain_positive,
-            initial_value=550.0,
+            initial_value=15000.0,
             dtype=np.float64,
             name="amp_f_mean",
         )
         self.f_tp = tf.Variable(pv_champ_f, dtype=np.float64, name="f_tp")
         self.amp_r_mean = tfp.util.TransformedVariable(
             bijector=constrain_positive,
-            initial_value=1200.0,
+            initial_value=13000.0,
             dtype=np.float64,
             name="amp_r_mean",
         )
         self.r_tp = tf.Variable(pv_champ_r, dtype=np.float64, name="r_tp")
         self.bias_mean = tfp.util.TransformedVariable(
             bijector=constrain_positive,
-            initial_value=200.0,
+            initial_value=50.0,
             dtype=np.float64,
             name="bias_mean",
         )
@@ -347,6 +347,8 @@ kernel_champ = tfk.FeatureScaled(tfk.ExponentiatedQuadratic(
     amplitude=amplitude_champ), scale_diag=length_scales_champ)
 ```
 
+## Define the Gaussian Process with Quadratic Mean Function and ARD Kernel
+
 ```{python}
 # Define Gaussian Process with the custom kernel
 champ_GP = tfd.GaussianProcess(
@@ -360,6 +362,8 @@ print(champ_GP.trainable_variables)
 
 Adam_optim = tf.optimizers.Adam(learning_rate=.01)
 ```
+
+## Train the Hyperparameters
 
 ```{python}
 @tf.function()
@@ -384,7 +388,11 @@ for var in champ_GP.trainable_variables:
     if "tp" in var.name:
         print("{} is {}".format(var.name, var.numpy().round(3)))
     else:
-        print("{} is {}".format(var.name, constrain_positive.forward(var).numpy().round(3)))
+        print(
+            "{} is {}".format(
+                var.name, constrain_positive.forward(var).numpy().round(3)
+            )
+        )
 ```
 
 ```{python}
@@ -393,4 +401,69 @@ plt.plot(lls_)
 plt.xlabel("Training iteration")
 plt.ylabel("Log likelihood")
 plt.show()
+```
+
+## Fitting the GP Regression
+
+```{python}
+plot_samp_no = 51
+samples = np.concatenate(
+    (
+        np.linspace(0, 1, plot_samp_no, dtype=np.float64).reshape(-1, 1),  # alpha
+        np.repeat(pv_champ_beta, plot_samp_no).reshape(-1, 1),  # beta
+        np.repeat(pv_champ_gamma_L, plot_samp_no).reshape(-1, 1),  # gamma_L
+        np.repeat(pv_champ_lambda, plot_samp_no).reshape(-1, 1),  # lambda
+        np.repeat(pv_champ_f, plot_samp_no).reshape(-1, 1),  # f
+        np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
+    ),
+    axis=1,
+)
+
+plot_indices_df = pd.DataFrame(samples, columns=variables_names)
+
+print(plot_indices_df.head())
+
+plot_prevalences = plot_indices_df.apply(
+    lambda x: champ_prevalence(
+        x["alpha"], x["beta"], x["gamma_L"], x["lambda"], x["f"], x["r"]
+    ),
+    axis=1,
+)
+
+plot_index_vals = plot_indices_df.values
+```
+
+```{python}
+champ_GP_reg = tfd.GaussianProcessRegressionModel(
+    kernel=kernel_champ,
+    index_points=plot_index_vals,
+    observation_index_points=index_vals,
+    observations=obs_vals,
+    observation_noise_variance=observation_noise_variance_champ,
+    predictive_noise_variance=0.,
+)
+
+num_samples = 50
+GP_samples = champ_GP_reg.sample(num_samples)
+```
+
+```{python}
+plt.figure(figsize=(12, 4))
+plt.scatter(plot_index_vals[:, 0], plot_prevalences,
+            label='Observations')
+for i in range(num_samples):
+  plt.plot(plot_index_vals[:, 0], GP_samples[i, :], c='r', alpha=.1,
+           label='Posterior Sample' if i == 0 else None)
+leg = plt.legend(loc='upper right')
+for lh in leg.legendHandles:
+    lh.set_alpha(1)
+plt.xlabel(r"Index points ($\mathbb{R}^1$)")
+plt.ylabel("Observation space")
+plt.show()
+
+```
+
+# MCMC using the Gaussian Process
+```{python}
+
 ```
