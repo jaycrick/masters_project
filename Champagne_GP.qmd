@@ -38,6 +38,7 @@ np.random.seed(590154)
 population = 1000
 initial_infecteds = 10
 epidemic_length = 1000
+number_of_events=15000
 
 pv_champ_alpha = 0.4  # prop of effective care
 pv_champ_beta = 0.4  # prop of radical cure
@@ -61,12 +62,18 @@ def champagne_stochastic(
     S_L=0,
     delta_=0,
     end_time=epidemic_length,
+    num_events=number_of_events
 ):
+    if (0 > (alpha_ or beta_)) or (1 < (alpha_ or beta_)):
+        return "Alpha or Beta out of bounds"
+    if (0 > (gamma_L or lambda_ or f or r)):
+        return "Gamma, lambda, f or r out of bounds"
+
     t = 0
     S_0 = N - I_L - I_0 - S_L
     list_of_outcomes = [{"t": 0, "S_0": S_0, "S_L": S_L, "I_0": I_0, "I_L": I_L}]
 
-    while t < end_time:
+    for i in range(num_events):
         if S_0 == N:
             break
 
@@ -626,14 +633,19 @@ next_vars = [
 ```{python}
 Adam_optim = tf.optimizers.Adam(learning_rate=0.1)
 
+
 @tf.function(autograph=False, jit_compile=False)
 def optimize():
     with tf.GradientTape() as tape:
         next_guess = tf.reshape(
-            tf.stack(
-                [next_alpha, next_beta, next_gamma_L, next_lambda, next_f, next_r],
-                name="new_guess",
-            ),
+            [
+                tfb.Sigmoid().forward(next_vars[0]),
+                tfb.Sigmoid().forward(next_vars[1]),
+                tfb.Sigmoid().forward(next_vars[2]),
+                tfb.Sigmoid().forward(next_vars[3]),
+                tfb.Sigmoid().forward(next_vars[4]),
+                tfb.Sigmoid().forward(next_vars[5]),
+            ],
             [1, 6],
         )
         mean_t = champ_GP_reg.mean_fn(next_guess)
@@ -642,6 +654,7 @@ def optimize():
     grads = tape.gradient(loss, next_vars)
     Adam_optim.apply_gradients(zip(grads, next_vars))
     return loss
+
 
 num_iters = 1000
 
@@ -673,21 +686,27 @@ plt.show()
 ```
 
 ```{python}
-for t in range(100):
+for t in range(1000):
+    # print(t)
     new_discrepency = discrepency_fn(
-        next_alpha, next_beta, next_gamma_L, next_lambda, next_f, next_r
+        next_alpha.numpy(),
+        next_beta.numpy(),
+        next_gamma_L.numpy(),
+        next_lambda.numpy(),
+        next_f.numpy(),
+        next_r.numpy(),
     )
 
     index_vals = np.append(
         index_vals,
         np.array(
             [
-                tfb.Sigmoid().forward(next_alpha).numpy(),
-                tfb.Sigmoid().forward(next_beta).numpy(),
-                constrain_positive.forward(next_gamma_L).numpy(),
-                constrain_positive.forward(next_lambda).numpy(),
-                constrain_positive.forward(next_f).numpy(),
-                constrain_positive.forward(next_r).numpy(),
+                next_alpha.numpy(),
+                next_beta.numpy(),
+                next_gamma_L.numpy(),
+                next_lambda.numpy(),
+                next_f.numpy(),
+                next_r.numpy(),
             ]
         ).reshape(1, -1),
         axis=0,
@@ -730,28 +749,28 @@ for t in range(100):
 
     Adam_optim = tf.optimizers.Adam(learning_rate=0.1)
 
-    @tf.function()
+    @tf.function(autograph=False, jit_compile=False)
     def optimize():
         with tf.GradientTape() as tape:
             next_guess = tf.reshape(
-                tf.stack(
-                    [next_alpha, next_beta, next_gamma_L, next_lambda, next_f, next_r],
-                    name="new_guess",
-                ),
+                [
+                    tfb.Sigmoid().forward(next_vars[0]),
+                    tfb.Sigmoid().forward(next_vars[1]),
+                    tfb.Sigmoid().forward(next_vars[2]),
+                    tfb.Sigmoid().forward(next_vars[3]),
+                    tfb.Sigmoid().forward(next_vars[4]),
+                    tfb.Sigmoid().forward(next_vars[5]),
+                ],
                 [1, 6],
             )
             mean_t = champ_GP_reg.mean_fn(next_guess)
             std_t = champ_GP_reg.stddev(index_points=next_guess)
-            loss = tf.squeeze(
-                mean_t
-                - np.sqrt(2 * np.log((t + 1) ** (6 / 2 + 2) * np.pi**2 / (3 * 0.1)))
-                * std_t
-            )
+            loss = tf.squeeze(mean_t - 1.7 * std_t)
         grads = tape.gradient(loss, next_vars)
         Adam_optim.apply_gradients(zip(grads, next_vars))
         return loss
 
-    num_iters = 500
+    num_iters = 200
 
     lls_ = np.zeros(num_iters, np.float64)
     for i in range(num_iters):
