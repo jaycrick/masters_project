@@ -1,4 +1,7 @@
 ---
+title: "Some examples of Gaussian Processes"
+format:
+    pdf: default
 jupyter: python3
 ---
 
@@ -115,7 +118,7 @@ for i in range(num_samples):
   plt.plot(predictive_index_points_, samples[i, :], c='r', alpha=.1,
            label='Posterior Sample' if i == 0 else None)
 leg = plt.legend(loc='upper right')
-for lh in leg.legend_handles: 
+for lh in leg.legend_handles:
     lh.set_alpha(1)
 plt.xlabel("x")
 plt.ylabel("f(x)")
@@ -210,7 +213,7 @@ for i in range(num_samples_err):
   plt.plot(predictive_index_points_, samples_err[i, :], c='r', alpha=.1,
            label='Posterior Sample' if i == 0 else None)
 leg = plt.legend(loc='upper right')
-for lh in leg.legend_handles: 
+for lh in leg.legend_handles:
     lh.set_alpha(1)
 plt.xlabel("x")
 plt.ylabel("f(x)")
@@ -305,7 +308,7 @@ for i in range(num_samples_quad):
   plt.plot(predictive_index_points_, samples_quad[i, :], c='r', alpha=.1,
            label='Posterior Sample' if i == 0 else None)
 leg = plt.legend(loc='upper right')
-for lh in leg.legend_handles: 
+for lh in leg.legend_handles:
     lh.set_alpha(1)
 plt.xlabel("x")
 plt.ylabel("f(x)")
@@ -384,7 +387,7 @@ def varying_variance(num_low, num_high, var_low, var_high):
     plt.plot(predictive_index_points_, samples_[i, :], c='r', alpha=.1,
             label='Posterior Sample' if i == 0 else None)
   leg = plt.legend(loc='upper left')
-  for lh in leg.legend_handles: 
+  for lh in leg.legend_handles:
       lh.set_alpha(1)
   plt.xlabel("x")
   plt.ylabel("f(x)")
