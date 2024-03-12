@@ -25,6 +25,7 @@ from scipy.stats import qmc
 
 import tensorflow as tf
 import tensorflow_probability as tfp
+
 tfb = tfp.bijectors
 tfd = tfp.distributions
 tfk = tfp.math.psd_kernels
@@ -38,7 +39,7 @@ np.random.seed(590154)
 population = 1000
 initial_infecteds = 10
 epidemic_length = 1000
-number_of_events=15000
+number_of_events = 15000
 
 pv_champ_alpha = 0.4  # prop of effective care
 pv_champ_beta = 0.4  # prop of radical cure
@@ -62,11 +63,11 @@ def champagne_stochastic(
     S_L=0,
     delta_=0,
     end_time=epidemic_length,
-    num_events=number_of_events
+    num_events=number_of_events,
 ):
     if (0 > (alpha_ or beta_)) or (1 < (alpha_ or beta_)):
         return "Alpha or Beta out of bounds"
-    if (0 > (gamma_L or lambda_ or f or r)):
+    if 0 > (gamma_L or lambda_ or f or r):
         return "Gamma, lambda, f or r out of bounds"
 
     t = 0
@@ -141,16 +142,16 @@ champ_samp = champagne_stochastic(
     pv_champ_f,
     pv_champ_r,
 )  # .melt(id_vars='t')
-
 ```
 
 ## Plotting outcome
 
 ```{python}
-champ_samp.plot(x = 't',legend=True)
-plt.xlabel('Time')
-plt.ylabel('Value')
-plt.title('Champagne Stochastic Simulation')
+champ_samp.plot(x="t", legend=True)
+plt.xlabel("Time")
+plt.ylabel("Value")
+plt.title("Champagne Stochastic Simulation")
+plt.savefig("champagne_GP_images/champagne_simulation.pdf")
 plt.show()
 ```
 
@@ -160,14 +161,22 @@ plt.show()
 def champ_prevalence(alpha_, beta_, gamma_L, lambda_, f, r):
     champ_df_ = champagne_stochastic(alpha_, beta_, gamma_L, lambda_, f, r)
 
-    return(champ_df_.iloc[-1]["I_0"] + champ_df_.iloc[-1]["I_L"])
+    return champ_df_.iloc[-1]["I_0"] + champ_df_.iloc[-1]["I_L"]
 
-observed_final_prevalence = champ_prevalence(pv_champ_alpha, pv_champ_beta,
-pv_champ_gamma_L, pv_champ_lambda, pv_champ_f, pv_champ_r)
+
+observed_final_prevalence = champ_prevalence(
+    pv_champ_alpha,
+    pv_champ_beta,
+    pv_champ_gamma_L,
+    pv_champ_lambda,
+    pv_champ_f,
+    pv_champ_r,
+)
+
 
 def discrepency_fn(alpha_, beta_, gamma_L, lambda_, f, r):
     x = champ_prevalence(alpha_, beta_, gamma_L, lambda_, f, r)
-    return(np.abs(x - observed_final_prevalence))
+    return np.abs(x - observed_final_prevalence)
 ```
 
 # Gaussian Process Regression on Final Prevalence Discrepency
@@ -198,13 +207,12 @@ samples = np.concatenate(
     axis=1,
 )
 
-LHC_sampler = qmc.LatinHypercube(d = 6, seed = my_seed
-)
-LHC_samples = LHC_sampler.random(n = num_samples)
-LHC_samples[:,2] = -pv_champ_gamma_L*np.log(LHC_samples[:,2])
-LHC_samples[:,3] = -pv_champ_lambda*np.log(LHC_samples[:,3])
-LHC_samples[:,4] = -pv_champ_f*np.log(LHC_samples[:,4])
-LHC_samples[:,5] = -pv_champ_r*np.log(LHC_samples[:,5])
+LHC_sampler = qmc.LatinHypercube(d=6, seed=my_seed)
+LHC_samples = LHC_sampler.random(n=num_samples)
+LHC_samples[:, 2] = -pv_champ_gamma_L * np.log(LHC_samples[:, 2])
+LHC_samples[:, 3] = -pv_champ_lambda * np.log(LHC_samples[:, 3])
+LHC_samples[:, 4] = -pv_champ_f * np.log(LHC_samples[:, 4])
+LHC_samples[:, 5] = -pv_champ_r * np.log(LHC_samples[:, 5])
 
 random_indices_df = pd.DataFrame(samples, columns=variables_names)
 LHC_indices_df = pd.DataFrame(LHC_samples, columns=variables_names)
@@ -334,7 +342,6 @@ class quad_mean_fn(tf.Module):
             + self.amp_r_mean * (x[..., 5] - self.r_tp) ** 2
             + self.bias_mean
         )
-
 ```
 
 ## Making the ARD Kernel
@@ -368,8 +375,10 @@ length_scales_champ = tfp.util.TransformedVariable(
 ```
 
 ```{python}
-kernel_champ = tfk.FeatureScaled(tfk.ExponentiatedQuadratic(
-    amplitude=amplitude_champ), scale_diag=length_scales_champ)
+kernel_champ = tfk.FeatureScaled(
+    tfk.ExponentiatedQuadratic(amplitude=amplitude_champ),
+    scale_diag=length_scales_champ,
+)
 ```
 
 ## Define the Gaussian Process with Quadratic Mean Function and ARD Kernel
@@ -385,13 +394,13 @@ champ_GP = tfd.GaussianProcess(
 
 print(champ_GP.trainable_variables)
 
-Adam_optim = tf.optimizers.Adam(learning_rate=.01)
+Adam_optim = tf.optimizers.Adam(learning_rate=0.01)
 ```
 
 ## Train the Hyperparameters
 
 ```{python}
-@tf.function()
+@tf.function(autograph=False, jit_compile=False)
 def optimize():
     with tf.GradientTape() as tape:
         loss = -champ_GP.log_prob(obs_vals)
@@ -399,12 +408,24 @@ def optimize():
     Adam_optim.apply_gradients(zip(grads, champ_GP.trainable_variables))
     return loss
 
-num_iters = 1000
+
+num_iters = 10000
 
 lls_ = np.zeros(num_iters, np.float64)
+tolerance = 1e-6  # Set your desired tolerance level
+previous_loss = float("inf")
+
 for i in range(num_iters):
     loss = optimize()
     lls_[i] = loss
+
+    # Check if change in loss is less than tolerance
+    if abs(loss - previous_loss) < tolerance:
+        print(f"Hyperparameter convergence reached at iteration {i+1}.")
+        lls_ = lls_[range(i + 1)]
+        break
+
+    previous_loss = loss
 ```
 
 ```{python}
@@ -423,8 +444,10 @@ for var in champ_GP.trainable_variables:
 ```{python}
 plt.figure(figsize=(7, 4))
 plt.plot(lls_)
+plt.title("Initial training for GP hyperparameters")
 plt.xlabel("Training iteration")
 plt.ylabel("Log likelihood")
+plt.savefig("champagne_GP_images/hyperparam_loss.pdf")
 plt.show()
 ```
 
@@ -436,7 +459,7 @@ gp_samp_no = 50
 ```
 
 ```{python}
-samples = np.concatenate(
+alpha_slice_samples = np.concatenate(
     (
         np.linspace(0, 1, plot_samp_no, dtype=np.float64).reshape(-1, 1),  # alpha
         np.repeat(pv_champ_beta, plot_samp_no).reshape(-1, 1),  # beta
@@ -448,58 +471,62 @@ samples = np.concatenate(
     axis=1,
 )
 
-plot_indices_df = pd.DataFrame(samples, columns=variables_names)
+alpha_slice_indices_df = pd.DataFrame(alpha_slice_samples, columns=variables_names)
 
-print(plot_indices_df.head())
+print(alpha_slice_indices_df.head())
 
-plot_discrepencies = plot_indices_df.apply(
+alpha_slice_discrepencies = alpha_slice_indices_df.apply(
     lambda x: discrepency_fn(
         x["alpha"], x["beta"], x["gamma_L"], x["lambda"], x["f"], x["r"]
     ),
     axis=1,
 )
 
-plot_index_vals = plot_indices_df.values
+alpha_slice_index_vals = alpha_slice_indices_df.values
 ```
 
 ```{python}
-GP_seed = tfp.random.sanitize_seed(
-    4362
-)
+GP_seed = tfp.random.sanitize_seed(4362)
 
 champ_GP_reg = tfd.GaussianProcessRegressionModel(
     kernel=kernel_champ,
-    index_points=plot_index_vals,
+    index_points=alpha_slice_index_vals,
     observation_index_points=index_vals,
     observations=obs_vals,
     observation_noise_variance=observation_noise_variance_champ,
-    predictive_noise_variance=0.,
+    predictive_noise_variance=0.0,
     mean_fn=quad_mean_fn(),
 )
 
-GP_samples = champ_GP_reg.sample(gp_samp_no, seed = GP_seed)
+GP_samples = champ_GP_reg.sample(gp_samp_no, seed=GP_seed)
 ```
 
 ```{python}
 plt.figure(figsize=(12, 4))
-plt.scatter(plot_index_vals[:, 0], plot_discrepencies,
-            label='Observations')
+plt.scatter(
+    alpha_slice_index_vals[:, 0], alpha_slice_discrepencies, label="Observations"
+)
 for i in range(gp_samp_no):
-  plt.plot(plot_index_vals[:, 0], GP_samples[i, :], c='r', alpha=.1,
-           label='Posterior Sample' if i == 0 else None)
-leg = plt.legend(loc='lower right')
-for lh in leg.legendHandles:
+    plt.plot(
+        alpha_slice_index_vals[:, 0],
+        GP_samples[i, :],
+        c="r",
+        alpha=0.1,
+        label="Posterior Sample" if i == 0 else None,
+    )
+leg = plt.legend(loc="lower right")
+for lh in leg.legend_handles:
     lh.set_alpha(1)
 plt.xlabel(r"$\alpha$ index points")
 plt.ylabel("Discrepancy")
+plt.savefig("champagne_GP_images/initial_alpha_slice.pdf")
 plt.show()
-
 ```
 
 ## Fitting the GP Regression across beta
 
 ```{python}
-samples = np.concatenate(
+beta_slice_samples = np.concatenate(
     (
         np.repeat(pv_champ_alpha, plot_samp_no).reshape(-1, 1),  # alpha
         np.linspace(0, 1, plot_samp_no, dtype=np.float64).reshape(-1, 1),  # beta
@@ -511,48 +538,52 @@ samples = np.concatenate(
     axis=1,
 )
 
-plot_indices_df = pd.DataFrame(samples, columns=variables_names)
+beta_slice_indices_df = pd.DataFrame(beta_slice_samples, columns=variables_names)
 
-print(plot_indices_df.head())
+print(beta_slice_indices_df.head())
 
-plot_discrepencies = plot_indices_df.apply(
+beta_slice_discrepencies = beta_slice_indices_df.apply(
     lambda x: discrepency_fn(
         x["alpha"], x["beta"], x["gamma_L"], x["lambda"], x["f"], x["r"]
     ),
     axis=1,
 )
 
-plot_index_vals = plot_indices_df.values
+beta_slice_index_vals = beta_slice_indices_df.values
 ```
 
 ```{python}
 champ_GP_reg = tfd.GaussianProcessRegressionModel(
     kernel=kernel_champ,
-    index_points=plot_index_vals,
+    index_points=beta_slice_index_vals,
     observation_index_points=index_vals,
     observations=obs_vals,
     observation_noise_variance=observation_noise_variance_champ,
-    predictive_noise_variance=0.,
+    predictive_noise_variance=0.0,
     mean_fn=quad_mean_fn(),
 )
 
-GP_samples = champ_GP_reg.sample(gp_samp_no, seed = GP_seed)
+GP_samples = champ_GP_reg.sample(gp_samp_no, seed=GP_seed)
 ```
 
 ```{python}
 plt.figure(figsize=(12, 4))
-plt.scatter(plot_index_vals[:, 1], plot_discrepencies,
-            label='Observations')
+plt.scatter(beta_slice_index_vals[:, 1], beta_slice_discrepencies, label="Observations")
 for i in range(gp_samp_no):
-  plt.plot(plot_index_vals[:, 1], GP_samples[i, :], c='r', alpha=.1,
-           label='Posterior Sample' if i == 0 else None)
-leg = plt.legend(loc='lower right')
-for lh in leg.legendHandles:
+    plt.plot(
+        beta_slice_index_vals[:, 1],
+        GP_samples[i, :],
+        c="r",
+        alpha=0.1,
+        label="Posterior Sample" if i == 0 else None,
+    )
+leg = plt.legend(loc="lower right")
+for lh in leg.legend_handles:
     lh.set_alpha(1)
 plt.xlabel(r"$\beta$ index points")
 plt.ylabel("Discrepency")
+plt.savefig("champagne_GP_images/initial_beta_slice.pdf")
 plt.show()
-
 ```
 
 
@@ -583,43 +614,43 @@ print("Variance function is {}".format(my_var_t.numpy().round(3)))
 
 ```{python}
 next_alpha = tfp.util.TransformedVariable(
-    initial_value=0.4,
-    bijector = tfb.Sigmoid(),
+    initial_value=0.5,
+    bijector=tfb.Sigmoid(),
     dtype=np.float64,
     name="next_alpha",
 )
 
 next_beta = tfp.util.TransformedVariable(
-    initial_value=0.4,
-    bijector = tfb.Sigmoid(),
+    initial_value=0.5,
+    bijector=tfb.Sigmoid(),
     dtype=np.float64,
     name="next_beta",
 )
 
 next_gamma_L = tfp.util.TransformedVariable(
-    initial_value=0.004,
-    bijector = constrain_positive,
+    initial_value=0.1,
+    bijector=constrain_positive,
     dtype=np.float64,
     name="next_gamma_L",
 )
 
 next_lambda = tfp.util.TransformedVariable(
-    initial_value=0.04,
-    bijector = constrain_positive,
+    initial_value=0.1,
+    bijector=constrain_positive,
     dtype=np.float64,
     name="next_lambda",
 )
 
 next_f = tfp.util.TransformedVariable(
-    initial_value=0.01,
-    bijector = constrain_positive,
+    initial_value=0.1,
+    bijector=constrain_positive,
     dtype=np.float64,
     name="next_f",
 )
 
 next_r = tfp.util.TransformedVariable(
-    initial_value=0.17,
-    bijector = constrain_positive,
+    initial_value=0.1,
+    bijector=constrain_positive,
     dtype=np.float64,
     name="next_r",
 )
@@ -656,12 +687,23 @@ def optimize():
     return loss
 
 
-num_iters = 1000
+num_iters = 10000
 
 lls_ = np.zeros(num_iters, np.float64)
+tolerance = 1e-6  # Set your desired tolerance level
+previous_loss = float("inf")
+
 for i in range(num_iters):
     loss = optimize()
     lls_[i] = loss
+
+    # Check if change in loss is less than tolerance
+    if abs(loss - previous_loss) < tolerance:
+        print(f"Acquisition function convergence reached at iteration {i+1}.")
+        lls_ = lls_[range(i + 1)]
+        break
+
+    previous_loss = loss
 
 print("Trained parameters:")
 for var in next_vars:
@@ -682,12 +724,17 @@ plt.figure(figsize=(7, 4))
 plt.plot(lls_)
 plt.xlabel("Training iteration")
 plt.ylabel("Loss")
+plt.savefig("champagne_GP_images/bolfi_optim_loss.pdf")
 plt.show()
 ```
 
 ```{python}
-for t in range(1000):
-    # print(t)
+exploration_rate = 0.1
+d = 6
+
+for t in range(200):
+    eta_t = np.sqrt(np.log((t + 1) ** (d / 2 + 2) * np.pi**2 / (3 * exploration_rate)))
+    print(t)
     new_discrepency = discrepency_fn(
         next_alpha.numpy(),
         next_beta.numpy(),
@@ -720,9 +767,9 @@ for t in range(1000):
         mean_fn=quad_mean_fn(),
     )
 
-    Adam_optim = tf.optimizers.Adam(learning_rate=0.1)
+    Adam_optim = tf.optimizers.Adam()
 
-    @tf.function()
+    @tf.function(autograph=False, jit_compile=False)
     def optimize():
         with tf.GradientTape() as tape:
             loss = -champ_GP.log_prob(obs_vals)
@@ -730,16 +777,27 @@ for t in range(1000):
         Adam_optim.apply_gradients(zip(grads, champ_GP.trainable_variables))
         return loss
 
-    num_iters = 500
+    num_iters = 10000
 
     lls_ = np.zeros(num_iters, np.float64)
+    tolerance = 1e-6  # Set your desired tolerance level
+    previous_loss = float("inf")
+
     for i in range(num_iters):
         loss = optimize()
         lls_[i] = loss
 
+        # Check if change in loss is less than tolerance
+        if abs(loss - previous_loss) < tolerance:
+            print(f"Hyperparameter convergence reached at iteration {i+1}.")
+            lls_ = lls_[range(i + 1)]
+            break
+
+        previous_loss = loss
+
     champ_GP_reg = tfd.GaussianProcessRegressionModel(
         kernel=kernel_champ,
-        index_points=plot_index_vals,
+        index_points=alpha_slice_index_vals,
         observation_index_points=index_vals,
         observations=obs_vals,
         observation_noise_variance=observation_noise_variance_champ,
@@ -747,7 +805,7 @@ for t in range(1000):
         mean_fn=quad_mean_fn(),
     )
 
-    Adam_optim = tf.optimizers.Adam(learning_rate=0.1)
+    Adam_optim = tf.optimizers.Adam(learning_rate=0.01)
 
     @tf.function(autograph=False, jit_compile=False)
     def optimize():
@@ -765,17 +823,28 @@ for t in range(1000):
             )
             mean_t = champ_GP_reg.mean_fn(next_guess)
             std_t = champ_GP_reg.stddev(index_points=next_guess)
-            loss = tf.squeeze(mean_t - 1.7 * std_t)
+            loss = tf.squeeze(mean_t - eta_t * std_t)
         grads = tape.gradient(loss, next_vars)
         Adam_optim.apply_gradients(zip(grads, next_vars))
         return loss
 
-    num_iters = 200
+    num_iters = 10000
 
     lls_ = np.zeros(num_iters, np.float64)
+    tolerance = 1e-6  # Set your desired tolerance level
+    previous_loss = float("inf")
+
     for i in range(num_iters):
         loss = optimize()
         lls_[i] = loss
+
+        # Check if change in loss is less than tolerance
+        if abs(loss - previous_loss) < tolerance:
+            print(f"Acquisition function convergence reached at iteration {i+1}.")
+            lls_ = lls_[range(i + 1)]
+            break
+
+        previous_loss = loss
 ```
 
 
@@ -787,119 +856,75 @@ gp_samp_no = 50
 ```
 
 ```{python}
-samples = np.concatenate(
-    (
-        np.linspace(0, 1, plot_samp_no, dtype=np.float64).reshape(-1, 1),  # alpha
-        np.repeat(pv_champ_beta, plot_samp_no).reshape(-1, 1),  # beta
-        np.repeat(pv_champ_gamma_L, plot_samp_no).reshape(-1, 1),  # gamma_L
-        np.repeat(pv_champ_lambda, plot_samp_no).reshape(-1, 1),  # lambda
-        np.repeat(pv_champ_f, plot_samp_no).reshape(-1, 1),  # f
-        np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
-    ),
-    axis=1,
-)
-
-plot_indices_df = pd.DataFrame(samples, columns=variables_names)
-
-print(plot_indices_df.head())
-
-plot_discrepencies = plot_indices_df.apply(
-    lambda x: discrepency_fn(
-        x["alpha"], x["beta"], x["gamma_L"], x["lambda"], x["f"], x["r"]
-    ),
-    axis=1,
-)
-
-plot_index_vals = plot_indices_df.values
-```
-
-```{python}
-GP_seed = tfp.random.sanitize_seed(
-    4362
-)
+GP_seed = tfp.random.sanitize_seed(4362)
 
 champ_GP_reg = tfd.GaussianProcessRegressionModel(
     kernel=kernel_champ,
-    index_points=plot_index_vals,
+    index_points=alpha_slice_index_vals,
     observation_index_points=index_vals,
     observations=obs_vals,
     observation_noise_variance=observation_noise_variance_champ,
-    predictive_noise_variance=0.,
+    predictive_noise_variance=0.0,
     mean_fn=quad_mean_fn(),
 )
 
-GP_samples = champ_GP_reg.sample(gp_samp_no, seed = GP_seed)
+GP_samples = champ_GP_reg.sample(gp_samp_no, seed=GP_seed)
 ```
 
 ```{python}
 plt.figure(figsize=(12, 4))
-plt.scatter(plot_index_vals[:, 0], plot_discrepencies,
-            label='Observations')
+plt.scatter(
+    alpha_slice_index_vals[:, 0], alpha_slice_discrepencies, label="Observations"
+)
 for i in range(gp_samp_no):
-  plt.plot(plot_index_vals[:, 0], GP_samples[i, :], c='r', alpha=.1,
-           label='Posterior Sample' if i == 0 else None)
-leg = plt.legend(loc='lower right')
-for lh in leg.legendHandles:
+    plt.plot(
+        alpha_slice_index_vals[:, 0],
+        GP_samples[i, :],
+        c="r",
+        alpha=0.1,
+        label="Posterior Sample" if i == 0 else None,
+    )
+leg = plt.legend(loc="lower right")
+for lh in leg.legend_handles:
     lh.set_alpha(1)
 plt.xlabel(r"$\alpha$ index points")
 plt.ylabel("Discrepancy")
+plt.savefig("champagne_GP_images/new_alpha_slice.pdf")
 plt.show()
 ```
 
 ## Fitting the GP Regression across beta
 
 ```{python}
-samples = np.concatenate(
-    (
-        np.repeat(pv_champ_alpha, plot_samp_no).reshape(-1, 1),  # alpha
-        np.linspace(0, 1, plot_samp_no, dtype=np.float64).reshape(-1, 1),  # beta
-        np.repeat(pv_champ_gamma_L, plot_samp_no).reshape(-1, 1),  # gamma_L
-        np.repeat(pv_champ_lambda, plot_samp_no).reshape(-1, 1),  # lambda
-        np.repeat(pv_champ_f, plot_samp_no).reshape(-1, 1),  # f
-        np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
-    ),
-    axis=1,
-)
-
-plot_indices_df = pd.DataFrame(samples, columns=variables_names)
-
-print(plot_indices_df.head())
-
-plot_discrepencies = plot_indices_df.apply(
-    lambda x: discrepency_fn(
-        x["alpha"], x["beta"], x["gamma_L"], x["lambda"], x["f"], x["r"]
-    ),
-    axis=1,
-)
-
-plot_index_vals = plot_indices_df.values
-```
-
-```{python}
 champ_GP_reg = tfd.GaussianProcessRegressionModel(
     kernel=kernel_champ,
-    index_points=plot_index_vals,
+    index_points=beta_slice_index_vals,
     observation_index_points=index_vals,
     observations=obs_vals,
     observation_noise_variance=observation_noise_variance_champ,
-    predictive_noise_variance=0.,
+    predictive_noise_variance=0.0,
     mean_fn=quad_mean_fn(),
 )
 
-GP_samples = champ_GP_reg.sample(gp_samp_no, seed = GP_seed)
+GP_samples = champ_GP_reg.sample(gp_samp_no, seed=GP_seed)
 ```
 
 ```{python}
 plt.figure(figsize=(12, 4))
-plt.scatter(plot_index_vals[:, 1], plot_discrepencies,
-            label='Observations')
+plt.scatter(beta_slice_index_vals[:, 1], beta_slice_discrepencies, label="Observations")
 for i in range(gp_samp_no):
-  plt.plot(plot_index_vals[:, 1], GP_samples[i, :], c='r', alpha=.1,
-           label='Posterior Sample' if i == 0 else None)
-leg = plt.legend(loc='lower right')
-for lh in leg.legendHandles:
+    plt.plot(
+        beta_slice_index_vals[:, 1],
+        GP_samples[i, :],
+        c="r",
+        alpha=0.1,
+        label="Posterior Sample" if i == 0 else None,
+    )
+leg = plt.legend(loc="lower right")
+for lh in leg.legend_handles:
     lh.set_alpha(1)
 plt.xlabel(r"$\beta$ index points")
 plt.ylabel("Discrepency")
+plt.savefig("champagne_GP_images/new_beta_slice.pdf")
 plt.show()
 ```
