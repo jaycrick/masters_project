@@ -184,7 +184,7 @@ def discrepency_fn(alpha_, beta_, gamma_L, lambda_, f, r):
 ```{python}
 my_seed = np.random.default_rng(seed=1795)  # For replicability
 
-num_samples = 50
+num_samples = 2000
 
 variables_names = ["alpha", "beta", "gamma_L", "lambda", "f", "r"]
 
@@ -444,10 +444,10 @@ for var in champ_GP.trainable_variables:
 ```{python}
 plt.figure(figsize=(7, 4))
 plt.plot(lls_)
-plt.title("Initial training for GP hyperparameters")
+plt.title("GP hyperparameters fitting")
 plt.xlabel("Training iteration")
 plt.ylabel("Log likelihood")
-plt.savefig("champagne_GP_images/hyperparam_loss.pdf")
+plt.savefig("champagne_GP_images/hyperparam_loss_NO_BOLFI.pdf")
 plt.show()
 ```
 
@@ -519,7 +519,7 @@ for lh in leg.legend_handles:
     lh.set_alpha(1)
 plt.xlabel(r"$\alpha$ index points")
 plt.ylabel("Discrepancy")
-plt.savefig("champagne_GP_images/initial_alpha_slice.pdf")
+plt.savefig("champagne_GP_images/alpha_slice_NO_BOLFI.pdf")
 plt.show()
 ```
 
@@ -582,10 +582,9 @@ for lh in leg.legend_handles:
     lh.set_alpha(1)
 plt.xlabel(r"$\beta$ index points")
 plt.ylabel("Discrepency")
-plt.savefig("champagne_GP_images/initial_beta_slice.pdf")
+plt.savefig("champagne_GP_images/beta_slice_NO_BOLFI.pdf")
 plt.show()
 ```
-
 
 # Acquiring the next datapoint to test
 
@@ -608,323 +607,4 @@ my_var_t = kernel_self - kernel_others.numpy() @ inv_K @ kernel_others.numpy()
 
 print("Variance function is {}".format(variance_t.numpy().round(3)))
 print("Variance function is {}".format(my_var_t.numpy().round(3)))
-```
-
-## Loss function
-
-```{python}
-next_alpha = tfp.util.TransformedVariable(
-    initial_value=0.5,
-    bijector=tfb.Sigmoid(),
-    dtype=np.float64,
-    name="next_alpha",
-)
-
-next_beta = tfp.util.TransformedVariable(
-    initial_value=0.5,
-    bijector=tfb.Sigmoid(),
-    dtype=np.float64,
-    name="next_beta",
-)
-
-next_gamma_L = tfp.util.TransformedVariable(
-    initial_value=0.1,
-    bijector=constrain_positive,
-    dtype=np.float64,
-    name="next_gamma_L",
-)
-
-next_lambda = tfp.util.TransformedVariable(
-    initial_value=0.1,
-    bijector=constrain_positive,
-    dtype=np.float64,
-    name="next_lambda",
-)
-
-next_f = tfp.util.TransformedVariable(
-    initial_value=0.1,
-    bijector=constrain_positive,
-    dtype=np.float64,
-    name="next_f",
-)
-
-next_r = tfp.util.TransformedVariable(
-    initial_value=0.1,
-    bijector=constrain_positive,
-    dtype=np.float64,
-    name="next_r",
-)
-
-next_vars = [
-    v.trainable_variables[0]
-    for v in [next_alpha, next_beta, next_gamma_L, next_lambda, next_f, next_r]
-]
-```
-
-```{python}
-Adam_optim = tf.optimizers.Adam(learning_rate=0.1)
-
-
-@tf.function(autograph=False, jit_compile=False)
-def optimize():
-    with tf.GradientTape() as tape:
-        next_guess = tf.reshape(
-            [
-                tfb.Sigmoid().forward(next_vars[0]),
-                tfb.Sigmoid().forward(next_vars[1]),
-                tfb.Sigmoid().forward(next_vars[2]),
-                tfb.Sigmoid().forward(next_vars[3]),
-                tfb.Sigmoid().forward(next_vars[4]),
-                tfb.Sigmoid().forward(next_vars[5]),
-            ],
-            [1, 6],
-        )
-        mean_t = champ_GP_reg.mean_fn(next_guess)
-        std_t = champ_GP_reg.stddev(index_points=next_guess)
-        loss = tf.squeeze(mean_t - 1.7 * std_t)
-    grads = tape.gradient(loss, next_vars)
-    Adam_optim.apply_gradients(zip(grads, next_vars))
-    return loss
-
-
-num_iters = 10000
-
-lls_ = np.zeros(num_iters, np.float64)
-tolerance = 1e-6  # Set your desired tolerance level
-previous_loss = float("inf")
-
-for i in range(num_iters):
-    loss = optimize()
-    lls_[i] = loss
-
-    # Check if change in loss is less than tolerance
-    if abs(loss - previous_loss) < tolerance:
-        print(f"Acquisition function convergence reached at iteration {i+1}.")
-        lls_ = lls_[range(i + 1)]
-        break
-
-    previous_loss = loss
-
-print("Trained parameters:")
-for var in next_vars:
-    if ("alpha" in var.name) | ("beta" in var.name):
-        print(
-            "{} is {}".format(var.name, (tfb.Sigmoid().forward(var).numpy().round(3)))
-        )
-    else:
-        print(
-            "{} is {}".format(
-                var.name, constrain_positive.forward(var).numpy().round(3)
-            )
-        )
-```
-
-```{python}
-plt.figure(figsize=(7, 4))
-plt.plot(lls_)
-plt.xlabel("Training iteration")
-plt.ylabel("Loss")
-plt.savefig("champagne_GP_images/bolfi_optim_loss.pdf")
-plt.show()
-```
-
-```{python}
-exploration_rate = 0.1
-d = 6
-
-for t in range(200):
-    eta_t = np.sqrt(np.log((t + 1) ** (d / 2 + 2) * np.pi**2 / (3 * exploration_rate)))
-    print(t)
-    new_discrepency = discrepency_fn(
-        next_alpha.numpy(),
-        next_beta.numpy(),
-        next_gamma_L.numpy(),
-        next_lambda.numpy(),
-        next_f.numpy(),
-        next_r.numpy(),
-    )
-
-    index_vals = np.append(
-        index_vals,
-        np.array(
-            [
-                next_alpha.numpy(),
-                next_beta.numpy(),
-                next_gamma_L.numpy(),
-                next_lambda.numpy(),
-                next_f.numpy(),
-                next_r.numpy(),
-            ]
-        ).reshape(1, -1),
-        axis=0,
-    )
-    obs_vals = np.append(obs_vals, new_discrepency)
-
-    champ_GP = tfd.GaussianProcess(
-        kernel=kernel_champ,
-        observation_noise_variance=observation_noise_variance_champ,
-        index_points=index_vals,
-        mean_fn=quad_mean_fn(),
-    )
-
-    Adam_optim = tf.optimizers.Adam()
-
-    @tf.function(autograph=False, jit_compile=False)
-    def optimize():
-        with tf.GradientTape() as tape:
-            loss = -champ_GP.log_prob(obs_vals)
-        grads = tape.gradient(loss, champ_GP.trainable_variables)
-        Adam_optim.apply_gradients(zip(grads, champ_GP.trainable_variables))
-        return loss
-
-    num_iters = 10000
-
-    lls_ = np.zeros(num_iters, np.float64)
-    tolerance = 1e-6  # Set your desired tolerance level
-    previous_loss = float("inf")
-
-    for i in range(num_iters):
-        loss = optimize()
-        lls_[i] = loss
-
-        # Check if change in loss is less than tolerance
-        if abs(loss - previous_loss) < tolerance:
-            print(f"Hyperparameter convergence reached at iteration {i+1}.")
-            lls_ = lls_[range(i + 1)]
-            break
-
-        previous_loss = loss
-
-    champ_GP_reg = tfd.GaussianProcessRegressionModel(
-        kernel=kernel_champ,
-        index_points=alpha_slice_index_vals,
-        observation_index_points=index_vals,
-        observations=obs_vals,
-        observation_noise_variance=observation_noise_variance_champ,
-        predictive_noise_variance=0.0,
-        mean_fn=quad_mean_fn(),
-    )
-
-    Adam_optim = tf.optimizers.Adam(learning_rate=0.01)
-
-    @tf.function(autograph=False, jit_compile=False)
-    def optimize():
-        with tf.GradientTape() as tape:
-            next_guess = tf.reshape(
-                [
-                    tfb.Sigmoid().forward(next_vars[0]),
-                    tfb.Sigmoid().forward(next_vars[1]),
-                    tfb.Sigmoid().forward(next_vars[2]),
-                    tfb.Sigmoid().forward(next_vars[3]),
-                    tfb.Sigmoid().forward(next_vars[4]),
-                    tfb.Sigmoid().forward(next_vars[5]),
-                ],
-                [1, 6],
-            )
-            mean_t = champ_GP_reg.mean_fn(next_guess)
-            std_t = champ_GP_reg.stddev(index_points=next_guess)
-            loss = tf.squeeze(mean_t - eta_t * std_t)
-        grads = tape.gradient(loss, next_vars)
-        Adam_optim.apply_gradients(zip(grads, next_vars))
-        return loss
-
-    num_iters = 10000
-
-    lls_ = np.zeros(num_iters, np.float64)
-    tolerance = 1e-6  # Set your desired tolerance level
-    previous_loss = float("inf")
-
-    for i in range(num_iters):
-        loss = optimize()
-        lls_[i] = loss
-
-        # Check if change in loss is less than tolerance
-        if abs(loss - previous_loss) < tolerance:
-            print(f"Acquisition function convergence reached at iteration {i+1}.")
-            lls_ = lls_[range(i + 1)]
-            break
-
-        previous_loss = loss
-```
-
-
-## Fitting the GP Regression across alpha
-
-```{python}
-plot_samp_no = 21
-gp_samp_no = 50
-```
-
-```{python}
-GP_seed = tfp.random.sanitize_seed(4362)
-
-champ_GP_reg = tfd.GaussianProcessRegressionModel(
-    kernel=kernel_champ,
-    index_points=alpha_slice_index_vals,
-    observation_index_points=index_vals,
-    observations=obs_vals,
-    observation_noise_variance=observation_noise_variance_champ,
-    predictive_noise_variance=0.0,
-    mean_fn=quad_mean_fn(),
-)
-
-GP_samples = champ_GP_reg.sample(gp_samp_no, seed=GP_seed)
-```
-
-```{python}
-plt.figure(figsize=(12, 4))
-plt.scatter(
-    alpha_slice_index_vals[:, 0], alpha_slice_discrepencies, label="Observations"
-)
-for i in range(gp_samp_no):
-    plt.plot(
-        alpha_slice_index_vals[:, 0],
-        GP_samples[i, :],
-        c="r",
-        alpha=0.1,
-        label="Posterior Sample" if i == 0 else None,
-    )
-leg = plt.legend(loc="lower right")
-for lh in leg.legend_handles:
-    lh.set_alpha(1)
-plt.xlabel(r"$\alpha$ index points")
-plt.ylabel("Discrepancy")
-plt.savefig("champagne_GP_images/new_alpha_slice.pdf")
-plt.show()
-```
-
-## Fitting the GP Regression across beta
-
-```{python}
-champ_GP_reg = tfd.GaussianProcessRegressionModel(
-    kernel=kernel_champ,
-    index_points=beta_slice_index_vals,
-    observation_index_points=index_vals,
-    observations=obs_vals,
-    observation_noise_variance=observation_noise_variance_champ,
-    predictive_noise_variance=0.0,
-    mean_fn=quad_mean_fn(),
-)
-
-GP_samples = champ_GP_reg.sample(gp_samp_no, seed=GP_seed)
-```
-
-```{python}
-plt.figure(figsize=(12, 4))
-plt.scatter(beta_slice_index_vals[:, 1], beta_slice_discrepencies, label="Observations")
-for i in range(gp_samp_no):
-    plt.plot(
-        beta_slice_index_vals[:, 1],
-        GP_samples[i, :],
-        c="r",
-        alpha=0.1,
-        label="Posterior Sample" if i == 0 else None,
-    )
-leg = plt.legend(loc="lower right")
-for lh in leg.legend_handles:
-    lh.set_alpha(1)
-plt.xlabel(r"$\beta$ index points")
-plt.ylabel("Discrepency")
-plt.savefig("champagne_GP_images/new_beta_slice.pdf")
-plt.show()
 ```
