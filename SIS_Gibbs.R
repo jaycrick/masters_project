@@ -26,7 +26,7 @@ gibbs_samples = gibbs_samples %>% mutate(R0 = beta_samp/gamma_samp)
 
 ggplot(gibbs_samples, mapping = aes(x = beta_samp, y = gamma_samp)) +
   geom_point(alpha = 0.1) +
-  stat_density_2d(aes(fill = ..level..), geom = "polygon", colour="white") +
+  stat_density_2d(aes(fill = after_stat(level)), geom = "polygon", colour="white") +
   theme_bw() +
   scale_x_continuous(expand = expansion(0), limits = c(0, 3)) +
   scale_y_continuous(expand = expansion(0), limits = c(0, 1.5)) +
