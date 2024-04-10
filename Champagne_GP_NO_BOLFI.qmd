@@ -234,40 +234,6 @@ random_discrepencies = LHC_indices_df.apply(
 print(random_discrepencies.head())
 ```
 
-## Differing Methods to Iterate Function
-
-```{python}
-# import timeit
-
-# def function1():
-#     np.vectorize(champ_prevalence)(random_indices_df['alpha'],
-#     random_indices_df['beta'], random_indices_df['gamma_L'],
-#     random_indices_df['lambda'], random_indices_df['f'], random_indices_df['r'])
-#     pass
-
-# def function2():
-#     random_indices_df.apply(
-#         lambda x: champ_prevalence(
-#             x['alpha'], x['beta'], x['gamma_L'], x['lambda'], x['f'], x['r']),
-#             axis = 1)
-#     pass
-
-# # Time function1
-# time_taken_function1 = timeit.timeit(
-#     "function1()", globals=globals(), number=100)
-
-# # Time function2
-# time_taken_function2 = timeit.timeit(
-#     "function2()", globals=globals(), number=100)
-
-# print("Time taken for function1:", time_taken_function1)
-# print("Time taken for function2:", time_taken_function2)
-
-```
-
-Time taken for function1: 187.48960775700016
-Time taken for function2: 204.06618941299985
-
 ## Constrain Variables to be Positive
 
 ```{python}
@@ -584,27 +550,4 @@ plt.xlabel(r"$\beta$ index points")
 plt.ylabel("Discrepency")
 plt.savefig("champagne_GP_images/beta_slice_NO_BOLFI.pdf")
 plt.show()
-```
-
-# Acquiring the next datapoint to test
-
-## Proof that .variance returns what we need in acquisition function
-```{python}
-new_guess = np.array([0.4, 0.4, 0.004, 0.04, 0.01, 0.17])
-mean_t = champ_GP_reg.mean_fn(new_guess)
-variance_t = champ_GP_reg.variance(index_points=[new_guess])
-
-kernel_self = kernel_champ.apply(new_guess, new_guess)
-kernel_others = kernel_champ.apply(new_guess, index_vals)
-K = kernel_champ.matrix(
-    index_vals, index_vals
-) + observation_noise_variance_champ * np.identity(index_vals.shape[0])
-inv_K = np.linalg.inv(K)
-print("Self Kernel is {}".format(kernel_self.numpy().round(3)))
-print("Others Kernel is {}".format(kernel_others.numpy().round(3)))
-print(inv_K)
-my_var_t = kernel_self - kernel_others.numpy() @ inv_K @ kernel_others.numpy()
-
-print("Variance function is {}".format(variance_t.numpy().round(3)))
-print("Variance function is {}".format(my_var_t.numpy().round(3)))
 ```

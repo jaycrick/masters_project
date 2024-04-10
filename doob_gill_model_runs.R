@@ -226,7 +226,10 @@ plots_stochastic_all <- ggplot(
   xlab("Days since pandemic start") +
   ylab("Number of people") +
   scale_x_continuous(expand = expansion(0)) +
-  scale_y_continuous(expand = expansion(c(0, 0.01))) +
+  scale_y_continuous(
+    expand = expansion(c(0, 0.01)), 
+    breaks = c(0, 250, 500, 750, 1000, 1250)
+  ) +
   scale_color_manual(values = cust_pal) +
   facet_grid(cols = vars(model), scales = "free_x")
 plots_stochastic_all
