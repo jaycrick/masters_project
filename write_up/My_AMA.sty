@@ -1,0 +1,26 @@
+% Dissertation style file by Jacob Cumming, loosely based on the template by John Shumway.
+
+%
+% redefine abstract environment
+%
+\renewenvironment{abstract}{
+  \setcounter{page}{1}
+  \begin{center}
+    \doublespace
+    ABSTRACT
+  \end{center}
+} {
+  \clearpage
+}
+
+%
+% make acknowledgements environment
+%
+\newenvironment{acknowledgements}{
+  \begin{center}
+    \doublespace
+    ACKNOWLEDGMENTS
+  \end{center}
+} {
+  \clearpage
+}
