@@ -1,0 +1,113 @@
+\documentclass{book}
+\usepackage[a4paper]{geometry}
+% \usepackage{fancyhdr}
+% \pagestyle{fancy}
+\usepackage[english]{babel}
+\usepackage{csquotes,xpatch} % Needs to be loaded after babel
+\usepackage[style=authoryear]{biblatex}
+\addbibresource{bibliography.bib}
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{amsmath,amssymb,amsbsy,amsthm}
+\usepackage{graphicx}
+\usepackage{hyperref}
+% \usepackage{mathptmx} %Times new romans text
+% \usepackage{My_AMA}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+\usepackage{subcaption}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,backgrounds}
+\graphicspath{ {images} }
+
+\usepackage{todonotes}
+\usepackage{xcolor}
+\definecolor{ruby}{RGB}{192, 47, 29}
+
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{theorem}{Theorem}[chapter]
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator{\cov}{cov}
+\DeclareMathOperator{\E}{\mathbb{E}}
+\DeclareMathOperator{\Exp}{Exp}
+\DeclareMathOperator{\MVN}{MVN}
+\newcommand{\N}{\mathcal{N}}
+\DeclareMathOperator{\p}{\mathbb{P}}
+\DeclareMathOperator{\Pois}{Pois}
+\newcommand{\R}{\mathbb{R}}
+
+\makeatletter
+\providecommand*{\diff}%
+    {\@ifnextchar^{\DIfF}{\DIfF^{}}}
+\def\DIfF^#1{%
+    \mathop{\mathrm{\mathstrut d}}%
+        \nolimits^{#1}\gobblespace}
+\def\gobblespace{%
+        \futurelet\diffarg\opspace}
+\def\opspace{%
+        \let\DiffSpace\!%
+        \ifx\diffarg(%
+            \let\DiffSpace\relax
+        \else
+            \ifx\diffarg[%
+               \let\DiffSpace\relax
+            \else
+               \ifx\diffarg\{%
+                   \let\DiffSpace\relax
+               \fi\fi\fi\DiffSpace}
+
+\begin{document}
+%-----------------------front matter
+
+\title{
+{Master's Thesis in requirement for partial completion}\\
+{\large The University of Melbourne}
+}
+\date{September 2023}
+\author{Jacob Cumming}
+
+\maketitle
+\pagenumbering{roman}
+\tableofcontents
+
+\listoffigures
+
+% \include{abstract}
+% \include{ack}
+
+%\listoftodos
+
+%\newpage
+%\addcontentsline{toc}{part}{LIST OF TABLES}
+%\listoftables
+%\addcontentsline{toc}{part}{LIST OF FIGURES}
+%\addtocontents{lot}{Table~\hfill Page \par}
+%\addtocontents{toc}{CHAPTER \par}
+%\addtocontents{lof}{Figure~\hfill Page \par}
+%\listoffigures
+\newpage
+%-----------------------body
+\pagenumbering{arabic}
+
+% \include{body/chapter1_intro}
+\include{body/compartmental_models}
+\include{body/malaria_and_modelling}
+\include{body/abc_methods}
+\include{body/gaussian_processes}
+
+% \include{body/chapter2_MCMC}
+
+
+% \include{body/inference}
+% \include{body/chapter3_methods}
+% \include{body/chapter3_results}
+\include{body/future_suggestions}
+
+%  references and appendix
+\addcontentsline{toc}{part}{REFERENCES}
+\printbibliography
+\end{document}

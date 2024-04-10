@@ -1,0 +1,173 @@
+\chapter{Gaussian Processes}
+
+\begin{itemize}
+    \item Prove all pos-sem is cov
+    \item expand on intro to motive the section
+    \item prove exponential quad kern is pos semi-def
+\end{itemize}
+
+\section{Motivation and Preliminaries}
+
+Our consideration of Gaussian processes is motivated by estimating functions that cannot be expressed in a closed form the context of estimating unknown functions from limited samples of that function. This is particularly helpful in disease modelling, when we use a Gaussian process prior to estimate the discrepancy of the summary statistics
+
+\begin{definition}[Kernel Function (symmetric, stationary)]\label{def:kernel}
+    Any function $k:\mathcal{X}\times\mathcal{X}\to\R$ is a
+    \emph{kernel function}. If $k(x, x^\prime) = k(x^\prime, x),$ the kernel is
+    called \emph{symmetric}.
+    % The kernel is called \emph{stationary} if the
+    % $k(x, x^\prime) = f(x - x^\prime)$ for some function $f$ and metric
+    % $||\cdot||.$
+\end{definition}
+
+\begin{definition}[Gaussian Process]\label{def:gp}
+    A collection of random variables $\{f(x)\}_{x\in\mathcal{X}}$
+    (where $x$ may be a vector) is a \emph{Gaussian process} if all finite
+    dimensional distributions are multivariate normal distributed. That is,
+    there is a function $m:\mathcal{X}\to\R$ and symmetric kernel
+    $k:\mathcal{X}\times\mathcal{X}\to \R$ such that for all finite sets
+    $\mathbf{x} :=\{x_1, x_2, \dots, x_n\} \subset \mathcal{J},$ with
+    $f(\mathbf{x}) := [f(x_1), f(x_2), \dots, f(x_n)]^T$
+    $$f(\mathbf{x}) \sim
+        \MVN\left(\begin{bmatrix}
+            m(x_1) \\ m(x_2)\\ \vdots\\ m(x_n)
+        \end{bmatrix},\, \mathbf{K} = \begin{bmatrix}
+            k(x_1, x_1) & k(x_1, x_2) & \dots  & k(x_1, x_n) \\
+            k(x_2, x_1) & \ddots      &        & \vdots      \\
+            \vdots      &             & \ddots & \vdots      \\
+            k(x_n, x_1) & \cdots      & \cdots & k(x_n, x_n)
+        \end{bmatrix}\right).$$
+\end{definition}
+
+\begin{definition}[Mean and Covariance Function]\label{def:mean_kernel}
+    We define the \emph{mean function} and \emph{covariance kernels} as
+    $$m(x_i) := \E\left[f(x_i)\right]$$ and
+    $$k(x_{i}, x_{i^\prime}) := \cov\left(f(x_i), f(x_{i^\prime})\right).$$
+\end{definition}
+
+Some common examples of Gaussian processes include \begin{itemize}
+    \item Brownian motion on $\R$: $$m\equiv 0,$$ and $$k(s, t) = \min(s, t)$$
+    \item Ornstein Uhlenbeck process with parameters $\theta$ and $\sigma$:
+          $$m\equiv 0,$$ and
+          $$k(s, t)
+              = \frac{\sigma^2}{2\theta}
+              \left(e^{-\theta|t - s|} - e^{-\theta(t + s)}\right)$$
+\end{itemize}
+
+We can generate novel Gaussian processes with a custom $m,$ and
+covariance kernel $k.$ For the sake of this thesis we only consider symmetric
+$k$ that are also stationary - that is $k(x, x^\prime)$ can be expressed as a
+function of $x - x^\prime.$
+
+\begin{definition}[Positive Semi-Definite Matrix]\label{def:pos_def_mat}
+    An $n\times n$ matrix $\mathbf{A}$ is \emph{positive semi-definite} if
+    $\mathbf{v}^T\mathbf{A}\mathbf{v} \geq 0$ for all $\mathbf{v}\in\R^n.$
+\end{definition}
+
+\begin{theorem}[Sufficient Condition for Positive Semi-Definite]
+    A symmetric matrix $\mathbf{A}$ is positive semi-definite, if (and only if)
+    it's eigenvalues are non-negative.
+\end{theorem}
+\begin{proof}
+    % https://en.wikipedia.org/wiki/Definite_matrix#Eigenvalues
+\end{proof}
+
+\begin{definition}[Positive Semi-Definite Kernel]\label{def:pos_def_ker}
+    A kernel $k:\mathcal{X}\times\mathcal{X}\to\R$ is
+    \emph{positive semi-definite} if the matrix
+    $$\mathbf{K} = \begin{bmatrix}
+            k(x_1, x_1) & k(x_1, x_2) & \dots  & k(x_1, x_n) \\
+            k(x_2, x_1) & \ddots      &        & \vdots      \\
+            \vdots      &             & \ddots & \vdots      \\
+            k(x_n, x_1) & \cdots      & \cdots & k(x_n, x_n)
+        \end{bmatrix}$$
+    is positive semi-definite for any collection of $x_i\in\mathcal{X}$
+\end{definition}
+
+\begin{theorem}
+    All symmetric positive semi-definite matrices are covariance matrices for
+    some set of random variables
+\end{theorem}
+\begin{proof}
+    % file:///C:/Users/jckricket/Downloads/ch7-iff-covariance_correlation_matrix.pdf
+\end{proof}
+
+Some common
+
+
+\begin{theorem}[Positive Semi-Definiteness of RBF]\label{thm:rbf_pos_def}
+    The radial basis function
+    $\frac{1}{\sigma^2}\exp(-\frac{(x - x^\prime)^2}{2\gamma^2})$ is a positive
+    semi-definite kernel.
+\end{theorem}
+
+\begin{theorem}[Bochner's Theorem]
+    Let $k$ be a stationary kernel function such that
+    $k(x, x^\prime) = f(d)$. A function $k:\R^d\to\mathbb{C}$ is the covariance
+    function of a weakly
+    stationary mean square continuous complex-valued random process of $\R^d$
+    if and only if it can be represented as
+    $$k(\mathbf{\tau}) = \int_{\R^d} \exp(2\pi i \mathbf{s}\cdot\mathbf{\tau})$$
+\end{theorem}
+
+\parencite[82]{rasmussen_gaussian_2008}
+
+\subsection*{Adding in observation variance}
+
+\section{Kernel Families}
+
+Choice of kernel largely depends on the nature of the function to be estimated. Smooth kernels such as the squared exponential kernel are favourable when estimating functions that are smooth, since it is infinitely mean square differentiable.
+
+\subsection*{Squared Exponential}
+
+The squared exponential kernel is of the form
+$$k(x, x^\prime)
+    = \sigma^2\exp\left(-\frac{||x - x^\prime||^2}{2\ell^2}\right)$$
+
+\begin{figure}
+    \missingfigure{Progressing GP finding}
+\end{figure}
+
+
+\begin{figure}
+    \missingfigure{GP differing lengths and amplitudes}
+\end{figure}
+
+\subsection*{Mat\'{e}rn Class}
+
+The Mat\'ern class allows you to choose how smooth you think the function is.
+
+The Mat\'ern exponential kernel is of the form
+$$k_\nu(x, x^\prime)
+    = \sigma^2\frac{2^{1 - \nu}}{\Gamma(\nu)}
+    \left(\frac{\sqrt{2\nu}||x - x^\prime||}{\ell}\right)^\nu
+    K_\nu\left(-\frac{\sqrt{2\nu}||x - x^\prime||}{\ell}\right)$$
+where $K_\nu$ is a modified Bessel function (see \cite[374]{abramowitz_handbook_2013}). The general form is not very insightful, but for the most common values of $\nu = 1/2, 3/2$ and $5/2,$ we have the forms:
+$$k_{1/2}(x, x^\prime)
+= \sigma^2\exp\left(-\frac{||x - x^\prime||}{\ell}\right)$$
+$$k_{3/2}(x, x^\prime)
+    = \sigma^2
+    \left(1 + \frac{\sqrt{3}||x - x^\prime||}{\ell}\right)
+    \exp\left(-\frac{\sqrt{3}||x - x^\prime||}{\ell}\right)$$
+$$k_{5/2}(x, x^\prime)
+    = \sigma^2
+    \left(1 + \frac{\sqrt{5}||x - x^\prime||}{\ell} + \frac{5||x - x^\prime||}{3\ell^2}\right)
+    \exp\left(-\frac{||x - x^\prime||^2}{2*\ell^2}\right)$$
+
+Zero mean processes with a Mat\'ern kernel are $n$ times mean square differentiable, for all $n < \nu.$
+
+$\nu = 1/2$ is an Ornstein-Uhlenbeck process for one dimension.
+
+It asymptotically approaches the squared exponential class.
+
+
+
+\begin{figure}
+    \missingfigure{GP differing mat\'ern $nu$s}
+\end{figure}
+
+\section{Differing mean functions}
+
+
+\begin{figure}
+    \missingfigure{GP mean functions}
+\end{figure}
