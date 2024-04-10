@@ -729,11 +729,113 @@ plt.show()
 ```
 
 ```{python}
+y = 1
+
+def f(x):
+    @tf.function
+    def g(x):
+        x += y
+        return x
+
+y = 1
+print(f(1))
+y = 2
+print(f(1))
+
+```
+
+```{python}
 exploration_rate = 0.1
 d = 6
+update_freq = 10  # how many iterations before updating GP hyperparams
 
-for t in range(200):
-    eta_t = np.sqrt(np.log((t + 1) ** (d / 2 + 2) * np.pi**2 / (3 * exploration_rate)))
+
+def update_GP():
+    @tf.function
+    def opt_GP():
+        with tf.GradientTape() as tape:
+            loss = -champ_GP.log_prob(obs_vals)
+        grads = tape.gradient(loss, champ_GP.trainable_variables)
+        optimizer_slow.apply_gradients(zip(grads, champ_GP.trainable_variables))
+        return loss
+
+    num_iters = 10000
+
+    lls_ = np.zeros(num_iters, np.float64)
+    tolerance = 1e-6  # Set your desired tolerance level
+    previous_loss = float("inf")
+
+    for i in range(num_iters):
+        loss = opt_GP()
+        lls_[i] = loss.numpy()
+
+        # Check if change in loss is less than tolerance
+        if abs(loss - previous_loss) < tolerance:
+            print(f"Hyperparameter convergence reached at iteration {i+1}.")
+            lls_ = lls_[range(i + 1)]
+            break
+
+        previous_loss = loss
+    for var in optimizer_slow.variables:
+        var.assign(tf.zeros_like(var))
+
+
+def update_var():
+    @tf.function
+    def opt_var():
+        with tf.GradientTape() as tape:
+            next_guess = tf.reshape(
+                [
+                    tfb.Sigmoid().forward(next_vars[0]),
+                    tfb.Sigmoid().forward(next_vars[1]),
+                    tfb.Sigmoid().forward(next_vars[2]),
+                    tfb.Sigmoid().forward(next_vars[3]),
+                    tfb.Sigmoid().forward(next_vars[4]),
+                    tfb.Sigmoid().forward(next_vars[5]),
+                ],
+                [1, 6],
+            )
+            mean_t = champ_GP_reg.mean_fn(next_guess)
+            std_t = champ_GP_reg.stddev(index_points=next_guess)
+            loss = tf.squeeze(mean_t - eta_t * std_t)
+        grads = tape.gradient(loss, next_vars)
+        optimizer_fast.apply_gradients(zip(grads, next_vars))
+        return loss
+
+    num_iters = 10000
+
+    lls_ = np.zeros(num_iters, np.float64)
+    tolerance = 1e-6  # Set your desired tolerance level
+    previous_loss = float("inf")
+
+    for i in range(num_iters):
+        loss = opt_var()
+        lls_[i] = loss
+
+        # Check if change in loss is less than tolerance
+        if abs(loss - previous_loss) < tolerance:
+            print(f"Acquisition function convergence reached at iteration {i+1}.")
+            lls_ = lls_[range(i + 1)]
+            break
+
+        previous_loss = loss
+    print(loss)
+    for var in optimizer_fast.variables:
+        var.assign(tf.zeros_like(var))
+
+
+# opt_GP = tf.function(optimize_hypers)
+# opt_var = tf.function(optimize_next_var)
+
+
+def new_eta_t(t, d, exploration_rate):
+    return np.sqrt(np.log((t + 1) ** (d / 2 + 2) * np.pi**2 / (3 * exploration_rate)))
+
+
+for t in range(400):
+    optimizer_fast = tf.optimizers.Adam(learning_rate=0.01)
+    optimizer_slow = tf.optimizers.Adam()
+    eta_t = new_eta_t(t, d, exploration_rate)
     print(t)
     new_discrepency = discrepency_fn(
         next_alpha.numpy(),
@@ -760,40 +862,14 @@ for t in range(200):
     )
     obs_vals = np.append(obs_vals, new_discrepency)
 
-    champ_GP = tfd.GaussianProcess(
-        kernel=kernel_champ,
-        observation_noise_variance=observation_noise_variance_champ,
-        index_points=index_vals,
-        mean_fn=quad_mean_fn(),
-    )
-
-    Adam_optim = tf.optimizers.Adam()
-
-    @tf.function(autograph=False, jit_compile=False)
-    def optimize():
-        with tf.GradientTape() as tape:
-            loss = -champ_GP.log_prob(obs_vals)
-        grads = tape.gradient(loss, champ_GP.trainable_variables)
-        Adam_optim.apply_gradients(zip(grads, champ_GP.trainable_variables))
-        return loss
-
-    num_iters = 10000
-
-    lls_ = np.zeros(num_iters, np.float64)
-    tolerance = 1e-6  # Set your desired tolerance level
-    previous_loss = float("inf")
-
-    for i in range(num_iters):
-        loss = optimize()
-        lls_[i] = loss
-
-        # Check if change in loss is less than tolerance
-        if abs(loss - previous_loss) < tolerance:
-            print(f"Hyperparameter convergence reached at iteration {i+1}.")
-            lls_ = lls_[range(i + 1)]
-            break
-
-        previous_loss = loss
+    if t % update_freq == 0:
+        champ_GP = tfd.GaussianProcess(
+            kernel=kernel_champ,
+            observation_noise_variance=observation_noise_variance_champ,
+            index_points=index_vals,
+            mean_fn=quad_mean_fn(),
+        )
+        update_GP()
 
     champ_GP_reg = tfd.GaussianProcessRegressionModel(
         kernel=kernel_champ,
@@ -804,47 +880,13 @@ for t in range(200):
         predictive_noise_variance=0.0,
         mean_fn=quad_mean_fn(),
     )
+    update_var()
 
-    Adam_optim = tf.optimizers.Adam(learning_rate=0.01)
 
-    @tf.function(autograph=False, jit_compile=False)
-    def optimize():
-        with tf.GradientTape() as tape:
-            next_guess = tf.reshape(
-                [
-                    tfb.Sigmoid().forward(next_vars[0]),
-                    tfb.Sigmoid().forward(next_vars[1]),
-                    tfb.Sigmoid().forward(next_vars[2]),
-                    tfb.Sigmoid().forward(next_vars[3]),
-                    tfb.Sigmoid().forward(next_vars[4]),
-                    tfb.Sigmoid().forward(next_vars[5]),
-                ],
-                [1, 6],
-            )
-            mean_t = champ_GP_reg.mean_fn(next_guess)
-            std_t = champ_GP_reg.stddev(index_points=next_guess)
-            loss = tf.squeeze(mean_t - eta_t * std_t)
-        grads = tape.gradient(loss, next_vars)
-        Adam_optim.apply_gradients(zip(grads, next_vars))
-        return loss
-
-    num_iters = 10000
-
-    lls_ = np.zeros(num_iters, np.float64)
-    tolerance = 1e-6  # Set your desired tolerance level
-    previous_loss = float("inf")
-
-    for i in range(num_iters):
-        loss = optimize()
-        lls_[i] = loss
-
-        # Check if change in loss is less than tolerance
-        if abs(loss - previous_loss) < tolerance:
-            print(f"Acquisition function convergence reached at iteration {i+1}.")
-            lls_ = lls_[range(i + 1)]
-            break
-
-        previous_loss = loss
+print(index_vals[-200,])
+print(index_vals[-20,])
+print(index_vals[-2,])
+print(index_vals[-1,])
 ```
 
 
