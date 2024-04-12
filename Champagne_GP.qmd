@@ -72,7 +72,13 @@ def champagne_stochastic(
 
     t = 0
     S_0 = N - I_L - I_0 - S_L
-    list_of_outcomes = [{"t": 0, "S_0": S_0, "S_L": S_L, "I_0": I_0, "I_L": I_L}]
+    inc_counter = 0
+
+    list_of_outcomes = [
+        {"t": 0, "S_0": S_0, "S_L": S_L, "I_0": I_0, "I_L": I_L, "inc_counter": 0}
+    ]
+
+    prop_new = alpha_*beta_*f/(alpha_*beta_*f + gamma_L)
 
     for i in range(num_events):
         if S_0 == N:
@@ -98,7 +104,7 @@ def champagne_stochastic(
             + S_L_to_I_L
         )
 
-        t += np.random.exponential(1 / total_rate)
+        delta_t = np.random.exponential(1 / total_rate)
         new_stages_prob = [
             S_0_to_I_L / total_rate,
             S_0_to_S_L / total_rate,
@@ -109,16 +115,79 @@ def champagne_stochastic(
             S_L_to_S_0 / total_rate,
             S_L_to_I_L / total_rate,
         ]
+        t += delta_t
+        silent_incidences = np.random.poisson(
+            delta_t * alpha_ * beta_ * lambda_ * (I_L + I_0) * S_0 / N
+        )
+
         new_stages = np.random.choice(
             [
-                {"t": t, "S_0": S_0 - 1, "S_L": S_L, "I_0": I_0, "I_L": I_L + 1},
-                {"t": t, "S_0": S_0 - 1, "S_L": S_L + 1, "I_0": I_0, "I_L": I_L},
-                {"t": t, "S_0": S_0 + 1, "S_L": S_L, "I_0": I_0 - 1, "I_L": I_L},
-                {"t": t, "S_0": S_0, "S_L": S_L, "I_0": I_0 - 1, "I_L": I_L + 1},
-                {"t": t, "S_0": S_0, "S_L": S_L, "I_0": I_0 + 1, "I_L": I_L - 1},
-                {"t": t, "S_0": S_0, "S_L": S_L + 1, "I_0": I_0, "I_L": I_L - 1},
-                {"t": t, "S_0": S_0 + 1, "S_L": S_L - 1, "I_0": I_0, "I_L": I_L},
-                {"t": t, "S_0": S_0, "S_L": S_L - 1, "I_0": I_0, "I_L": I_L + 1},
+                {
+                    "t": t,
+                    "S_0": S_0 - 1,
+                    "S_L": S_L,
+                    "I_0": I_0,
+                    "I_L": I_L + 1,
+                    "inc_counter": inc_counter + silent_incidences + 1,
+                },
+                {
+                    "t": t,
+                    "S_0": S_0 - 1,
+                    "S_L": S_L + 1,
+                    "I_0": I_0,
+                    "I_L": I_L,
+                    "inc_counter": inc_counter + silent_incidences + 1,
+                },
+                {
+                    "t": t,
+                    "S_0": S_0 + 1,
+                    "S_L": S_L,
+                    "I_0": I_0 - 1,
+                    "I_L": I_L,
+                    "inc_counter": inc_counter + silent_incidences,
+                },
+                {
+                    "t": t,
+                    "S_0": S_0,
+                    "S_L": S_L,
+                    "I_0": I_0 - 1,
+                    "I_L": I_L + 1,
+                    "inc_counter": inc_counter + silent_incidences,
+                },
+                {
+                    "t": t,
+                    "S_0": S_0,
+                    "S_L": S_L,
+                    "I_0": I_0 + 1,
+                    "I_L": I_L - 1,
+                    "inc_counter": inc_counter + silent_incidences,
+                },
+                {
+                    "t": t,
+                    "S_0": S_0,
+                    "S_L": S_L + 1,
+                    "I_0": I_0,
+                    "I_L": I_L - 1,
+                    "inc_counter": inc_counter + silent_incidences,
+                },
+                {
+                    "t": t,
+                    "S_0": S_0 + 1,
+                    "S_L": S_L - 1,
+                    "I_0": I_0,
+                    "I_L": I_L,
+                    "inc_counter": inc_counter
+                    + silent_incidences
+                    + np.random.binomial(1, prop_new),
+                },
+                {
+                    "t": t,
+                    "S_0": S_0,
+                    "S_L": S_L - 1,
+                    "I_0": I_0,
+                    "I_L": I_L + 1,
+                    "inc_counter": inc_counter + silent_incidences + 1,
+                },
             ],
             p=new_stages_prob,
         )
@@ -129,6 +198,7 @@ def champagne_stochastic(
         I_0 = new_stages["I_0"]
         I_L = new_stages["I_L"]
         S_L = new_stages["S_L"]
+        inc_counter = new_stages["inc_counter"]
 
     outcome_df = pd.DataFrame(list_of_outcomes)
     return outcome_df
@@ -147,7 +217,7 @@ champ_samp = champagne_stochastic(
 ## Plotting outcome
 
 ```{python}
-champ_samp.plot(x="t", legend=True)
+champ_samp.drop("inc_counter", axis=1).plot(x="t", legend=True)
 plt.xlabel("Time")
 plt.ylabel("Value")
 plt.title("Champagne Stochastic Simulation")
@@ -158,13 +228,25 @@ plt.show()
 ## Function that Outputs Final Prevalence
 
 ```{python}
-def champ_prevalence(alpha_, beta_, gamma_L, lambda_, f, r):
+def incidence(df, start, days):
+    start_ind = df[df["t"].le(start)].index[-1]
+    end_ind = df[df["t"].le(start + days)].index[-1]
+    incidence_week = df.iloc[end_ind]["inc_counter"] - df.iloc[start_ind]["inc_counter"]
+    return incidence_week
+
+
+def champ_sum_stats(alpha_, beta_, gamma_L, lambda_, f, r):
     champ_df_ = champagne_stochastic(alpha_, beta_, gamma_L, lambda_, f, r)
+    fin_t = champ_df_.iloc[-1]["t"]
+    first_month_inc = incidence(champ_df_, 0, 30)
+    fin_t = champ_df_.iloc[-1]["t"]
+    fin_week_inc = incidence(champ_df_, fin_t - 7, 7)
+    fin_prev = champ_df_.iloc[-1]["I_0"] + champ_df_.iloc[-1]["I_L"]
 
-    return champ_df_.iloc[-1]["I_0"] + champ_df_.iloc[-1]["I_L"]
+    return np.array([fin_prev, first_month_inc, fin_week_inc])
 
 
-observed_final_prevalence = champ_prevalence(
+observed_sum_stats = champ_sum_stats(
     pv_champ_alpha,
     pv_champ_beta,
     pv_champ_gamma_L,
@@ -174,17 +256,92 @@ observed_final_prevalence = champ_prevalence(
 )
 
 
-def discrepency_fn(alpha_, beta_, gamma_L, lambda_, f, r):
-    x = champ_prevalence(alpha_, beta_, gamma_L, lambda_, f, r)
-    return np.abs(x - observed_final_prevalence)
+def discrepency_fn(alpha_, beta_, gamma_L, lambda_, f, r): # best is L1 norm
+    x = champ_sum_stats(alpha_, beta_, gamma_L, lambda_, f, r)
+    return np.log(np.sum(np.abs((x - observed_sum_stats) / observed_sum_stats)))
 ```
+
+Testing the variances across different values of params etc.
+```{python}
+# samples = 30
+# cor_sums = np.zeros(samples)
+# for i in range(samples):
+#     cor_sums[i] = discrepency_fn(
+#         pv_champ_alpha,
+#         pv_champ_beta,
+#         pv_champ_gamma_L,
+#         pv_champ_lambda,
+#         pv_champ_f,
+#         pv_champ_r,
+#     )
+
+# cor_mean = np.mean(cor_sums)
+# cor_s_2 = sum((cor_sums - cor_mean) ** 2) / (samples - 1)
+# print(cor_mean, cor_s_2)
+
+# doub_sums = np.zeros(samples)
+# for i in range(samples):
+#     doub_sums[i] = discrepency_fn(
+#         2 * pv_champ_alpha,
+#         2 * pv_champ_beta,
+#         2 * pv_champ_gamma_L,
+#         2 * pv_champ_lambda,
+#         2 * pv_champ_f,
+#         2 * pv_champ_r,
+#     )
+
+# doub_mean = np.mean(doub_sums)
+# doub_s_2 = sum((doub_sums - doub_mean) ** 2) / (samples - 1)
+# print(doub_mean, doub_s_2)
+
+# half_sums = np.zeros(samples)
+# for i in range(samples):
+#     half_sums[i] = discrepency_fn(
+#         pv_champ_alpha / 2,
+#         pv_champ_beta / 2,
+#         pv_champ_gamma_L / 2,
+#         pv_champ_lambda / 2,
+#         pv_champ_f / 2,
+#         pv_champ_r / 2,
+#     )
+
+# half_mean = np.mean(half_sums)
+# half_s_2 = sum((half_sums - half_mean) ** 2) / (samples - 1)
+# print(half_mean, half_s_2)
+
+# rogue_sums = np.zeros(samples)
+# for i in range(samples):
+#     rogue_sums[i] = discrepency_fn(
+#         pv_champ_alpha / 2,
+#         pv_champ_beta / 2,
+#         pv_champ_gamma_L / 2,
+#         pv_champ_lambda / 2,
+#         pv_champ_f / 2,
+#         pv_champ_r / 2,
+#     )
+
+# rogue_mean = np.mean(rogue_sums)
+# rogue_s_2 = sum((rogue_sums - rogue_mean) ** 2) / (samples - 1)
+# print(rogue_mean, rogue_s_2)
+
+# plt.figure(figsize=(7, 4))
+# plt.scatter(
+#     np.array([half_mean, cor_mean, doub_mean, rogue_mean]),
+#     np.array([half_s_2, cor_s_2, doub_s_2, rogue_s_2]),
+# )
+# plt.title("variance and mean")
+# plt.xlabel("mean")
+# plt.ylabel("variance")
+# plt.show()
+```
+
 
 # Gaussian Process Regression on Final Prevalence Discrepency
 
 ```{python}
 my_seed = np.random.default_rng(seed=1795)  # For replicability
 
-num_samples = 50
+num_samples = 30
 
 variables_names = ["alpha", "beta", "gamma_L", "lambda", "f", "r"]
 
@@ -214,6 +371,8 @@ LHC_samples[:, 3] = -pv_champ_lambda * np.log(LHC_samples[:, 3])
 LHC_samples[:, 4] = -pv_champ_f * np.log(LHC_samples[:, 4])
 LHC_samples[:, 5] = -pv_champ_r * np.log(LHC_samples[:, 5])
 
+LHC_samples = np.repeat(LHC_samples, 3, axis = 0)
+
 random_indices_df = pd.DataFrame(samples, columns=variables_names)
 LHC_indices_df = pd.DataFrame(LHC_samples, columns=variables_names)
 
@@ -240,14 +399,14 @@ print(random_discrepencies.head())
 # import timeit
 
 # def function1():
-#     np.vectorize(champ_prevalence)(random_indices_df['alpha'],
+#     np.vectorize(champ_sum_stats)(random_indices_df['alpha'],
 #     random_indices_df['beta'], random_indices_df['gamma_L'],
 #     random_indices_df['lambda'], random_indices_df['f'], random_indices_df['r'])
 #     pass
 
 # def function2():
 #     random_indices_df.apply(
-#         lambda x: champ_prevalence(
+#         lambda x: champ_sum_stats(
 #             x['alpha'], x['beta'], x['gamma_L'], x['lambda'], x['f'], x['r']),
 #             axis = 1)
 #     pass
@@ -281,21 +440,21 @@ class quad_mean_fn(tf.Module):
         super(quad_mean_fn, self).__init__()
         self.amp_alpha_mean = tfp.util.TransformedVariable(
             bijector=constrain_positive,
-            initial_value=400.0,
+            initial_value=1.0,
             dtype=np.float64,
             name="amp_alpha_mean",
         )
         self.alpha_tp = tf.Variable(pv_champ_alpha, dtype=np.float64, name="alpha_tp")
         self.amp_beta_mean = tfp.util.TransformedVariable(
             bijector=constrain_positive,
-            initial_value=50.0,
+            initial_value=1.0,
             dtype=np.float64,
             name="amp_beta_mean",
         )
         self.beta_tp = tf.Variable(pv_champ_beta, dtype=np.float64, name="beta_tp")
         self.amp_gamma_L_mean = tfp.util.TransformedVariable(
             bijector=constrain_positive,
-            initial_value=500.0,
+            initial_value=1.0,
             dtype=np.float64,
             name="amp_gamma_L_mean",
         )
@@ -304,7 +463,7 @@ class quad_mean_fn(tf.Module):
         )
         self.amp_lambda_mean = tfp.util.TransformedVariable(
             bijector=constrain_positive,
-            initial_value=16000.0,
+            initial_value=1.0,
             dtype=np.float64,
             name="amp_lambda_mean",
         )
@@ -313,24 +472,25 @@ class quad_mean_fn(tf.Module):
         )
         self.amp_f_mean = tfp.util.TransformedVariable(
             bijector=constrain_positive,
-            initial_value=15000.0,
+            initial_value=1.0,
             dtype=np.float64,
             name="amp_f_mean",
         )
         self.f_tp = tf.Variable(pv_champ_f, dtype=np.float64, name="f_tp")
         self.amp_r_mean = tfp.util.TransformedVariable(
             bijector=constrain_positive,
-            initial_value=13000.0,
+            initial_value=1.0,
             dtype=np.float64,
             name="amp_r_mean",
         )
         self.r_tp = tf.Variable(pv_champ_r, dtype=np.float64, name="r_tp")
-        self.bias_mean = tfp.util.TransformedVariable(
-            bijector=constrain_positive,
-            initial_value=50.0,
-            dtype=np.float64,
-            name="bias_mean",
-        )
+        # self.bias_mean = tfp.util.TransformedVariable(
+        #     bijector=constrain_positive,
+        #     initial_value=50.0,
+        #     dtype=np.float64,
+        #     name="bias_mean",
+        # )
+        self.bias_mean = tf.Variable(0.0, dtype=np.float64, name="bias_mean")
 
     def __call__(self, x):
         return (
@@ -352,14 +512,14 @@ obs_vals = random_discrepencies.values
 
 amplitude_champ = tfp.util.TransformedVariable(
     bijector=constrain_positive,
-    initial_value=150.0,
+    initial_value=1.0,
     dtype=np.float64,
     name="amplitude_champ",
 )
 
 observation_noise_variance_champ = tfp.util.TransformedVariable(
     bijector=constrain_positive,
-    initial_value=1000.0,
+    initial_value=0.03,
     dtype=np.float64,
     name="observation_noise_variance_champ",
 )
@@ -368,7 +528,7 @@ observation_noise_variance_champ = tfp.util.TransformedVariable(
 ```{python}
 length_scales_champ = tfp.util.TransformedVariable(
     bijector=constrain_positive,
-    initial_value=[0.01, 0.01, 0.35, 0.02, 0.27, 0.2],
+    initial_value=[0.1, 0.1, 0.005, 0.04, 0.01, 0.02],
     dtype=np.float64,
     name="length_scales_champ",
 )
@@ -400,10 +560,22 @@ Adam_optim = tf.optimizers.Adam(learning_rate=0.01)
 ## Train the Hyperparameters
 
 ```{python}
+# predictive log stuff
 @tf.function(autograph=False, jit_compile=False)
 def optimize():
     with tf.GradientTape() as tape:
-        loss = -champ_GP.log_prob(obs_vals)
+        K = (
+            champ_GP.kernel.matrix(index_vals, index_vals)
+            + tf.eye(index_vals.shape[0], dtype=np.float64)
+            * observation_noise_variance_champ
+        )
+        means = champ_GP.mean_fn(index_vals)
+        K_inv = tf.linalg.inv(K)
+        K_inv_y = K_inv @ tf.reshape(obs_vals - means, shape=[obs_vals.shape[0], 1])
+        K_inv_diag = tf.linalg.diag_part(K_inv)
+        log_var = tf.math.log(K_inv_diag)
+        log_mu = tf.reshape(K_inv_y, shape=[-1]) ** 2
+        loss = -tf.math.reduce_sum(log_var - log_mu)
     grads = tape.gradient(loss, champ_GP.trainable_variables)
     Adam_optim.apply_gradients(zip(grads, champ_GP.trainable_variables))
     return loss
@@ -431,11 +603,11 @@ for i in range(num_iters):
 ```{python}
 print("Trained parameters:")
 for var in champ_GP.trainable_variables:
-    if "tp" in var.name:
-        print("{} is {}".format(var.name, var.numpy().round(3)))
+    if "tp" in var.name:  # or "bias" in var.name:
+        print("{} is {}\n".format(var.name, var.numpy().round(3)))
     else:
         print(
-            "{} is {}".format(
+            "{} is {}\n".format(
                 var.name, constrain_positive.forward(var).numpy().round(3)
             )
         )
@@ -672,10 +844,10 @@ def optimize():
             [
                 tfb.Sigmoid().forward(next_vars[0]),
                 tfb.Sigmoid().forward(next_vars[1]),
-                tfb.Sigmoid().forward(next_vars[2]),
-                tfb.Sigmoid().forward(next_vars[3]),
-                tfb.Sigmoid().forward(next_vars[4]),
-                tfb.Sigmoid().forward(next_vars[5]),
+                constrain_positive.forward(next_vars[2]),
+                constrain_positive.forward(next_vars[3]),
+                constrain_positive.forward(next_vars[4]),
+                constrain_positive.forward(next_vars[5]),
             ],
             [1, 6],
         )
@@ -729,32 +901,22 @@ plt.show()
 ```
 
 ```{python}
-y = 1
-
-def f(x):
-    @tf.function
-    def g(x):
-        x += y
-        return x
-
-y = 1
-print(f(1))
-y = 2
-print(f(1))
-
-```
-
-```{python}
-exploration_rate = 0.1
-d = 6
-update_freq = 10  # how many iterations before updating GP hyperparams
-
-
 def update_GP():
     @tf.function
     def opt_GP():
         with tf.GradientTape() as tape:
-            loss = -champ_GP.log_prob(obs_vals)
+            K = (
+                champ_GP.kernel.matrix(index_vals, index_vals)
+                + tf.eye(index_vals.shape[0], dtype=np.float64)
+                * observation_noise_variance_champ
+            )
+            means = champ_GP.mean_fn(index_vals)
+            K_inv = tf.linalg.inv(K)
+            K_inv_y = K_inv @ tf.reshape(obs_vals - means, shape=[obs_vals.shape[0], 1])
+            K_inv_diag = tf.linalg.diag_part(K_inv)
+            log_var = tf.math.log(K_inv_diag)
+            log_mu = tf.reshape(K_inv_y, shape=[-1]) ** 2
+            loss = -tf.math.reduce_sum(log_var - log_mu)
         grads = tape.gradient(loss, champ_GP.trainable_variables)
         optimizer_slow.apply_gradients(zip(grads, champ_GP.trainable_variables))
         return loss
@@ -824,15 +986,16 @@ def update_var():
         var.assign(tf.zeros_like(var))
 
 
-# opt_GP = tf.function(optimize_hypers)
-# opt_var = tf.function(optimize_next_var)
-
-
 def new_eta_t(t, d, exploration_rate):
     return np.sqrt(np.log((t + 1) ** (d / 2 + 2) * np.pi**2 / (3 * exploration_rate)))
 
 
+exploration_rate = 0.1
+d = 6
+update_freq = 20  # how many iterations before updating GP hyperparams
+
 for t in range(400):
+    next_vars[0].assign(0)
     optimizer_fast = tf.optimizers.Adam(learning_rate=0.01)
     optimizer_slow = tf.optimizers.Adam()
     eta_t = new_eta_t(t, d, exploration_rate)
