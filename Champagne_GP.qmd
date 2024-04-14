@@ -643,9 +643,76 @@ alpha_slice_samples = np.concatenate(
     axis=1,
 )
 
-alpha_slice_indices_df = pd.DataFrame(alpha_slice_samples, columns=variables_names)
+beta_slice_samples = np.concatenate(
+    (
+        np.repeat(pv_champ_alpha, plot_samp_no).reshape(-1, 1),  # alpha
+        np.linspace(0, 1, plot_samp_no, dtype=np.float64).reshape(-1, 1),  # beta
+        np.repeat(pv_champ_gamma_L, plot_samp_no).reshape(-1, 1),  # gamma_L
+        np.repeat(pv_champ_lambda, plot_samp_no).reshape(-1, 1),  # lambda
+        np.repeat(pv_champ_f, plot_samp_no).reshape(-1, 1),  # f
+        np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
+    ),
+    axis=1,
+)
 
-print(alpha_slice_indices_df.head())
+beta_slice_indices_df = pd.DataFrame(beta_slice_samples, columns=variables_names)
+
+gamma_L_slice_samples = np.concatenate(
+    (
+        np.repeat(pv_champ_alpha, plot_samp_no).reshape(-1, 1),  # alpha
+        np.repeat(pv_champ_beta, plot_samp_no).reshape(-1, 1),  # beta
+        - pv_champ_gamma_L * np.log (np.linspace(0.05, 0.95, plot_samp_no - 2, dtype=np.float64)).reshape(-1, 1),  # gamma_L
+        np.repeat(pv_champ_lambda, plot_samp_no).reshape(-1, 1),  # lambda
+        np.repeat(pv_champ_f, plot_samp_no).reshape(-1, 1),  # f
+        np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
+    ),
+    axis=1,
+)
+
+lambda_slice_samples = np.concatenate(
+    (
+        np.repeat(pv_champ_alpha, plot_samp_no).reshape(-1, 1),  # alpha
+        np.repeat(pv_champ_beta, plot_samp_no).reshape(-1, 1),  # beta
+        np.repeat(pv_champ_gamma_L, plot_samp_no).reshape(-1, 1),  # gamma_L
+        - pv_champ_lambda * np.log (np.linspace(0.05, 0.95, plot_samp_no - 2, dtype=np.float64)).reshape(-1, 1),  # lambda
+        np.repeat(pv_champ_f, plot_samp_no).reshape(-1, 1),  # f
+        np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
+    ),
+    axis=1,
+)
+
+f_slice_samples = np.concatenate(
+    (
+        np.repeat(pv_champ_alpha, plot_samp_no).reshape(-1, 1),  # alpha
+        np.repeat(pv_champ_beta, plot_samp_no).reshape(-1, 1),  # beta
+        np.repeat(pv_champ_gamma_L, plot_samp_no).reshape(-1, 1),  # gamma_L
+        np.repeat(pv_champ_lambda, plot_samp_no).reshape(-1, 1),  # lambda
+        - pv_champ_f * np.log (np.linspace(0.05, 0.95, plot_samp_no - 2, dtype=np.float64)).reshape(-1, 1),  # f
+        np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
+    ),
+    axis=1,
+)
+
+r_slice_samples = np.concatenate(
+    (
+        np.repeat(pv_champ_alpha, plot_samp_no).reshape(-1, 1),  # alpha
+        np.repeat(pv_champ_beta, plot_samp_no).reshape(-1, 1),  # beta
+        np.repeat(pv_champ_gamma_L, plot_samp_no).reshape(-1, 1),  # gamma_L
+        np.repeat(pv_champ_lambda, plot_samp_no).reshape(-1, 1),  # lambda
+        np.repeat(pv_champ_f, plot_samp_no).reshape(-1, 1),  # f
+        - pv_champ_r * np.log (np.linspace(0.05, 0.95, plot_samp_no - 2, dtype=np.float64)).reshape(-1, 1),  # r
+    ),
+    axis=1,
+)
+```
+
+```{python}
+alpha_slice_indices_df = pd.DataFrame(alpha_slice_samples, columns=variables_names)
+beta_slice_indices_df = pd.DataFrame(beta_slice_samples, columns=variables_names)
+gamma_L_slice_indices_df = pd.DataFrame(gamma_L_slice_samples, columns=variables_names)
+lambda_slice_indices_df = pd.DataFrame(lambda_slice_samples, columns=variables_names)
+f_slice_indices_df = pd.DataFrame(f_slice_samples, columns=variables_names)
+r_slice_indices_df = pd.DataFrame(r_slice_samples, columns=variables_names)
 
 alpha_slice_discrepencies = alpha_slice_indices_df.apply(
     lambda x: discrepency_fn(
@@ -654,7 +721,47 @@ alpha_slice_discrepencies = alpha_slice_indices_df.apply(
     axis=1,
 )
 
+beta_slice_discrepencies = beta_slice_indices_df.apply(
+    lambda x: discrepency_fn(
+        x["alpha"], x["beta"], x["gamma_L"], x["lambda"], x["f"], x["r"]
+    ),
+    axis=1,
+)
+
+gamma_L_slice_discrepencies = beta_slice_indices_df.apply(
+    lambda x: discrepency_fn(
+        x["alpha"], x["beta"], x["gamma_L"], x["lambda"], x["f"], x["r"]
+    ),
+    axis=1,
+)
+
+lambda_slice_discrepencies = beta_slice_indices_df.apply(
+    lambda x: discrepency_fn(
+        x["alpha"], x["beta"], x["gamma_L"], x["lambda"], x["f"], x["r"]
+    ),
+    axis=1,
+)
+
+f_slice_discrepencies = beta_slice_indices_df.apply(
+    lambda x: discrepency_fn(
+        x["alpha"], x["beta"], x["gamma_L"], x["lambda"], x["f"], x["r"]
+    ),
+    axis=1,
+)
+
+r_slice_discrepencies = beta_slice_indices_df.apply(
+    lambda x: discrepency_fn(
+        x["alpha"], x["beta"], x["gamma_L"], x["lambda"], x["f"], x["r"]
+    ),
+    axis=1,
+)
+
 alpha_slice_index_vals = alpha_slice_indices_df.values
+beta_slice_index_vals = beta_slice_indices_df.values
+gamma_L_slice_index_vals = gamma_L_slice_indices_df.values
+lambda_slice_index_vals = lambda_slice_indices_df.values
+f_slice_index_vals = f_slice_indices_df.values
+r_slice_index_vals = r_slice_indices_df.values
 ```
 
 ```{python}
@@ -670,7 +777,7 @@ champ_GP_reg = tfd.GaussianProcessRegressionModel(
     mean_fn=quad_mean_fn(),
 )
 
-GP_samples = champ_GP_reg.sample(gp_samp_no, seed=GP_seed)
+GP_samples_alpha = champ_GP_reg.sample(gp_samp_no, seed=GP_seed)
 ```
 
 ```{python}
@@ -698,20 +805,6 @@ plt.show()
 ## Fitting the GP Regression across beta
 
 ```{python}
-beta_slice_samples = np.concatenate(
-    (
-        np.repeat(pv_champ_alpha, plot_samp_no).reshape(-1, 1),  # alpha
-        np.linspace(0, 1, plot_samp_no, dtype=np.float64).reshape(-1, 1),  # beta
-        np.repeat(pv_champ_gamma_L, plot_samp_no).reshape(-1, 1),  # gamma_L
-        np.repeat(pv_champ_lambda, plot_samp_no).reshape(-1, 1),  # lambda
-        np.repeat(pv_champ_f, plot_samp_no).reshape(-1, 1),  # f
-        np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
-    ),
-    axis=1,
-)
-
-beta_slice_indices_df = pd.DataFrame(beta_slice_samples, columns=variables_names)
-
 print(beta_slice_indices_df.head())
 
 beta_slice_discrepencies = beta_slice_indices_df.apply(
