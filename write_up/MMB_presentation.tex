@@ -1,0 +1,85 @@
+\documentclass{beamer}
+
+\usepackage[a4paper]{geometry}
+% \usepackage{fancyhdr}
+% \pagestyle{fancy}
+\usepackage[english]{babel}
+\usepackage{csquotes,xpatch} % Needs to be loaded after babel
+\usepackage[style=authoryear]{biblatex}
+\addbibresource{bibliography.bib}
+
+% \usepackage{algorithm}
+% \usepackage{algpseudocode}
+\usepackage{amsmath,amssymb,amsbsy,amsthm}
+\usepackage{graphicx}
+% \usepackage{hyperref}
+% \usepackage{mathptmx} %Times new romans text
+% \usepackage{My_AMA}
+% \usepackage{pgfplots}
+% \pgfplotsset{compat=1.18}
+
+% \usepackage{subcaption}
+% \usepackage{tikz}
+% \usetikzlibrary{arrows.meta,backgrounds}
+\graphicspath{ {images} }
+
+\usepackage{xcolor}
+\definecolor{ruby}{RGB}{192, 47, 29}
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator{\cov}{cov}
+\DeclareMathOperator{\E}{\mathbb{E}}
+\DeclareMathOperator{\Exp}{Exp}
+\DeclareMathOperator{\MVN}{MVN}
+\newcommand{\N}{\mathcal{N}}
+\DeclareMathOperator{\p}{\mathbb{P}}
+\DeclareMathOperator{\Pois}{Pois}
+\newcommand{\R}{\mathbb{R}}
+
+\makeatletter
+\providecommand*{\diff}%
+    {\@ifnextchar^{\DIfF}{\DIfF^{}}}
+\def\DIfF^#1{%
+    \mathop{\mathrm{\mathstrut d}}%
+        \nolimits^{#1}\gobblespace}
+\def\gobblespace{%
+        \futurelet\diffarg\opspace}
+\def\opspace{%
+        \let\DiffSpace\!%
+        \ifx\diffarg(%
+            \let\DiffSpace\relax
+        \else
+            \ifx\diffarg[%
+               \let\DiffSpace\relax
+            \else
+               \ifx\diffarg\{%
+                   \let\DiffSpace\relax
+               \fi\fi\fi\DiffSpace}
+
+
+%Information to be included in the title page:
+\title[BOLFI]{Bayesian Optimisation for Likelihood Free Inference}
+\subtitle{Make model go brrr}
+\author{Jacob Cumming}
+\institute{University of Melbourne}
+\date{April 2024}
+\logo{\includegraphics[height=1cm]{unimelb_logo}}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}
+\frametitle{Sample frame title}
+Basic function is $x(x-1)(x+1).$
+
+
+
+
+\end{frame}
+
+
+
+
+\end{document}
