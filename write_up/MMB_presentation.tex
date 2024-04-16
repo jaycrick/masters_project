@@ -1,6 +1,6 @@
 \documentclass{beamer}
 
-\usepackage[a4paper]{geometry}
+\usepackage[]{geometry}
 % \usepackage{fancyhdr}
 % \pagestyle{fancy}
 \usepackage[english]{babel}
@@ -15,8 +15,8 @@
 % \usepackage{hyperref}
 % \usepackage{mathptmx} %Times new romans text
 % \usepackage{My_AMA}
-% \usepackage{pgfplots}
-% \pgfplotsset{compat=1.18}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
 
 % \usepackage{subcaption}
 % \usepackage{tikz}
@@ -60,7 +60,7 @@
 
 %Information to be included in the title page:
 \title[BOLFI]{Bayesian Optimisation for Likelihood Free Inference}
-\subtitle{Make model go brrr}
+\subtitle{Make model parameterisation go brrr}
 \author{Jacob Cumming}
 \institute{University of Melbourne}
 \date{April 2024}
@@ -71,15 +71,38 @@
 \frame{\titlepage}
 
 \begin{frame}
-\frametitle{Sample frame title}
-Basic function is $x(x-1)(x+1).$
-
-
-
-
+    \frametitle{Gaussian Processes}
+    There you go
 \end{frame}
 
 
+\begin{frame}
+    \frametitle{Sample frame title}
+    Basic function is $x(x-1)(x+1).$
+\end{frame}
+
+\begin{frame}
+    \frametitle{Sample frame title}
+    \includegraphics[width=\textwidth]{flatish_GP_ell_5_tenths.pdf}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Sample frame title}
+    \begin{figure}
+        \centering
+        \includegraphics[width=\textwidth]{flatish_GP_ell_10_tenths.pdf}
+        \caption{$\sigma = 1$}
+    \end{figure}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Sample frame title}
+    \begin{figure}
+        \centering
+        \includegraphics[width=\textwidth]{flatish_GP_ell_20_tenths.pdf}
+        \caption{$\sigma = 1$}
+    \end{figure}
+\end{frame}
 
 
 \end{document}
