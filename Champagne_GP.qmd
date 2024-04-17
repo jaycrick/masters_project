@@ -82,6 +82,17 @@ def champagne_stochastic(
 
     for i in range(num_events):
         if S_0 == N:
+            while t < 31:
+                t += 1
+                new_stages = {
+                    "t": t,
+                    "S_0": N,
+                    "S_L": 0,
+                    "I_0": 0,
+                    "I_L": 0,
+                    "inc_counter": inc_counter,
+                }
+                list_of_outcomes.append(new_stages)
             break
 
         S_0_to_I_L = (1 - alpha_) * lambda_ * (I_L + I_0) / N * S_0
@@ -536,7 +547,7 @@ length_scales_champ = tfp.util.TransformedVariable(
 
 ```{python}
 kernel_champ = tfk.FeatureScaled(
-    tfk.ExponentiatedQuadratic(amplitude=amplitude_champ),
+    tfk.MaternFiveHalves(amplitude=amplitude_champ),
     scale_diag=length_scales_champ,
 )
 ```
@@ -603,7 +614,7 @@ for i in range(num_iters):
 ```{python}
 print("Trained parameters:")
 for var in champ_GP.trainable_variables:
-    if "tp" in var.name:  # or "bias" in var.name:
+    if "tp" in var.name or "bias" in var.name:
         print("{} is {}\n".format(var.name, var.numpy().round(3)))
     else:
         print(
@@ -627,12 +638,13 @@ plt.show()
 
 ```{python}
 plot_samp_no = 21
+plot_gp_no = 200
 gp_samp_no = 50
 ```
 
 ```{python}
 slice_samples_dict = {
-    "alpha_slice_samples": np.concatenate(
+    "alpha_slice_samples": np.repeat(np.concatenate(
         (
             np.linspace(0, 1, plot_samp_no, dtype=np.float64).reshape(-1, 1),  # alpha
             np.repeat(pv_champ_beta, plot_samp_no).reshape(-1, 1),  # beta
@@ -642,8 +654,19 @@ slice_samples_dict = {
             np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
         ),
         axis=1,
+    ), 3, axis = 0),
+    "alpha_gp_samples": np.concatenate(
+        (
+            np.linspace(0, 1, plot_gp_no, dtype=np.float64).reshape(-1, 1),  # alpha
+            np.repeat(pv_champ_beta, plot_gp_no).reshape(-1, 1),  # beta
+            np.repeat(pv_champ_gamma_L, plot_gp_no).reshape(-1, 1),  # gamma_L
+            np.repeat(pv_champ_lambda, plot_gp_no).reshape(-1, 1),  # lambda
+            np.repeat(pv_champ_f, plot_gp_no).reshape(-1, 1),  # f
+            np.repeat(pv_champ_r, plot_gp_no).reshape(-1, 1),  # r
+        ),
+        axis=1,
     ),
-    "beta_slice_samples": np.concatenate(
+    "beta_slice_samples": np.repeat(np.concatenate(
         (
             np.repeat(pv_champ_alpha, plot_samp_no).reshape(-1, 1),  # alpha
             np.linspace(0, 1, plot_samp_no, dtype=np.float64).reshape(-1, 1),  # beta
@@ -653,12 +676,23 @@ slice_samples_dict = {
             np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
         ),
         axis=1,
+    ), 3, axis = 0),
+    "beta_gp_samples": np.concatenate(
+        (
+            np.repeat(pv_champ_alpha, plot_gp_no).reshape(-1, 1),  # alpha
+            np.linspace(0, 1, plot_gp_no, dtype=np.float64).reshape(-1, 1),  # beta
+            np.repeat(pv_champ_gamma_L, plot_gp_no).reshape(-1, 1),  # gamma_L
+            np.repeat(pv_champ_lambda, plot_gp_no).reshape(-1, 1),  # lambda
+            np.repeat(pv_champ_f, plot_gp_no).reshape(-1, 1),  # f
+            np.repeat(pv_champ_r, plot_gp_no).reshape(-1, 1),  # r
+        ),
+        axis=1,
     ),
-    "gamma_L_slice_samples": np.concatenate(
+    "gamma_L_slice_samples": np.repeat(np.concatenate(
         (
             np.repeat(pv_champ_alpha, plot_samp_no).reshape(-1, 1),  # alpha
             np.repeat(pv_champ_beta, plot_samp_no).reshape(-1, 1),  # beta
-            -pv_champ_gamma_L
+            -10*pv_champ_gamma_L
             * np.log(
                 np.linspace(0, 1, plot_samp_no + 2, dtype=np.float64)[1:-1]
             ).reshape(
@@ -669,8 +703,28 @@ slice_samples_dict = {
             np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
         ),
         axis=1,
+    ), 3, axis = 0),
+    "gamma_L_gp_samples": np.concatenate(
+        (
+            np.repeat(pv_champ_alpha, plot_gp_no).reshape(-1, 1),  # alpha
+            np.repeat(pv_champ_beta, plot_gp_no).reshape(-1, 1),  # beta
+            np.linspace(
+                -10*pv_champ_gamma_L
+                * np.log(
+                    np.linspace(0, 1, plot_samp_no + 2, dtype=np.float64)[1:-1]
+                ).reshape(-1, 1)[0],
+                -10*pv_champ_gamma_L
+                * np.log(
+                    np.linspace(0, 1, plot_samp_no + 2, dtype=np.float64)[1:-1]
+                ).reshape(-1, 1)[-1], plot_gp_no, dtype=np.float64
+            ),  # gamma_L
+            np.repeat(pv_champ_lambda, plot_gp_no).reshape(-1, 1),  # lambda
+            np.repeat(pv_champ_f, plot_gp_no).reshape(-1, 1),  # f
+            np.repeat(pv_champ_r, plot_gp_no).reshape(-1, 1),  # r
+        ),
+        axis=1,
     ),
-    "lambda_slice_samples": np.concatenate(
+    "lambda_slice_samples": np.repeat(np.concatenate(
         (
             np.repeat(pv_champ_alpha, plot_samp_no).reshape(-1, 1),  # alpha
             np.repeat(pv_champ_beta, plot_samp_no).reshape(-1, 1),  # beta
@@ -685,14 +739,34 @@ slice_samples_dict = {
             np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
         ),
         axis=1,
+    ), 3, axis = 0),
+    "lambda_gp_samples": np.concatenate(
+        (
+            np.repeat(pv_champ_alpha, plot_gp_no).reshape(-1, 1),  # alpha
+            np.repeat(pv_champ_beta, plot_gp_no).reshape(-1, 1),  # beta
+            np.repeat(pv_champ_gamma_L, plot_gp_no).reshape(-1, 1),  # gamma_L
+            np.linspace(
+                -pv_champ_lambda
+                * np.log(
+                    np.linspace(0, 1, plot_samp_no + 2, dtype=np.float64)[1:-1]
+                ).reshape(-1, 1)[0],
+                -pv_champ_lambda
+                * np.log(
+                    np.linspace(0, 1, plot_samp_no + 2, dtype=np.float64)[1:-1]
+                ).reshape(-1, 1)[-1], plot_gp_no, dtype=np.float64
+            ),  # lambda
+            np.repeat(pv_champ_f, plot_gp_no).reshape(-1, 1),  # f
+            np.repeat(pv_champ_r, plot_gp_no).reshape(-1, 1),  # r
+        ),
+        axis=1,
     ),
-    "f_slice_samples": np.concatenate(
+    "f_slice_samples": np.repeat(np.concatenate(
         (
             np.repeat(pv_champ_alpha, plot_samp_no).reshape(-1, 1),  # alpha
             np.repeat(pv_champ_beta, plot_samp_no).reshape(-1, 1),  # beta
             np.repeat(pv_champ_gamma_L, plot_samp_no).reshape(-1, 1),  # gamma_L
             np.repeat(pv_champ_lambda, plot_samp_no).reshape(-1, 1),  # lambda
-            -pv_champ_f
+            -10*pv_champ_f
             * np.log(
                 np.linspace(0, 1, plot_samp_no + 2, dtype=np.float64)[1:-1]
             ).reshape(
@@ -701,19 +775,59 @@ slice_samples_dict = {
             np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
         ),
         axis=1,
+    ), 3, axis = 0),
+    "f_gp_samples": np.concatenate(
+        (
+            np.repeat(pv_champ_alpha, plot_gp_no).reshape(-1, 1),  # alpha
+            np.repeat(pv_champ_beta, plot_gp_no).reshape(-1, 1),  # beta
+            np.repeat(pv_champ_gamma_L, plot_gp_no).reshape(-1, 1),  # gamma_L
+            np.repeat(pv_champ_lambda, plot_gp_no).reshape(-1, 1),  # lambda
+            np.linspace(
+                -10*pv_champ_f
+                * np.log(
+                    np.linspace(0, 1, plot_samp_no + 2, dtype=np.float64)[1:-1]
+                ).reshape(-1, 1)[0],
+                -10*pv_champ_f
+                * np.log(
+                    np.linspace(0, 1, plot_samp_no + 2, dtype=np.float64)[1:-1]
+                ).reshape(-1, 1)[-1], plot_gp_no, dtype=np.float64
+            ),  # f
+            np.repeat(pv_champ_r, plot_gp_no).reshape(-1, 1),  # r
+        ),
+        axis=1,
     ),
-    "r_slice_samples": np.concatenate(
+    "r_slice_samples": np.repeat(np.concatenate(
         (
             np.repeat(pv_champ_alpha, plot_samp_no).reshape(-1, 1),  # alpha
             np.repeat(pv_champ_beta, plot_samp_no).reshape(-1, 1),  # beta
             np.repeat(pv_champ_gamma_L, plot_samp_no).reshape(-1, 1),  # gamma_L
             np.repeat(pv_champ_lambda, plot_samp_no).reshape(-1, 1),  # lambda
             np.repeat(pv_champ_f, plot_samp_no).reshape(-1, 1),  # f
-            -pv_champ_r
+            -2*pv_champ_r
             * np.log(
                 np.linspace(0, 1, plot_samp_no + 2, dtype=np.float64)[1:-1]
             ).reshape(
                 -1, 1
+            ),  # r
+        ),
+        axis=1,
+    ), 3, axis = 0),
+    "r_gp_samples": np.concatenate(
+        (
+            np.repeat(pv_champ_alpha, plot_gp_no).reshape(-1, 1),  # alpha
+            np.repeat(pv_champ_beta, plot_gp_no).reshape(-1, 1),  # beta
+            np.repeat(pv_champ_gamma_L, plot_gp_no).reshape(-1, 1),  # gamma_L
+            np.repeat(pv_champ_lambda, plot_gp_no).reshape(-1, 1),  # lambda
+            np.repeat(pv_champ_f, plot_gp_no).reshape(-1, 1),  # f
+            np.linspace(
+                -2*pv_champ_r
+                * np.log(
+                    np.linspace(0, 1, plot_samp_no + 2, dtype=np.float64)[1:-1]
+                ).reshape(-1, 1)[0],
+                -2*pv_champ_r
+                * np.log(
+                    np.linspace(0, 1, plot_samp_no + 2, dtype=np.float64)[1:-1]
+                ).reshape(-1, 1)[-1], plot_gp_no, dtype=np.float64
             ),  # r
         ),
         axis=1,
@@ -744,9 +858,16 @@ for var in vars:
     )
     slice_discrepencies_dict[var + "_slice_discrepencies"] = discreps
 
+
+    gp_samples_df = pd.DataFrame(
+        slice_samples_dict[var + "_gp_samples"], columns=variables_names
+    )
+    slice_indices_dfs_dict[var + "_gp_indices_df"] = gp_samples_df
+    slice_index_vals_dict[var + "_gp_index_vals"] = gp_samples_df.values
+
     champ_GP_reg = tfd.GaussianProcessRegressionModel(
         kernel=kernel_champ,
-        index_points=val_df.values,
+        index_points=gp_samples_df.values,
         observation_index_points=index_vals,
         observations=obs_vals,
         observation_noise_variance=observation_noise_variance_champ,
@@ -755,7 +876,7 @@ for var in vars:
     )
     GP_samples = champ_GP_reg.sample(gp_samp_no, seed=GP_seed)
 
-    plt.figure(figsize=(12, 4))
+    plt.figure(figsize=(7, 4))
     plt.scatter(
         val_df[var].values,
         discreps,
@@ -763,7 +884,7 @@ for var in vars:
     )
     for i in range(gp_samp_no):
         plt.plot(
-            val_df[var].values,
+            gp_samples_df[var].values,
             GP_samples[i, :],
             c="r",
             alpha=0.1,
@@ -1014,16 +1135,23 @@ def new_eta_t(t, d, exploration_rate):
     return np.sqrt(np.log((t + 1) ** (d / 2 + 2) * np.pi**2 / (3 * exploration_rate)))
 
 
-exploration_rate = 0.1
+exploration_rate = 0.001
 d = 6
 update_freq = 20  # how many iterations before updating GP hyperparams
+eta_t = tf.Variable(0,dtype=np.float64, name = "eta_t")
 
-for t in range(800):
-    next_vars[0].assign(0)
+for t in range(801):
+    print(index_vals[-1,])
     optimizer_fast = tf.optimizers.Adam(learning_rate=0.01)
     optimizer_slow = tf.optimizers.Adam()
-    eta_t = new_eta_t(t, d, exploration_rate)
+    eta_t.assign(new_eta_t(t, d, exploration_rate))
+    print(eta_t)
     print(t)
+
+    for var in next_vars:
+        var.assign(my_seed.uniform(0,1))
+    update_var()
+
     new_discrepency = discrepency_fn(
         next_alpha.numpy(),
         next_beta.numpy(),
@@ -1060,24 +1188,28 @@ for t in range(800):
 
     champ_GP_reg = tfd.GaussianProcessRegressionModel(
         kernel=kernel_champ,
-        index_points=alpha_slice_index_vals,
         observation_index_points=index_vals,
         observations=obs_vals,
         observation_noise_variance=observation_noise_variance_champ,
         predictive_noise_variance=0.0,
         mean_fn=quad_mean_fn(),
     )
-    update_var()
 
-    if t >0 & t % 50 = 0:
+    if (t > 0) & (t % 50 == 0):
+        print("Trained parameters:")
+        for var in champ_GP.trainable_variables:
+            if "tp" in var.name or "bias" in var.name:
+                print("{} is {}\n".format(var.name, var.numpy().round(3)))
+            else:
+                print(
+                    "{} is {}\n".format(
+                        var.name, constrain_positive.forward(var).numpy().round(3)
+                    )
+                )
         for var in vars:
-            slice_indices_dfs_dict[var + "_slice_indices_df"]
-            slice_index_vals_dict[var + "_slice_index_vals"]
-            slice_discrepencies_dict[var + "_slice_discrepencies"]
-
             champ_GP_reg = tfd.GaussianProcessRegressionModel(
                 kernel=kernel_champ,
-                index_points=slice_indices_dfs_dict[var + "_slice_indices_df"].values,
+                index_points=slice_indices_dfs_dict[var + "_gp_indices_df"].values,
                 observation_index_points=index_vals,
                 observations=obs_vals,
                 observation_noise_variance=observation_noise_variance_champ,
@@ -1086,15 +1218,15 @@ for t in range(800):
             )
             GP_samples = champ_GP_reg.sample(gp_samp_no, seed=GP_seed)
 
-            plt.figure(figsize=(12, 4))
+            plt.figure(figsize=(7, 4))
             plt.scatter(
-                slice_indices_dfs_dict[var + "_slice_indices_df"].values,
+                slice_indices_dfs_dict[var + "_slice_indices_df"][var].values,
                 slice_discrepencies_dict[var + "_slice_discrepencies"],
                 label="Observations",
             )
             for i in range(gp_samp_no):
                 plt.plot(
-                    slice_indices_dfs_dict[var + "_slice_indices_df"][var].values,
+                    slice_indices_dfs_dict[var + "_gp_indices_df"][var].values,
                     GP_samples[i, :],
                     c="r",
                     alpha=0.1,
@@ -1113,7 +1245,7 @@ for t in range(800):
             )
             plt.show()
 
-print(index_vals[-600,])
+# print(index_vals[-600,])
 print(index_vals[-400,])
 print(index_vals[-200,])
 print(index_vals[-80,])
@@ -1123,86 +1255,4 @@ print(index_vals[-8,])
 print(index_vals[-4,])
 print(index_vals[-2,])
 print(index_vals[-1,])
-```
-
-
-## Fitting the GP Regression across alpha
-
-```{python}
-plot_samp_no = 21
-gp_samp_no = 50
-```
-
-```{python}
-GP_seed = tfp.random.sanitize_seed(4362)
-
-champ_GP_reg = tfd.GaussianProcessRegressionModel(
-    kernel=kernel_champ,
-    index_points=alpha_slice_index_vals,
-    observation_index_points=index_vals,
-    observations=obs_vals,
-    observation_noise_variance=observation_noise_variance_champ,
-    predictive_noise_variance=0.0,
-    mean_fn=quad_mean_fn(),
-)
-
-GP_samples = champ_GP_reg.sample(gp_samp_no, seed=GP_seed)
-```
-
-```{python}
-plt.figure(figsize=(12, 4))
-plt.scatter(
-    alpha_slice_index_vals[:, 0], alpha_slice_discrepencies, label="Observations"
-)
-for i in range(gp_samp_no):
-    plt.plot(
-        alpha_slice_index_vals[:, 0],
-        GP_samples[i, :],
-        c="r",
-        alpha=0.1,
-        label="Posterior Sample" if i == 0 else None,
-    )
-leg = plt.legend(loc="lower right")
-for lh in leg.legend_handles:
-    lh.set_alpha(1)
-plt.xlabel(r"$\alpha$ index points")
-plt.ylabel("Discrepancy")
-plt.savefig("champagne_GP_images/new_alpha_slice.pdf")
-plt.show()
-```
-
-## Fitting the GP Regression across beta
-
-```{python}
-champ_GP_reg = tfd.GaussianProcessRegressionModel(
-    kernel=kernel_champ,
-    index_points=beta_slice_index_vals,
-    observation_index_points=index_vals,
-    observations=obs_vals,
-    observation_noise_variance=observation_noise_variance_champ,
-    predictive_noise_variance=0.0,
-    mean_fn=quad_mean_fn(),
-)
-
-GP_samples = champ_GP_reg.sample(gp_samp_no, seed=GP_seed)
-```
-
-```{python}
-plt.figure(figsize=(12, 4))
-plt.scatter(beta_slice_index_vals[:, 1], beta_slice_discrepencies, label="Observations")
-for i in range(gp_samp_no):
-    plt.plot(
-        beta_slice_index_vals[:, 1],
-        GP_samples[i, :],
-        c="r",
-        alpha=0.1,
-        label="Posterior Sample" if i == 0 else None,
-    )
-leg = plt.legend(loc="lower right")
-for lh in leg.legend_handles:
-    lh.set_alpha(1)
-plt.xlabel(r"$\beta$ index points")
-plt.ylabel("Discrepency")
-plt.savefig("champagne_GP_images/new_beta_slice.pdf")
-plt.show()
 ```
