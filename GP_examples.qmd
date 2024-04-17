@@ -29,6 +29,39 @@ sampling_seed = tfp.random.sanitize_seed(seed=146098)
 
 # Effect of GP kernels
 
+```{python}
+predictive_index_points_ = np.linspace(-1.2, 1.2, 200, dtype=np.float64)
+predictive_index_points_ = predictive_index_points_[..., np.newaxis]
+
+num_samples = 20
+
+for ell in [0.5, 1, 2]:
+    gp = tfd.GaussianProcess(
+        kernel=tfk.ExponentiatedQuadratic(np.float64(1), np.float64(ell)),
+        index_points=predictive_index_points_,
+    )
+
+    samples = gp.sample(num_samples, seed = sampling_seed)
+
+    plt.figure(figsize=(7, 4))
+    for i in range(num_samples):
+        plt.plot(
+            predictive_index_points_,
+            samples[i, :],
+            c="r",
+            alpha=0.1 + 0.9 * (i + 1 == num_samples),
+            label="Posterior Sample" if i == 0 else None,
+        )
+    leg = plt.legend(loc="lower right")
+    for lh in leg.legend_handles:
+        lh.set_alpha(1)
+    plt.xlabel("x")
+    plt.ylabel("f(x)")
+    plt.title(r"Function estimation with $\ell = $" + str(ell))
+    plt.savefig("write_up/images/exponentiated_ell_" + str(int(ell*10)) + "_tenths.pdf")
+    plt.show()
+```
+
 ## Changing length parameter
 ```{python}
 flat_index = np.array([[-1], [0], [1]], dtype=np.float64)

@@ -1,0 +1,20 @@
+Hello everyone thanks for coming to this talk.
+
+Slide 1.
+
+To frame the problem that this technique is trying to solve I assume you've all made some kind of model which we call f before, and then you come to the part where you have to parametrise the model. So you've been given some real world data which we call X here, and you want to find the parameters theta that best correspond to the real data. Now unlike the model where you have access to an infinite amount of data.
+
+The dream is to have an explicit likelihood for the model. That is given a set of parameters and the data, we would know how likely it is to generate the data by running our model. This enables us to do some juicy maximum likelihood estimation for the set of parameters, or to get a posterior distribution of the parameters if we are that way inclined. 
+
+Unfortunately as you all know this is super rare, and particularly as you get more and more complicated models such as agent based model it's just downright impossible. 
+
+
+
+
+
+
+
+
+
+So we define a kernel function D, which we call the discrepency. This is often some sort of norm, such as a p norm, but care needs to be taken because we often need to rescale X and X observed by the covariance matrix to avoid differing scales.
+Or you can use the p = 1/2 norm (which technically isn't a norm)
