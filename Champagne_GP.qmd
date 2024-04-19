@@ -6,9 +6,7 @@ jupyter: python3
 ---
 
 # TODO
-- Set seed for LHC and stuff
-- Change to log discrepency with custom observation variance
-- Change from MLE to cross validation
+- Change outputs
 
 
 # Setting up the Champagne Model
@@ -29,6 +27,7 @@ import tensorflow_probability as tfp
 tfb = tfp.bijectors
 tfd = tfp.distributions
 tfk = tfp.math.psd_kernels
+# tfp_acq = tfp.experimental.bayesopt.acquisition
 ```
 
 ## Model itself
@@ -78,9 +77,11 @@ def champagne_stochastic(
         {"t": 0, "S_0": S_0, "S_L": S_L, "I_0": I_0, "I_L": I_L, "inc_counter": 0}
     ]
 
-    prop_new = alpha_*beta_*f/(alpha_*beta_*f + gamma_L)
+    prop_new = alpha_ * beta_ * f / (alpha_ * beta_ * f + gamma_L)
+    i = 0
 
-    for i in range(num_events):
+    while (i < num_events) or (t < 30):
+        i += 1
         if S_0 == N:
             while t < 31:
                 t += 1
@@ -269,7 +270,7 @@ observed_sum_stats = champ_sum_stats(
 
 def discrepency_fn(alpha_, beta_, gamma_L, lambda_, f, r): # best is L1 norm
     x = champ_sum_stats(alpha_, beta_, gamma_L, lambda_, f, r)
-    return np.log(np.sum(np.abs((x - observed_sum_stats) / observed_sum_stats)))
+    return np.sum(np.abs((x - observed_sum_stats) / observed_sum_stats))
 ```
 
 Testing the variances across different values of params etc.
@@ -449,20 +450,20 @@ constrain_positive = tfb.Shift(np.finfo(np.float64).tiny)(tfb.Exp())
 class quad_mean_fn(tf.Module):
     def __init__(self):
         super(quad_mean_fn, self).__init__()
-        self.amp_alpha_mean = tfp.util.TransformedVariable(
-            bijector=constrain_positive,
-            initial_value=1.0,
-            dtype=np.float64,
-            name="amp_alpha_mean",
-        )
-        self.alpha_tp = tf.Variable(pv_champ_alpha, dtype=np.float64, name="alpha_tp")
-        self.amp_beta_mean = tfp.util.TransformedVariable(
-            bijector=constrain_positive,
-            initial_value=1.0,
-            dtype=np.float64,
-            name="amp_beta_mean",
-        )
-        self.beta_tp = tf.Variable(pv_champ_beta, dtype=np.float64, name="beta_tp")
+        # self.amp_alpha_mean = tfp.util.TransformedVariable(
+        #     bijector=constrain_positive,
+        #     initial_value=1.0,
+        #     dtype=np.float64,
+        #     name="amp_alpha_mean",
+        # )
+        # self.alpha_tp = tf.Variable(pv_champ_alpha, dtype=np.float64, name="alpha_tp")
+        # self.amp_beta_mean = tfp.util.TransformedVariable(
+        #     bijector=constrain_positive,
+        #     initial_value=0.5,
+        #     dtype=np.float64,
+        #     name="amp_beta_mean",
+        # )
+        # self.beta_tp = tf.Variable(pv_champ_beta, dtype=np.float64, name="beta_tp")
         self.amp_gamma_L_mean = tfp.util.TransformedVariable(
             bijector=constrain_positive,
             initial_value=1.0,
@@ -495,23 +496,84 @@ class quad_mean_fn(tf.Module):
             name="amp_r_mean",
         )
         self.r_tp = tf.Variable(pv_champ_r, dtype=np.float64, name="r_tp")
-        # self.bias_mean = tfp.util.TransformedVariable(
-        #     bijector=constrain_positive,
-        #     initial_value=50.0,
-        #     dtype=np.float64,
-        #     name="bias_mean",
-        # )
-        self.bias_mean = tf.Variable(0.0, dtype=np.float64, name="bias_mean")
+        self.bias_mean = tfp.util.TransformedVariable(
+            bijector=constrain_positive,
+            initial_value=50.0,
+            dtype=np.float64,
+            name="bias_mean",
+        )
+        # self.bias_mean = tf.Variable(0.0, dtype=np.float64, name="bias_mean")
 
     def __call__(self, x):
         return (
-            self.amp_alpha_mean * (x[..., 0] - self.alpha_tp) ** 2
-            + self.amp_beta_mean * (x[..., 1] - self.beta_tp) ** 2
+            self.bias_mean
+            # + self.amp_alpha_mean * (x[..., 0] - self.alpha_tp) ** 2
+            # + self.amp_beta_mean * (x[..., 1] - self.beta_tp) ** 2
             + self.amp_gamma_L_mean * (x[..., 2] - self.gamma_L_tp) ** 2
             + self.amp_lambda_mean * (x[..., 3] - self.lambda_tp) ** 2
             + self.amp_f_mean * (x[..., 4] - self.f_tp) ** 2
             + self.amp_r_mean * (x[..., 5] - self.r_tp) ** 2
-            + self.bias_mean
+        )
+```
+
+## Custom Linear Mean Function
+```{python}
+class lin_mean_fn(tf.Module):
+    def __init__(self):
+        super(lin_mean_fn, self).__init__()
+        # self.amp_alpha_lin = tfp.util.TransformedVariable(
+        #     bijector=constrain_positive,
+        #     initial_value=1.0,
+        #     dtype=np.float64,
+        #     name="amp_alpha_lin",
+        # )
+        # self.amp_beta_lin = tfp.util.TransformedVariable(
+        #     bijector=constrain_positive,
+        #     initial_value=0.5,
+        #     dtype=np.float64,
+        #     name="amp_beta_lin",
+        # )
+        self.amp_gamma_L_lin = tfp.util.TransformedVariable(
+            bijector=constrain_positive,
+            initial_value=1.0,
+            dtype=np.float64,
+            name="amp_gamma_L_lin",
+        )
+        self.amp_lambda_lin = tfp.util.TransformedVariable(
+            bijector=constrain_positive,
+            initial_value=1.0,
+            dtype=np.float64,
+            name="amp_lambda_lin",
+        )
+        self.amp_f_lin = tfp.util.TransformedVariable(
+            bijector=constrain_positive,
+            initial_value=1.0,
+            dtype=np.float64,
+            name="amp_f_lin",
+        )
+        self.amp_r_lin = tfp.util.TransformedVariable(
+            bijector=constrain_positive,
+            initial_value=1.0,
+            dtype=np.float64,
+            name="amp_r_lin",
+        )
+        # self.bias_lin = tfp.util.TransformedVariable(
+        #     bijector=constrain_positive,
+        #     initial_value=1.0,
+        #     dtype=np.float64,
+        #     name="bias_lin",
+        # )
+        self.bias_lin = tf.Variable(0.0, dtype=np.float64, name="bias_mean")
+
+    def __call__(self, x):
+        return (
+            self.bias_lin
+            # + self.amp_alpha_lin * (x[..., 0])
+            # + self.amp_beta_lin * (x[..., 1])
+            + self.amp_gamma_L_lin * (x[..., 2])
+            + self.amp_lambda_lin * (x[..., 3])
+            + self.amp_f_lin * (x[..., 4])
+            + self.amp_r_lin * (x[..., 5])
         )
 ```
 
@@ -530,7 +592,7 @@ amplitude_champ = tfp.util.TransformedVariable(
 
 observation_noise_variance_champ = tfp.util.TransformedVariable(
     bijector=constrain_positive,
-    initial_value=0.03,
+    initial_value=2,
     dtype=np.float64,
     name="observation_noise_variance_champ",
 )
@@ -538,8 +600,8 @@ observation_noise_variance_champ = tfp.util.TransformedVariable(
 
 ```{python}
 length_scales_champ = tfp.util.TransformedVariable(
-    bijector=constrain_positive,
-    initial_value=[0.05, 0.05, 0.05, 0.05, 0.05, 0.05],
+    bijector=tfb.Sigmoid(),
+    initial_value=[0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
     dtype=np.float64,
     name="length_scales_champ",
 )
@@ -614,14 +676,21 @@ for i in range(num_iters):
 ```{python}
 print("Trained parameters:")
 for var in champ_GP.trainable_variables:
-    if "tp" in var.name or "bias" in var.name:
-        print("{} is {}\n".format(var.name, var.numpy().round(3)))
-    else:
+    if "length" in var.name:
         print(
             "{} is {}\n".format(
-                var.name, constrain_positive.forward(var).numpy().round(3)
+                var.name, tfb.Sigmoid().forward(var).numpy().round(3)
             )
         )
+    else:
+        if "tp" in var.name: # or "bias" in var.name:
+            print("{} is {}\n".format(var.name, var.numpy().round(3)))
+        else:
+            print(
+                "{} is {}\n".format(
+                    var.name, constrain_positive.forward(var).numpy().round(3)
+                )
+            )
 ```
 
 ```{python}
@@ -630,7 +699,7 @@ plt.plot(lls_)
 plt.title("Initial training for GP hyperparameters")
 plt.xlabel("Training iteration")
 plt.ylabel("Log likelihood")
-plt.savefig("champagne_GP_images/hyperparam_loss.pdf")
+plt.savefig("champagne_GP_images/hyperparam_loss_no_log.pdf")
 plt.show()
 ```
 
@@ -895,12 +964,14 @@ for var in vars:
         lh.set_alpha(1)
     if var in ["f", "r"]:
         plt.xlabel("$" + var + "$ index points")
+        plt.title("$" + var + "$ slice before Bayesian Acquisition")
     else:
         plt.xlabel("$\\" + var + "$ index points")
+        plt.title("$\\" + var + "$ slice before Bayesian Acquisition")
     # if var not in ["alpha", "beta"]:
     #     plt.xscale("log", base=np.e)
     plt.ylabel("Discrepancy")
-    plt.savefig("champagne_GP_images/initial_" + var + "_slice.pdf")
+    plt.savefig("champagne_GP_images/initial_" + var + "_slice_no_log.pdf")
     plt.show()
 ```
 
@@ -1041,7 +1112,7 @@ plt.figure(figsize=(7, 4))
 plt.plot(lls_)
 plt.xlabel("Training iteration")
 plt.ylabel("Loss")
-plt.savefig("champagne_GP_images/bolfi_optim_loss.pdf")
+plt.savefig("champagne_GP_images/bolfi_optim_loss_no_log.pdf")
 plt.show()
 ```
 
@@ -1130,27 +1201,40 @@ def update_var():
     for var in optimizer_fast.variables:
         var.assign(tf.zeros_like(var))
 
+# EI = tfp_acq.GaussianProcessExpectedImprovement(champ_GP_reg, obs_vals)
 
 def new_eta_t(t, d, exploration_rate):
     return np.sqrt(np.log((t + 1) ** (d / 2 + 2) * np.pi**2 / (3 * exploration_rate)))
+```
 
-
-exploration_rate = 0.001
+```{python}
+exploration_rate = 0.01
 d = 6
 update_freq = 20  # how many iterations before updating GP hyperparams
 eta_t = tf.Variable(0,dtype=np.float64, name = "eta_t")
 
-for t in range(801):
-    print(index_vals[-1,])
+for t in range(101):
     optimizer_fast = tf.optimizers.Adam(learning_rate=0.01)
     optimizer_slow = tf.optimizers.Adam()
     eta_t.assign(new_eta_t(t, d, exploration_rate))
+    print("Iteration " + str(t))
     print(eta_t)
-    print(t)
 
     for var in next_vars:
         var.assign(my_seed.uniform(0,1))
     update_var()
+
+    new_params = np.array(
+            [
+                next_alpha.numpy(),
+                next_beta.numpy(),
+                next_gamma_L.numpy(),
+                next_lambda.numpy(),
+                next_f.numpy(),
+                next_r.numpy(),
+            ]
+        ).reshape(1, -1)
+    print(new_params)
 
     new_discrepency = discrepency_fn(
         next_alpha.numpy(),
@@ -1163,16 +1247,7 @@ for t in range(801):
 
     index_vals = np.append(
         index_vals,
-        np.array(
-            [
-                next_alpha.numpy(),
-                next_beta.numpy(),
-                next_gamma_L.numpy(),
-                next_lambda.numpy(),
-                next_f.numpy(),
-                next_r.numpy(),
-            ]
-        ).reshape(1, -1),
+        new_params,
         axis=0,
     )
     obs_vals = np.append(obs_vals, new_discrepency)
@@ -1197,15 +1272,22 @@ for t in range(801):
 
     if (t > 0) & (t % 50 == 0):
         print("Trained parameters:")
-        for var in champ_GP.trainable_variables:
-            if "tp" in var.name or "bias" in var.name:
-                print("{} is {}\n".format(var.name, var.numpy().round(3)))
-            else:
+        for train_var in champ_GP.trainable_variables:
+            if "length" in train_var.name:
                 print(
                     "{} is {}\n".format(
-                        var.name, constrain_positive.forward(var).numpy().round(3)
+                        train_var.name, tfb.Sigmoid().forward(train_var).numpy().round(3)
                     )
                 )
+            else:
+                if "tp" in train_var.name: # or "bias" in var.name:
+                    print("{} is {}\n".format(train_var.name, train_var.numpy().round(3)))
+                else:
+                    print(
+                        "{} is {}\n".format(
+                            train_var.name, constrain_positive.forward(train_var).numpy().round(3)
+                        )
+                    )
         for var in vars:
             champ_GP_reg = tfd.GaussianProcessRegressionModel(
                 kernel=kernel_champ,
@@ -1237,11 +1319,13 @@ for t in range(801):
                 lh.set_alpha(1)
             if var in ["f", "r"]:
                 plt.xlabel("$" + var + "$ index points")
+                plt.title("$" + var + "$ slice after " + str(t) + " Bayesian acquisitions")
             else:
                 plt.xlabel("$\\" + var + "$ index points")
+                plt.title("$\\" + var + "$ slice after " + str(t) + " Bayesian acquisitions")
             plt.ylabel("Discrepancy")
             plt.savefig(
-                "champagne_GP_images/" + var + "_slice_" + str(t) + "_bolfi_updates.pdf"
+                "champagne_GP_images/" + var + "_slice_" + str(t) + "_bolfi_updates_no_log.pdf"
             )
             plt.show()
 
