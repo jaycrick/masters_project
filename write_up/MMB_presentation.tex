@@ -63,7 +63,7 @@
 \title[BOLFI]{Bayesian Optimisation for Likelihood Free Inference}
 \subtitle{Make model parameterisation go brrr}
 \author{Jacob Cumming}
-\institute{University of Melbourne}
+\institute{University of Melbourne, Walter and Eliza Hall Institute}
 \date{April 2024}
 \logo{\includegraphics[height=1cm]{unimelb_logo}}
 
@@ -141,7 +141,7 @@
 \end{frame}
 
 \begin{frame}
-    \frametitle{Attempt 2}
+    \frametitle{Uniform Acceptance Probability}
     \begin{figure}
         \centering
         \begin{tikzpicture}
@@ -290,25 +290,6 @@
     \only<6>{\includegraphics[width=\textwidth]{cub_GP_err_10_iters.pdf}}
 \end{frame}
 
-
-
-\begin{frame}
-    \frametitle{Where to sample function next?}
-    \begin{itemize}
-        \item Next point $\argmin_{\bm{\theta}}A(\bm\theta)$ where A is an acquisition function.
-        \item <2-> BOLFI paper uses $$\mu(\bm\theta) - \eta_t\sqrt{\mathrm{v}(\bm\theta)}$$ \begin{itemize}
-                  \item $\eta_t:= \sqrt{c + 2\ln(t^{d/2 + 2})},$ and $c$ can be chosen
-                  \item $\mu(\bm\theta)$ and $\mathrm{v}(\bm\theta)$ are the posterior mean and variance
-              \end{itemize}
-        \item <3-> Could use expected information $$(\mu_\text{min} - \mu(\bm\theta))
-                  \varPhi\left(\frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}\right) + \sqrt{\mathrm{v}(\bm\theta)}
-                  \phi\left(\frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}\right)$$\begin{itemize}
-                  \item $\mu_\text{min} := \min_{\bm{\theta}} \mu(\bm\theta)$
-                  \item $\varPhi, \phi$ CDF and PDF of standard normal
-              \end{itemize}
-    \end{itemize}
-\end{frame}
-
 \begin{frame}
     \frametitle{Overall Idea again}
     \begin{itemize}
@@ -374,26 +355,91 @@
     \frametitle{Model Calibration Data}\begin{itemize}
         \item Doob-Gillespie algorithm with paper parameters reported in the original paper for 'observed data', 10 initial infections, 1000 people.
         \item <2->$S(\mathbf{X}_\text{obs}) := \{w_\text{obs}, p_\text{obs}, m_\text{obs}\}$ \begin{itemize}
-            \item $w_\text{obs}:$ weekly incidence around (stochastic) equilibrium
-            \item $p_\text{obs}:$ prevalence around (stochastic) equilibrium
-            \item $m_\text{obs}:$ incidence in the first month of the epidemic
-        \end{itemize}
-        \item <3-> $D(S(\mathbf{X}), S(\mathbf{X}_\text{obs})) := \sqrt{(\frac{w_\text{obs} - w}{w_\text{obs}})^2 + (\frac{p_\text{obs} - p}{p_\text{obs}})^2 + (\frac{p_\text{obs} - p}{p_\text{obs}})^2}$ \begin{itemize}
-            \item $L_2$ norm on the relative differences
-        \end{itemize}
+                  \item $w_\text{obs}:$ weekly incidence around (stochastic) equilibrium
+                  \item $p_\text{obs}:$ prevalence around (stochastic) equilibrium
+                  \item $m_\text{obs}:$ incidence in the first month of the epidemic
+              \end{itemize}
+        \item <3-> $D(S(\mathbf{X}), S(\mathbf{X}_\text{obs})) := \left|\frac{w_\text{obs} - w}{w_\text{obs}}\right| + \left|\frac{p_\text{obs} - p}{p_\text{obs}}\right| + \left|\frac{m_\text{obs} - m}{m_\text{obs}}\right|$ \begin{itemize}
+                  \item $L_1$ norm on the relative differences
+              \end{itemize}
     \end{itemize}
+\end{frame}
 
+\begin{frame}
+    \frametitle{Example Simulation}
+    \includegraphics[width=\textwidth]{doob_champagne.pdf}
+\end{frame}
 
+\begin{frame}
+    \frametitle{What's the Bayesian part?}
+    \begin{itemize}
+        \item Choosing the next point to sample
+        \item <2->$\argmin_{\bm{\theta}}A(\bm\theta)$ where A is an acquisition function.
+        \item <3-> BOLFI paper uses $$\mu(\bm\theta) - \eta_t\sqrt{\mathrm{v}(\bm\theta)}$$ \begin{itemize}
+                  \item $\eta_t:= \sqrt{c + 2\ln(t^{d/2 + 2})},$ and $c$ can be chosen
+                  \item $\mu(\bm\theta)$ and $\mathrm{v}(\bm\theta)$ are the posterior mean and variance
+              \end{itemize}
+        \item <4-> Could use expected information $$(\mu_\text{min} - \mu(\bm\theta))
+                  \varPhi\left(\frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}\right) + \sqrt{\mathrm{v}(\bm\theta)}
+                  \phi\left(\frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}\right)$$\begin{itemize}
+                  \item $\mu_\text{min} := \min_{\bm{\theta}} \mu(\bm\theta)$
+                  \item $\varPhi, \phi$ CDF and PDF of standard normal
+              \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Synthetic Likelihood}
+    \begin{itemize}
+        \item $L(\bm\theta | \mathbf{X}_\text{obs}) \approx P(D_{\mathcal{GP}}(\theta) = 0)$ where $D_{\mathcal{GP}}$ is the discrepency modelled the Gaussian process
+        \item This is equivalent to using the half normal acceptance criteria
+              \begin{figure}
+                  \centering
+                  \begin{tikzpicture}
+                      \begin{axis}[
+                              xlabel={$D(S(\mathbf{X}), S(\mathbf{X}_\text{obs}))$},
+                              ylabel={Synthetic Likelihood},
+                              xmin=0, xmax=4,
+                              ymin=0, ymax=1.1,
+                              domain=0:4,
+                              samples=100,
+                              axis lines=left,
+                              grid=major,
+                          ]
+
+                          \addplot [blue!50!black, thick] {exp(-x^2/2)};
+
+                      \end{axis}
+                  \end{tikzpicture}
+              \end{figure}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{How did it go?}
+    \only<2>{\includegraphics[width=\textwidth]{r_early.png}}
+    \only<3>{\includegraphics[width=\textwidth]{r_late.png}}
+    \only<4>{\includegraphics[width=\textwidth]{lambda_early.png}}
+    \only<5>{\includegraphics[width=\textwidth]{lambda_late.png}}
 
 \end{frame}
 
 \begin{frame}
-    \frametitle{Big Problems (Big Solutions?)}
+    \frametitle{Big Problem (Big Solutions?)}
     \begin{itemize}
         \item Observation variance is considered constant across the GP\begin{itemize}
+                  \item Particularly a problem at the threshold
                   \item <2-> Fix by modelling observation variance as another GP
               \end{itemize}
-        \item <3> Observation variance sometimes falls off a cliff
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Thanks to}
+    \begin{itemize}
+        \item Eamon Conway and the Mueller lab at WEHI
+        \item Jennifer Flegg at Unimelb
+        \item Damon for explaining disease modelling so I don't have to
     \end{itemize}
 \end{frame}
 
