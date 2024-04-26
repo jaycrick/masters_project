@@ -10,6 +10,7 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{amsmath,amssymb,amsbsy,amsthm}
+\usepackage{bm}
 \usepackage{graphicx}
 \usepackage{hyperref}
 % \usepackage{mathptmx} %Times new romans text
@@ -28,6 +29,7 @@
 
 \newtheorem{definition}{Definition}[chapter]
 \newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{example}{Example}[chapter]
 
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
@@ -35,6 +37,7 @@
 \DeclareMathOperator{\E}{\mathbb{E}}
 \DeclareMathOperator{\Exp}{Exp}
 \DeclareMathOperator{\MVN}{MVN}
+\newcommand{\LABC}{\mathcal{L}_\text{ABC}}
 \newcommand{\N}{\mathcal{N}}
 \DeclareMathOperator{\p}{\mathbb{P}}
 \DeclareMathOperator{\Pois}{Pois}
@@ -96,10 +99,10 @@
 % \include{body/chapter1_intro}
 \include{body/compartmental_models}
 \include{body/malaria_and_modelling}
+\include{body/MCMC}
 \include{body/abc_methods}
 \include{body/gaussian_processes}
 
-% \include{body/chapter2_MCMC}
 
 
 % \include{body/inference}

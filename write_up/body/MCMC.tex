@@ -7,6 +7,7 @@ In classical statistics, $\mathbf\Theta$ is fixed, and the data $Y$ is generated
 
 Let us assume we have a random variable $X\sim p,$ and we want to integrate $I = \int_{\mathcal{X}} f(x)p(x)\diff x$ with relation to some known density $p$ and function $f$. We can numerically approximate $I$ by taking $n$ i.i.d. samples $\{x_1, x_2, \dots, x_n\}$ from the distribution specified by $p$, and approximating $I$ by $I_n:=\frac{1}{N}\sum_{i = 1}^nf(x_i).$ By the strong law of large numbers, under specific conditions (for example $\sigma_f := \mathrm{Var}(f(X))<\infty$ is sufficient) we have that $I_n \to I$ almost surely as $n\to\infty$. Furthermore by the central limit theorem we know that $\sqrt{n}(I_n - I) \sim N(0, \sigma_f)$ as $n\to\infty.$ Intuitively, Monte Carlo integration works efficiently because the support set we numerically integrate over are likely to be points of higher probability density that integrating numerically over a set of uniformly distributed points.
 
+\color{black}
 \section{Accept-Reject sampling methods}
 
 Accept-Reject methodology fundamentally relies on the theorem that $X\sim f $ is equivalent to simulating $(X,U) \sim \mathrm{Unif}\{(x, u)|0<u<f(x)\}.$ (Theorem 2.15 pg 47 Casella Roberts). In the case where a direct sampling method doesn't exist, we can use this theorem to our advantage. For example, if $a \leq X \leq b$ almost surely, then we can sample the pairs $X^*\sim \mathrm{Unif}(a, b),$ and then $U^*\sim\mathrm{Unif}(0, M),$ where $M\geq \sup_{a<x<b} f(x).$ To then get out samples to follow the distribution of $(X, U)$ we then reject all samples $(x_i, u_i)$ where $u_i>f(x_i).$ The distribution of $X$ can then be described as follows
@@ -118,7 +119,7 @@ Consider two different (symmetric) proposal distributions $q(p_i|p_{i - 1})$: \b
     =&\, \min\left(\left(\frac{p_i}{p_{i - 1}}\right)^{6}\left(\frac{1 - p_i}{1 - p_{i - 1}}\right)^4\mathbb{I}(p_i > 0), 1\right)
 \end{align*} The effect of the choice of proposal distribution is shown in figure \ref{fig:coin_R}.
 
-\begin{figure}[ht]
+\begin{figure}[htbp]
     \centering
     \includegraphics{coin_MH_R.pdf}
     \caption{30,000 samples from the posterior distribution of $p$ using the Metropolis Hastings algorithm. It was assumed that $p\sim \mathrm{U}(0,1)$ and $H \sim \mathrm{Binom}(10, p),$ given $H = 6.$ A uniform and normal proposal distributions were compared.}
@@ -127,7 +128,7 @@ Consider two different (symmetric) proposal distributions $q(p_i|p_{i - 1})$: \b
 
 For another example we can consider a simple SIS epidemiological model, with $$\frac{\diff S}{\diff t} = \gamma I - \beta SI \quad \frac{\diff I}{\diff t} = \beta SI -  \gamma I,$$ and a population of 25,000. Previous pandemics can be used to fix $\beta = 0.5.$ At day 0, it is assumed that there is 1 infected person. Given 1184 new cases on day 30, and $\gamma\sim \mathrm{Gamma}(2, 6)$ we can use the Metropolis Hastings algorithm to sample from the posterior distribution of $\gamma.$  This will depend on the choice of likelihood.\todo{Expand this explanation} See figure \ref{fig:SIS_MH_R}
 
-\begin{figure}[ht]
+\begin{figure}[htbp]
     \centering
     \includegraphics{SIS_gamma_pred.pdf}
     \caption{Using a basic SIS model, using incident changing likelihood function.}
@@ -148,7 +149,7 @@ In this case we can use Gibbs sampling to sample from our posterior distribution
 }
 
 
-\begin{figure}[ht]
+\begin{figure}[htbp]
     \centering
     \includegraphics{SIS_gibbs.pdf}
     \caption{Using Gibbs on beta and gamma given an `$R_0$' observation}

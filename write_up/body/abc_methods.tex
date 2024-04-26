@@ -1,6 +1,10 @@
 \chapter{Approximate Bayesian Computing}
 
-Let $(\theta_i)_{i\in \{1,\dots, n\}}$ be a set of parameters with prior distribution $\pi$, and $(x_j)_{j\in \{1,\dots, m\}}$ be the set of realised data, generated using $(\theta_i)_{i\in \{1,\dots, n\}}$. The most basic approximate Bayesian computation algorithm is such:
+The previous chapter assumes that the likelihood function is known. In reality as models become complicated, the likelihood function often has no closed form or becomes computationally intractable to derive. This is the motivation behind likelihood free techniques.
+
+\section{Exact Likelihood Free Bayesian Computation}
+
+Let $\bm{\theta} = (\theta_i)_{i\in \{1,\dots, n\}}$ be a set of parameters with prior distribution $\pi.$ Given a (random) function $f:$ and $(y_j)_{j\in \{1,\dots, m\}}$ be a set of realised data, generated using $(\theta_i)_{i\in \{1,\dots, n\}}$. The most basic Bayesian computation algorithm is such:
 \texttt{\\
     1. Generate $(\hat{\theta_i})_{i\in \{1,\dots, n\}}\sim \pi$\\
     2. Using $(\theta_i)_{i\in \{1,\dots, n\}}$, regenerate the data $(\hat{x_j})_{j\in \{1,\dots, m\}}$ using the\\ parameter set $(\hat{\theta_i})_{i\in \{1,\dots, n\}}$\\
@@ -17,7 +21,7 @@ If it matches (or is close enough), add that parameter to your set of accepted p
 
 Drawbacks of this approach. Very difficult to estimate multiple parameters to the one outcome parameters. Or if you have a single parameter, generating multiple observations, unlikely to match all of them. Same with multiple parameters to multiple outputs
 
-\begin{figure}
+\begin{figure}[htbp]
     \centering
     \includegraphics{SIS_ABC.pdf}
     \caption{Using a basic SIS model as in previous figure using ABC to generate from posterior beta, gamma}
@@ -37,3 +41,5 @@ Should be relatively normally distributed
 |Normal - normal| or something so should be normalish?
 
 \section{Estimating the likelihood from the summary statistic}
+
+See handbook ABC 10 or so
