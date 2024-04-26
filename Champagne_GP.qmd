@@ -20,14 +20,16 @@ from typing import Any
 import matplotlib.pyplot as plt
 
 from scipy.stats import qmc
+from scipy.stats import norm
 
 import tensorflow as tf
 import tensorflow_probability as tfp
+from tensorflow_probability.python.distributions import normal
 
 tfb = tfp.bijectors
 tfd = tfp.distributions
 tfk = tfp.math.psd_kernels
-# tfp_acq = tfp.experimental.bayesopt.acquisition
+tfp_acq = tfp.experimental.bayesopt.acquisition
 ```
 
 ## Model itself
@@ -1158,7 +1160,7 @@ def update_GP():
         var.assign(tf.zeros_like(var))
 
 
-def update_var():
+def update_var_UCB():
     @tf.function
     def opt_var():
         with tf.GradientTape() as tape:
@@ -1166,10 +1168,10 @@ def update_var():
                 [
                     tfb.Sigmoid().forward(next_vars[0]),
                     tfb.Sigmoid().forward(next_vars[1]),
-                    tfb.Sigmoid().forward(next_vars[2]),
-                    tfb.Sigmoid().forward(next_vars[3]),
-                    tfb.Sigmoid().forward(next_vars[4]),
-                    tfb.Sigmoid().forward(next_vars[5]),
+                    constrain_positive.forward(next_vars[2]),
+                    constrain_positive.forward(next_vars[3]),
+                    constrain_positive.forward(next_vars[4]),
+                    constrain_positive.forward(next_vars[5]),
                 ],
                 [1, 6],
             )
@@ -1201,19 +1203,167 @@ def update_var():
     for var in optimizer_fast.variables:
         var.assign(tf.zeros_like(var))
 
+
+norm_dist = tfd.Normal(0, 1)
+
+
+def update_var_EI():
+    min_obs = min(champ_GP_reg.mean_fn(index_vals))
+    min_index = index_vals[champ_GP_reg.mean_fn(index_vals) == min(champ_GP_reg.mean_fn(index_vals))][0,]
+    next_vars = tf.Variable(min_index)
+    @tf.function
+    def opt_var():
+        with tf.GradientTape() as tape:
+            next_guess = tf.reshape(
+                [
+                    tfb.Sigmoid().forward(next_vars[0]),
+                    tfb.Sigmoid().forward(next_vars[1]),
+                    constrain_positive.forward(next_vars[2]),
+                    constrain_positive.forward(next_vars[3]),
+                    constrain_positive.forward(next_vars[4]),
+                    constrain_positive.forward(next_vars[5]),
+                ],
+                [1, 6],
+            )
+            mean_t = champ_GP_reg.mean_fn(next_guess)
+            std_t = champ_GP_reg.stddev(index_points=next_guess)
+            delt = min_obs - mean_t
+            z_score = tf.squeeze((min_obs - mean_t) / std_t)
+            loss = (
+                delt * tfb.NormalCDF().forward(z_score)
+                - std_t * tf.math.exp(-(z_score**2) / 2) / 2 / np.pi
+            )
+        grads = tape.gradient(loss, next_vars)
+        optimizer_fast.apply_gradients(zip(grads, next_vars))
+        return loss
+
+    num_iters = 10000
+
+    lls_ = np.zeros(num_iters, np.float64)
+    tolerance = 1e-6  # Set your desired tolerance level
+    previous_loss = float("inf")
+
+    for i in range(num_iters):
+        loss = opt_var()
+        lls_[i] = loss
+
+        # Check if change in loss is less than tolerance
+        if abs(loss - previous_loss) < tolerance:
+            print(f"Acquisition function convergence reached at iteration {i+1}.")
+            lls_ = lls_[range(i + 1)]
+            break
+
+        previous_loss = loss
+    print(loss)
+    for var in optimizer_fast.variables:
+        var.assign(tf.zeros_like(var))
+
+
 # EI = tfp_acq.GaussianProcessExpectedImprovement(champ_GP_reg, obs_vals)
+
 
 def new_eta_t(t, d, exploration_rate):
     return np.sqrt(np.log((t + 1) ** (d / 2 + 2) * np.pi**2 / (3 * exploration_rate)))
 ```
 
 ```{python}
-exploration_rate = 0.01
+min_obs = min(champ_GP_reg.mean_fn(index_vals))
+
+def normal_expected_improvement(best_observed, mean, stddev, exploration=0.01):
+  dtype = np.float64
+  best_observed = tf.convert_to_tensor(best_observed, dtype=dtype)
+  mean = tf.convert_to_tensor(mean, dtype=dtype)
+  stddev = tf.convert_to_tensor(stddev, dtype=dtype)
+  norm = normal.Normal(tf.zeros([], dtype=dtype), 1.)
+  imp = mean - best_observed - exploration
+  z = imp / stddev
+  return imp * norm.cdf(z) + stddev * norm.prob(z)
+
+normal_expected_improvement(min_obs, 1, 2)
+```
+
+```{python}
+# min_obs = min(champ_GP_reg.mean_fn(index_vals))
+# min_index = index_vals[
+#     champ_GP_reg.mean_fn(index_vals) == min(champ_GP_reg.mean_fn(index_vals))
+# ][
+#     0,
+# ]
+
+# def EI(GP, indices):
+#     mean_t = GP.mean_fn(indices)
+#     std_t = GP.stddev(index_points=indices)
+#     delt = min_obs - mean_t
+#     z_score = tf.squeeze((min_obs - mean_t) / std_t)
+#     EI = delt * tfb.NormalCDF().forward(z_score) - std_t * tf.math.exp(
+#         -(z_score**2) / 2
+#     ) / tf.cast(tf.math.sqrt(2 * np.pi), dtype=np.float64)
+#     return EI
+
+# def PI(GP, indices):
+#     mean_t = GP.mean_fn(indices)
+#     std_t = GP.stddev(index_points=indices)
+#     delt = min_obs - mean_t
+#     z_score = tf.squeeze((min_obs - mean_t) / std_t)
+#     EI = tfb.NormalCDF().forward(z_score)
+#     return EI
+
+# num = 0
+# for var in next_vars:
+#     var.assign(min_index[num])
+#     num += 1
+
+# PI(champ_GP_reg, tf.reshape(tf.Variable(min_index, dtype = np.float64), [1, 6]))
+
+# def opt_var():
+#     with tf.GradientTape() as tape:
+#         next_guess = tf.reshape(
+#             [
+#                 tfb.Sigmoid().forward(next_vars[0]),
+#                 tfb.Sigmoid().forward(next_vars[1]),
+#                 constrain_positive.forward(next_vars[2]),
+#                 constrain_positive.forward(next_vars[3]),
+#                 constrain_positive.forward(next_vars[4]),
+#                 constrain_positive.forward(next_vars[5]),
+#             ],
+#             [1, 6],
+#         )
+#         loss = PI(champ_GP, next_guess)
+#     grads = tape.gradient(loss, next_vars)
+#     optimizer_fast.apply_gradients(zip(grads, next_vars))
+#     return loss
+
+
+# num_iters = 10000
+
+# lls_ = np.zeros(num_iters, np.float64)
+# tolerance = 1e-6  # Set your desired tolerance level
+# previous_loss = float("inf")
+
+# for i in range(num_iters):
+#     loss = opt_var()
+#     lls_[i] = loss
+
+#     # Check if change in loss is less than tolerance
+#     if abs(loss - previous_loss) < tolerance:
+#         print(f"Acquisition function convergence reached at iteration {i+1}.")
+#         lls_ = lls_[range(i + 1)]
+#         break
+
+#     previous_loss = loss
+# print(loss)
+# for var in optimizer_fast.variables:
+#     var.assign(tf.zeros_like(var))
+```
+
+
+```{python}
+exploration_rate = 0.00000001
 d = 6
 update_freq = 20  # how many iterations before updating GP hyperparams
 eta_t = tf.Variable(0,dtype=np.float64, name = "eta_t")
 
-for t in range(101):
+for t in range(2):
     optimizer_fast = tf.optimizers.Adam(learning_rate=0.01)
     optimizer_slow = tf.optimizers.Adam()
     eta_t.assign(new_eta_t(t, d, exploration_rate))
@@ -1222,7 +1372,9 @@ for t in range(101):
 
     for var in next_vars:
         var.assign(my_seed.uniform(0,1))
-    update_var()
+    
+    update_var_UCB()
+    # update_var_EI()
 
     new_params = np.array(
             [
@@ -1329,7 +1481,7 @@ for t in range(101):
             )
             plt.show()
 
-# print(index_vals[-600,])
+print(index_vals[-600,])
 print(index_vals[-400,])
 print(index_vals[-200,])
 print(index_vals[-80,])
