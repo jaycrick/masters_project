@@ -1204,13 +1204,7 @@ def update_var_UCB():
         var.assign(tf.zeros_like(var))
 
 
-norm_dist = tfd.Normal(0, 1)
-
-
 def update_var_EI():
-    min_obs = min(champ_GP_reg.mean_fn(index_vals))
-    min_index = index_vals[champ_GP_reg.mean_fn(index_vals) == min(champ_GP_reg.mean_fn(index_vals))][0,]
-    next_vars = tf.Variable(min_index)
     @tf.function
     def opt_var():
         with tf.GradientTape() as tape:
@@ -1228,16 +1222,15 @@ def update_var_EI():
             mean_t = champ_GP_reg.mean_fn(next_guess)
             std_t = champ_GP_reg.stddev(index_points=next_guess)
             delt = min_obs - mean_t
-            z_score = tf.squeeze((min_obs - mean_t) / std_t)
-            loss = (
-                delt * tfb.NormalCDF().forward(z_score)
-                - std_t * tf.math.exp(-(z_score**2) / 2) / 2 / np.pi
+            loss = -tf.squeeze(
+                delt * tfd.Normal(0, std_t).cdf(delt)
+                + std_t * champ_GP_reg.prob(delt, index_points=next_guess)
             )
         grads = tape.gradient(loss, next_vars)
         optimizer_fast.apply_gradients(zip(grads, next_vars))
         return loss
 
-    num_iters = 10000
+    num_iters = 10
 
     lls_ = np.zeros(num_iters, np.float64)
     tolerance = 1e-6  # Set your desired tolerance level
@@ -1246,12 +1239,13 @@ def update_var_EI():
     for i in range(num_iters):
         loss = opt_var()
         lls_[i] = loss
+        print(loss)
 
         # Check if change in loss is less than tolerance
-        if abs(loss - previous_loss) < tolerance:
-            print(f"Acquisition function convergence reached at iteration {i+1}.")
-            lls_ = lls_[range(i + 1)]
-            break
+        # if abs(loss - previous_loss) < tolerance:
+        #     print(f"Acquisition function convergence reached at iteration {i+1}.")
+        #     lls_ = lls_[range(i + 1)]
+        #     break
 
         previous_loss = loss
     print(loss)
@@ -1263,146 +1257,68 @@ def update_var_EI():
 
 
 def new_eta_t(t, d, exploration_rate):
-    return np.sqrt(np.log((t + 1) ** (d / 2 + 2) * np.pi**2 / (3 * exploration_rate)))
+    return np.log((t + 1) ** (d / 2 + 2) * np.pi**2 / (3 * exploration_rate))
 ```
 
 ```{python}
-min_obs = min(champ_GP_reg.mean_fn(index_vals))
-
-def normal_expected_improvement(best_observed, mean, stddev, exploration=0.01):
-  dtype = np.float64
-  best_observed = tf.convert_to_tensor(best_observed, dtype=dtype)
-  mean = tf.convert_to_tensor(mean, dtype=dtype)
-  stddev = tf.convert_to_tensor(stddev, dtype=dtype)
-  norm = normal.Normal(tf.zeros([], dtype=dtype), 1.)
-  imp = mean - best_observed - exploration
-  z = imp / stddev
-  return imp * norm.cdf(z) + stddev * norm.prob(z)
-
-normal_expected_improvement(min_obs, 1, 2)
+update_var_EI()
 ```
 
 ```{python}
-# min_obs = min(champ_GP_reg.mean_fn(index_vals))
-# min_index = index_vals[
-#     champ_GP_reg.mean_fn(index_vals) == min(champ_GP_reg.mean_fn(index_vals))
-# ][
-#     0,
-# ]
-
-# def EI(GP, indices):
-#     mean_t = GP.mean_fn(indices)
-#     std_t = GP.stddev(index_points=indices)
-#     delt = min_obs - mean_t
-#     z_score = tf.squeeze((min_obs - mean_t) / std_t)
-#     EI = delt * tfb.NormalCDF().forward(z_score) - std_t * tf.math.exp(
-#         -(z_score**2) / 2
-#     ) / tf.cast(tf.math.sqrt(2 * np.pi), dtype=np.float64)
-#     return EI
-
-# def PI(GP, indices):
-#     mean_t = GP.mean_fn(indices)
-#     std_t = GP.stddev(index_points=indices)
-#     delt = min_obs - mean_t
-#     z_score = tf.squeeze((min_obs - mean_t) / std_t)
-#     EI = tfb.NormalCDF().forward(z_score)
-#     return EI
-
-# num = 0
-# for var in next_vars:
-#     var.assign(min_index[num])
-#     num += 1
-
-# PI(champ_GP_reg, tf.reshape(tf.Variable(min_index, dtype = np.float64), [1, 6]))
-
-# def opt_var():
-#     with tf.GradientTape() as tape:
-#         next_guess = tf.reshape(
-#             [
-#                 tfb.Sigmoid().forward(next_vars[0]),
-#                 tfb.Sigmoid().forward(next_vars[1]),
-#                 constrain_positive.forward(next_vars[2]),
-#                 constrain_positive.forward(next_vars[3]),
-#                 constrain_positive.forward(next_vars[4]),
-#                 constrain_positive.forward(next_vars[5]),
-#             ],
-#             [1, 6],
-#         )
-#         loss = PI(champ_GP, next_guess)
-#     grads = tape.gradient(loss, next_vars)
-#     optimizer_fast.apply_gradients(zip(grads, next_vars))
-#     return loss
-
-
-# num_iters = 10000
-
-# lls_ = np.zeros(num_iters, np.float64)
-# tolerance = 1e-6  # Set your desired tolerance level
-# previous_loss = float("inf")
-
-# for i in range(num_iters):
-#     loss = opt_var()
-#     lls_[i] = loss
-
-#     # Check if change in loss is less than tolerance
-#     if abs(loss - previous_loss) < tolerance:
-#         print(f"Acquisition function convergence reached at iteration {i+1}.")
-#         lls_ = lls_[range(i + 1)]
-#         break
-
-#     previous_loss = loss
-# print(loss)
-# for var in optimizer_fast.variables:
-#     var.assign(tf.zeros_like(var))
-```
-
-
-```{python}
-exploration_rate = 0.00000001
+# exploration_rate = 0.00000001
 d = 6
 update_freq = 20  # how many iterations before updating GP hyperparams
-eta_t = tf.Variable(0,dtype=np.float64, name = "eta_t")
+# eta_t = tf.Variable(0,dtype=np.float64, name = "eta_t")
+min_obs = tf.Variable(0,dtype=np.float64, name = "min_obs", shape=())
+min_index = index_vals[champ_GP_reg.mean_fn(index_vals) == min(champ_GP_reg.mean_fn(index_vals))][0,]
 
 for t in range(2):
-    optimizer_fast = tf.optimizers.Adam(learning_rate=0.01)
+    min_index = index_vals[champ_GP_reg.mean_fn(index_vals) == min(champ_GP_reg.mean_fn(index_vals))][0,]
+    optimizer_fast = tf.optimizers.Adam(learning_rate=1.)
     optimizer_slow = tf.optimizers.Adam()
-    eta_t.assign(new_eta_t(t, d, exploration_rate))
+    # eta_t.assign(new_eta_t(t, d, exploration_rate))
+    min_obs.assign(min(champ_GP_reg.mean_fn(index_vals)))
     print("Iteration " + str(t))
-    print(eta_t)
+    # print(eta_t)
 
-    for var in next_vars:
-        var.assign(my_seed.uniform(0,1))
-    
-    update_var_UCB()
-    # update_var_EI()
+    for i in range(len(next_vars)):
+        if i < 2:
+            next_vars[i].assign(tfb.Sigmoid().forward(min_index[i]))
+        else:
+            next_vars[i].assign(constrain_positive(min_index[i]))
+
+    # update_var_UCB()
+    update_var_EI()
+    print(next_vars)
 
     new_params = np.array(
-            [
-                next_alpha.numpy(),
-                next_beta.numpy(),
-                next_gamma_L.numpy(),
-                next_lambda.numpy(),
-                next_f.numpy(),
-                next_r.numpy(),
-            ]
-        ).reshape(1, -1)
+        [
+            next_alpha.numpy(),
+            next_beta.numpy(),
+            next_gamma_L.numpy(),
+            next_lambda.numpy(),
+            next_f.numpy(),
+            next_r.numpy(),
+        ]
+    ).reshape(1, -1)
     print(new_params)
 
-    new_discrepency = discrepency_fn(
-        next_alpha.numpy(),
-        next_beta.numpy(),
-        next_gamma_L.numpy(),
-        next_lambda.numpy(),
-        next_f.numpy(),
-        next_r.numpy(),
-    )
+    for repeats in range(3):
+        new_discrepency = discrepency_fn(
+            next_alpha.numpy(),
+            next_beta.numpy(),
+            next_gamma_L.numpy(),
+            next_lambda.numpy(),
+            next_f.numpy(),
+            next_r.numpy(),
+        )
 
-    index_vals = np.append(
-        index_vals,
-        new_params,
-        axis=0,
-    )
-    obs_vals = np.append(obs_vals, new_discrepency)
+        index_vals = np.append(
+            index_vals,
+            new_params,
+            axis=0,
+        )
+        obs_vals = np.append(obs_vals, new_discrepency)
 
     if t % update_freq == 0:
         champ_GP = tfd.GaussianProcess(
@@ -1428,16 +1344,20 @@ for t in range(2):
             if "length" in train_var.name:
                 print(
                     "{} is {}\n".format(
-                        train_var.name, tfb.Sigmoid().forward(train_var).numpy().round(3)
+                        train_var.name,
+                        tfb.Sigmoid().forward(train_var).numpy().round(3),
                     )
                 )
             else:
-                if "tp" in train_var.name: # or "bias" in var.name:
-                    print("{} is {}\n".format(train_var.name, train_var.numpy().round(3)))
+                if "tp" in train_var.name:  # or "bias" in var.name:
+                    print(
+                        "{} is {}\n".format(train_var.name, train_var.numpy().round(3))
+                    )
                 else:
                     print(
                         "{} is {}\n".format(
-                            train_var.name, constrain_positive.forward(train_var).numpy().round(3)
+                            train_var.name,
+                            constrain_positive.forward(train_var).numpy().round(3),
                         )
                     )
         for var in vars:
@@ -1471,18 +1391,29 @@ for t in range(2):
                 lh.set_alpha(1)
             if var in ["f", "r"]:
                 plt.xlabel("$" + var + "$ index points")
-                plt.title("$" + var + "$ slice after " + str(t) + " Bayesian acquisitions")
+                plt.title(
+                    "$" + var + "$ slice after " + str(t) + " Bayesian acquisitions"
+                )
             else:
                 plt.xlabel("$\\" + var + "$ index points")
-                plt.title("$\\" + var + "$ slice after " + str(t) + " Bayesian acquisitions")
+                plt.title(
+                    "$\\" + var + "$ slice after " + str(t) + " Bayesian acquisitions"
+                )
             plt.ylabel("Discrepancy")
             plt.savefig(
-                "champagne_GP_images/" + var + "_slice_" + str(t) + "_bolfi_updates_no_log.pdf"
+                "champagne_GP_images/"
+                + var
+                + "_slice_"
+                + str(t)
+                + "_bolfi_updates_no_log.pdf"
             )
             plt.show()
 
-print(index_vals[-600,])
-print(index_vals[-400,])
+```
+
+```{python}
+# print(index_vals[-600,])
+# print(index_vals[-400,])
 print(index_vals[-200,])
 print(index_vals[-80,])
 print(index_vals[-40,])
