@@ -118,14 +118,14 @@ Various classes of covariance kernel exist. The choice of covariance kernel dete
 \end{definition}
 
 \begin{definition}[Mean Square Differentiable]
-    A function $f:\R^d\to\R$ is \emph{mean square differentiable} at $\mathbf{x}$ with derivative $f^\prime(x)$ if $\E\left[\left|\frac{f(x + h) - f(x)}{h} - f^\prime(x)\right|^2\right]\to 0$ as $|h|\to 0.$
+    A function $f:\R^d\to\R$ is \emph{mean square differentiable} at $\mathbf{x}$ in the $i$th direction with derivative $\frac{\partial f(\mathbf{x})}{\partial x_i}$ if $\E\left[\left|\frac{f(\mathbf{x} + h\mathbf{e}_i) - f(\mathbf{x})}{h} - \frac{\partial f(\mathbf{x})}{\partial x_i}\right|^2\right]\to 0$ as $|h|\to 0,$ where $\mathbf{e}_i$ is the unit vector with a 1 in the $i$th coordinate.
 \end{definition}
 
 \begin{theorem}
     Brownian motion is mean square continuous, but not mean square differentiable. 
 \end{theorem}
 \begin{proof}
-    $(B_{t + h} - B_t)^2 \sim h(Z)^2$ where $Z\sim N(0,1).$ Therefore $(B_{t + h} - B_t)^2 \sim |h|\chi_1^2 \to 0$ almost surely as $|h|\to 0,$ and hence $\E[(B_{t + h} - B_t)^2= 0]$. Since $\frac{B_{t + h} - B_t}{h} \sim N(0, 1/|h|),$ $\frac{B_{t + h} - B_t}{h}$ does not converge to any valid probability distribution as $|h| \to 0.$
+    $(B_{t + h} - B_t)^2 \sim (\sqrt{|h|}Z)^2$ where $Z\sim N(0,1).$ Therefore $(B_{t + h} - B_t)^2 \sim |h|\chi_1^2 \to 0$ almost surely as $|h|\to 0,$ and hence $\E[(B_{t + h} - B_t)^2= 0]$. Since $\frac{B_{t + h} - B_t}{h} \sim N(0, 1/|h|),$ $\frac{B_{t + h} - B_t}{h}$ does not converge to any valid probability distribution as $|h| \to 0,$ as the variance approaches $+\infty.$
 \end{proof}
 
 Some common
@@ -226,3 +226,7 @@ LOOK AT CHAPTER 4 SKOROKHOD STOCHASTIC I
 \begin{figure}
     \missingfigure{GP mean functions}
 \end{figure}
+
+\section{Running the Model and Our Choices}
+
+Although most of the procedure we used closely follows the paper by \cite{gutmann_bayesian_2016}, there are a few key ways in which we modified the method. In particular, we felt their choice of squared exponential kernel was not a good assumption, since it implicitly assumes a high degree of smoothness in the target discrepency function. This is unlikely to be met if the model has any bifurcation points. To compensate for any non-smoothness in the function, the length scale is forced to be set very small. For these reasons, despite it being the most commonly Although it is the most commonly chosen kernel, we used a Mat\'ern kernel with $\nu = 5/2$. This is not as constrained as a squared exponential kernel, but is still yields functions that are twice mean square differentiable..
