@@ -122,7 +122,7 @@ Various classes of covariance kernel exist. The choice of covariance kernel dete
 \end{definition}
 
 \begin{theorem}
-    Brownian motion is mean square continuous, but not mean square differentiable. 
+    Brownian motion is mean square continuous, but not mean square differentiable.
 \end{theorem}
 \begin{proof}
     $(B_{t + h} - B_t)^2 \sim (\sqrt{|h|}Z)^2$ where $Z\sim N(0,1).$ Therefore $(B_{t + h} - B_t)^2 \sim |h|\chi_1^2 \to 0$ almost surely as $|h|\to 0,$ and hence $\E[(B_{t + h} - B_t)^2= 0]$. Since $\frac{B_{t + h} - B_t}{h} \sim N(0, 1/|h|),$ $\frac{B_{t + h} - B_t}{h}$ does not converge to any valid probability distribution as $|h| \to 0,$ as the variance approaches $+\infty.$
@@ -194,7 +194,7 @@ $$k(x, x^\prime)
     \label{fig:no_reg_lengths}
 \end{figure}
 
-In both of the above kernels, there is a hyperparameter $\ell,$ which we call the length parameter. This value determines how close two points need to be to be highly correlated. A small value of $\ell$ leads to a more wiggly function as seen in \ref{fig:no_reg_lengths}. 
+In both of the above kernels, there is a hyperparameter $\ell,$ which we call the length parameter. This value determines how close two points need to be to be highly correlated. A small value of $\ell$ leads to a more wiggly function as seen in \ref{fig:no_reg_lengths}.
 
 \section{Gaussian Process Regression}
 
@@ -223,10 +223,24 @@ LOOK AT CHAPTER 4 SKOROKHOD STOCHASTIC I
 \section{Differing mean functions}
 
 
+
 \begin{figure}
     \missingfigure{GP mean functions}
 \end{figure}
 
-\section{Running the Model and Our Choices}
+\section{Bayesian Acquisition Functions}
 
-Although most of the procedure we used closely follows the paper by \cite{gutmann_bayesian_2016}, there are a few key ways in which we modified the method. In particular, we felt their choice of squared exponential kernel was not a good assumption, since it implicitly assumes a high degree of smoothness in the target discrepency function. This is unlikely to be met if the model has any bifurcation points. To compensate for any non-smoothness in the function, the length scale is forced to be set very small. For these reasons, despite it being the most commonly Although it is the most commonly chosen kernel, we used a Mat\'ern kernel with $\nu = 5/2$. This is not as constrained as a squared exponential kernel, but is still yields functions that are twice mean square differentiable..
+\begin{itemize}
+    \item Choosing the next point to sample
+    \item $\argmin_{\bm{\theta}}A(\bm\theta)$ where A is an acquisition function.
+    \item BOLFI paper uses $$\mu(\bm\theta) - \eta_t\sqrt{\mathrm{v}(\bm\theta)}$$ \begin{itemize}
+              \item $\eta_t:= \sqrt{c + 2\ln(t^{d/2 + 2})},$ and $c$ can be chosen
+              \item $\mu(\bm\theta)$ and $\mathrm{v}(\bm\theta)$ are the posterior mean and variance
+          \end{itemize}
+    \item Could use expected information $$(\mu_\text{min} - \mu(\bm\theta))
+              \varPhi\left(\frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}\right) + \sqrt{\mathrm{v}(\bm\theta)}
+              \phi\left(\frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}\right)$$\begin{itemize}
+              \item $\mu_\text{min} := \min_{\bm{\theta}} \mu(\bm\theta)$
+              \item $\varPhi, \phi$ CDF and PDF of standard normal
+          \end{itemize}
+\end{itemize}

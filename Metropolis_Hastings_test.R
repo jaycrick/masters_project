@@ -59,6 +59,5 @@ ggplot(MH_tbl, mapping = aes(x = value, color = `Proposal\nDistribution`)) +
   scale_x_continuous(expand = expansion(0), limits = c(0,1)) +
   labs(x = "p (Probability of Heads)", y = "Density", fill=NULL, linetype = NULL)
 
-ggsave("C:/Users/jckricket/Dropbox/Apps/Overleaf/M_Scimat_Thesis/images/coin_MH_R.pdf", width = 6, height = 2.5)
-
+ggsave(here("write_up", "images", "coin_MH_R.pdf"), width = 5.5, height = 2.5)
 
