@@ -357,7 +357,7 @@ Testing the variances across different values of params etc.
 ```{python}
 my_seed = np.random.default_rng(seed=1795)  # For replicability
 
-num_samples = 100
+num_samples = 50
 
 variables_names = ["alpha", "beta", "gamma_L", "lambda", "f", "r"]
 
@@ -382,10 +382,14 @@ samples = np.concatenate(
 
 LHC_sampler = qmc.LatinHypercube(d=6, seed=my_seed)
 LHC_samples = LHC_sampler.random(n=num_samples)
-LHC_samples[:, 2] = -pv_champ_gamma_L * np.log(LHC_samples[:, 2])
-LHC_samples[:, 3] = -pv_champ_lambda * np.log(LHC_samples[:, 3])
-LHC_samples[:, 4] = -pv_champ_f * np.log(LHC_samples[:, 4])
-LHC_samples[:, 5] = -pv_champ_r * np.log(LHC_samples[:, 5])
+LHC_samples[:, 2] = 1/100 * LHC_samples[:, 2]
+LHC_samples[:, 3] = 0.1 * LHC_samples[:, 3]
+LHC_samples[:, 4] = 1/30 * LHC_samples[:, 4]
+LHC_samples[:, 5] = 1/30 * LHC_samples[:, 5]
+# LHC_samples[:, 2] = -pv_champ_gamma_L * np.log(LHC_samples[:, 2])
+# LHC_samples[:, 3] = -pv_champ_lambda * np.log(LHC_samples[:, 3])
+# LHC_samples[:, 4] = -pv_champ_f * np.log(LHC_samples[:, 4])
+# LHC_samples[:, 5] = -pv_champ_r * np.log(LHC_samples[:, 5])
 
 LHC_samples = np.repeat(LHC_samples, 3, axis = 0)
 
@@ -963,7 +967,7 @@ for var in vars:
     plt.scatter(
         val_df[var].values,
         discreps,
-        label="Observations",
+        label = "Simulation Discrepencies",
     )
     for i in range(gp_samp_no):
         plt.plot(
@@ -1290,7 +1294,7 @@ def new_eta_t(t, d, exploration_rate):
 ```
 
 ```{python}
-exploration_rate = 0.00001
+exploration_rate = 0.01
 d = 6
 update_freq = 20  # how many iterations before updating GP hyperparams
 eta_t = tf.Variable(0, dtype=np.float64, name="eta_t")
@@ -1301,15 +1305,15 @@ min_index = index_vals[
     0,
 ]
 
-for t in range(801):
-    min_index = index_vals[
-        champ_GP_reg.mean_fn(index_vals) == min(champ_GP_reg.mean_fn(index_vals))
-    ][
-        0,
-    ]
+for t in range(201):
+    # min_index = index_vals[
+    #     champ_GP_reg.mean_fn(index_vals) == min(champ_GP_reg.mean_fn(index_vals))
+    # ][
+    #     0,
+    # ]
     optimizer_slow = tf.optimizers.Adam()
     eta_t.assign(new_eta_t(t, d, exploration_rate))
-    min_obs.assign(min(champ_GP_reg.mean_fn(index_vals)))
+    # min_obs.assign(min(champ_GP_reg.mean_fn(index_vals)))
     print("Iteration " + str(t))
     # print(eta_t)
 
@@ -1405,7 +1409,10 @@ for t in range(801):
     #     )
     #     obs_vals = np.append(obs_vals, new_discrepency)
     ######################################################################
-    if (t+1) % update_freq == 0:
+
+    print("The mean of the samples was {}".format(((obs_vals[-1] + obs_vals[-2])/2).round(3)))
+
+    if (t + 1) % update_freq == 0:
         champ_GP = tfd.GaussianProcess(
             kernel=kernel_champ,
             observation_noise_variance=observation_noise_variance_champ,
@@ -1413,6 +1420,14 @@ for t in range(801):
             mean_fn=quad_mean_fn(),
         )
         update_GP()
+        min_value = min(champ_GP_reg.mean_fn(index_vals))
+        min_index = index_vals[champ_GP_reg.mean_fn(index_vals) == min_value][0,]
+        print(
+            "The minimum predicted mean of the observed indices is {}".format(
+                min_value.numpy().round(3)
+            )
+            + " at the point {}".format(min_index.round(3))
+        )
 
     champ_GP_reg = tfd.GaussianProcessRegressionModel(
         kernel=kernel_champ,
@@ -1467,7 +1482,7 @@ for t in range(801):
             plt.scatter(
                 slice_indices_dfs_dict[var + "_slice_indices_df"][var].values,
                 slice_discrepencies_dict[var + "_slice_discrepencies"],
-                label="Observations",
+                label="Simulation Discrepencies",
             )
             for i in range(gp_samp_no):
                 plt.plot(
