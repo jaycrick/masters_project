@@ -21,6 +21,7 @@
 *.snm
 *.synctex*
 *.toc
+*.xdv
 .ipynb_checkpoints/
 past_writeups/
 help_docs/
