@@ -22,21 +22,21 @@ Doob-Gillespie algorithm (Algorithm \ref{alg:doob}).
 
 Synthetic data was generated from a single run of the model, using a population
 size of 1,000, an initial infected population of 10 (with both liver and blood
-stage infection). The parameters used closely followed those reported in 
+stage infection). The parameters used closely followed those reported in
 \cite{champagne_using_2022}: \begin{itemize}
     \item $\alpha = 0.4$
     \item $\beta = 0.4$
     \item $\gamma_L = 1 / 223$
-    \item $\delta = 0$ (which we drop for the remainder of the thesis)
+    \item $\delta = 0$ (and not estimated)
     \item $\lambda = 0.04$
     \item $f = 1 / 72 $
     \item $r = 1 / 60.$
 \end{itemize}
-The model was run for a minimum of 30 days and 15,000 events
+To generate the synthetic data, the model was run for 30 days and at least 15,000 events
 (infections, recoveries etc.), after which time, it was assumed to have reached
 equilibrium.
 
-\subsection*{Summary Statistics and Discrepancy Function} 
+\subsection*{Summary Statistics and Discrepancy Function}
 
 Three summary statistics were extracted from the initial model run were:
 \begin{enumerate}
@@ -47,16 +47,23 @@ Three summary statistics were extracted from the initial model run were:
           (weekly incidence) - $w_\text{obs}.$
 \end{enumerate} Similarly we extracted $p, m,$ and $w$ from each new model run.
 
-Our discrepency function we used was the $L_1$ norm of the relative differences $$\mathcal{D}(\alpha, \beta, \gamma_L, \lambda, f, r) = \left|\frac{p - p_\text{obs}}{p_\text{obs}}\right| + \left|\frac{m - m_\text{obs}}{m_\text{obs}}\right| + \left|\frac{w - w_\text{obs}}{w_\text{obs}}\right|.$$
+Our discrepency function we used was the $L_2$ norm of the relative differences
+$$
+    \mathcal{D}(\alpha, \beta, \gamma_L, \lambda, f, r) = \sqrt{
+        \left(\frac{p - p_\text{obs}}{p_\text{obs}}\right)^2
+        + \left(\frac{m - m_\text{obs}}{m_\text{obs}}\right)^2
+        + \left(\frac{w - w_\text{obs}}{w_\text{obs}}\right)^2
+    }.
+$$ Relative differences were chosen to limit the impact between the scale differences of the summary statistics. No systematic comparison of norms was done.
 
-
+The Gaussian process was initialised with 50 points chosen across the parameter space using latin hypercube sampling.
 
 The acquisition function used was $$\mu(\bm\theta) - \eta_t\sqrt{\mathrm{v}(\bm\theta)}$$ with $\eta_t:= \sqrt{c + 2\ln(t^{d/2 + 2})},$ and $c$ can be chosen, $\mu(\bm\theta)$ and $\mathrm{v}(\bm\theta)$ are the posterior mean and variance
 $$(\mu_\text{min} - \mu(\bm\theta))
-\varPhi\left(\frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}\right) + \sqrt{\mathrm{v}(\bm\theta)}
-\phi\left(\frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}\right)$$
+    \varPhi\left(\frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}\right) + \sqrt{\mathrm{v}(\bm\theta)}
+    \phi\left(\frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}\right)$$
 $\mu_\text{min} := \min_{\bm{\theta}} \mu(\bm\theta)$
-$\varPhi, \phi$ 
+$\varPhi, \phi$
 
 \subsection*{Justification}
 
