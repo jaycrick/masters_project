@@ -1,7 +1,7 @@
 ---
 title: "Some examples of Gaussian Processes"
 format:
-    pdf: default
+  pdf: default
 jupyter: python3
 ---
 
@@ -16,6 +16,7 @@ print(sys.executable)
 import numpy as np
 
 import tensorflow as tf
+# import tf.keras
 import tensorflow_probability as tfp
 
 tfb = tfp.bijectors
@@ -36,11 +37,11 @@ predictive_index_points_ = predictive_index_points_[..., np.newaxis]
 num_samples = 20
 
 gp = tfd.GaussianProcess(
-  kernel=tfk.ExponentiatedQuadratic(np.float64(1), np.float64(0.5)),
-  index_points=predictive_index_points_,
+    kernel=tfk.ExponentiatedQuadratic(np.float64(1), np.float64(0.5)),
+    index_points=predictive_index_points_,
 )
 
-samples = gp.sample(num_samples, seed = sampling_seed)
+samples = gp.sample(num_samples, seed=sampling_seed)
 
 plt.figure(figsize=(7, 4))
 for i in range(num_samples):
@@ -61,11 +62,11 @@ plt.savefig("write_up/images/exponentiated_kernel.pdf")
 plt.show()
 
 gp = tfd.GaussianProcess(
-  kernel=tfk.MaternOneHalf(np.float64(1), np.float64(0.5)),
-  index_points=predictive_index_points_,
+    kernel=tfk.MaternOneHalf(np.float64(1), np.float64(0.5)),
+    index_points=predictive_index_points_,
 )
 
-samples = gp.sample(num_samples, seed = sampling_seed)
+samples = gp.sample(num_samples, seed=sampling_seed)
 
 plt.figure(figsize=(7, 4))
 for i in range(num_samples):
@@ -86,11 +87,11 @@ plt.savefig("write_up/images/maternonehalf_kernel.pdf")
 plt.show()
 
 gp = tfd.GaussianProcess(
-  kernel=tfk.MaternThreeHalves(np.float64(1), np.float64(0.5)),
-  index_points=predictive_index_points_,
+    kernel=tfk.MaternThreeHalves(np.float64(1), np.float64(0.5)),
+    index_points=predictive_index_points_,
 )
 
-samples = gp.sample(num_samples, seed = sampling_seed)
+samples = gp.sample(num_samples, seed=sampling_seed)
 
 plt.figure(figsize=(7, 4))
 for i in range(num_samples):
@@ -111,11 +112,11 @@ plt.savefig("write_up/images/maternthreehalves_kernel.pdf")
 plt.show()
 
 gp = tfd.GaussianProcess(
-  kernel=tfk.MaternFiveHalves(np.float64(1), np.float64(0.5)),
-  index_points=predictive_index_points_,
+    kernel=tfk.MaternFiveHalves(np.float64(1), np.float64(0.5)),
+    index_points=predictive_index_points_,
 )
 
-samples = gp.sample(num_samples, seed = sampling_seed)
+samples = gp.sample(num_samples, seed=sampling_seed)
 
 plt.figure(figsize=(7, 4))
 for i in range(num_samples):
@@ -178,7 +179,7 @@ plt.figure(figsize=(7, 4))
 plt.scatter(flat_index[:, 0], easy_obs, label="Observations")
 leg = plt.legend(loc="lower right")
 for lh in leg.legend_handles:
-    lh.set_alpha(1)
+  lh.set_alpha(1)
 plt.xlabel("x")
 plt.ylabel("f(x)")
 plt.ylim(-2, 2)
@@ -201,7 +202,7 @@ for ell in [0.5, 1, 2]:
         predictive_noise_variance=0.0,
     )
 
-    samples = gprm.sample(num_samples, seed = sampling_seed)
+    samples = gprm.sample(num_samples, seed=sampling_seed)
 
     plt.figure(figsize=(7, 4))
     for i in range(num_samples):
@@ -220,7 +221,7 @@ for ell in [0.5, 1, 2]:
     plt.ylabel("f(x)")
     plt.ylim(-2, 2)
     plt.title(r"Squared Exponential Kernel with $\ell = $" + str(ell))
-    plt.savefig("write_up/images/flatish_GP_ell_" + str(int(ell*10)) + "_tenths.pdf")
+    plt.savefig("write_up/images/flatish_GP_ell_" + str(int(ell * 10)) + "_tenths.pdf")
     plt.show()
 ```
 
@@ -235,7 +236,7 @@ for sigma in [0.5, 1, 2]:
         predictive_noise_variance=0.0,
     )
 
-    samples = gprm.sample(num_samples, seed = sampling_seed)
+    samples = gprm.sample(num_samples, seed=sampling_seed)
 
     plt.figure(figsize=(7, 4))
     for i in range(num_samples):
@@ -254,7 +255,7 @@ for sigma in [0.5, 1, 2]:
     plt.ylabel("f(x)")
     plt.ylim(-2, 2)
     plt.title(r"Function estimation with $\sigma = $" + str(sigma))
-    plt.savefig("write_up/images/flatish_GP_sigma_" + str(sigma*10) + "_tenths.pdf")
+    plt.savefig("write_up/images/flatish_GP_sigma_" + str(sigma * 10) + "_tenths.pdf")
     plt.show()
 ```
 
@@ -302,44 +303,45 @@ my_seed = np.random.default_rng(seed=591)  # For replicability
 
 
 def cub_fn(x):
-  return x[..., 0] * (x[..., 0] - 1) * (x[..., 0] + 1)
+    return x[..., 0] * (x[..., 0] - 1) * (x[..., 0] + 1)
 
-ind_range = 10
+
+ind_range = 15
 cub_index_vals = np.expand_dims(  # this makes the size of the sample (3,1)
-  my_seed.uniform(low=-1.0, high=1.0, size=ind_range), axis=-1  # last axis
+    my_seed.uniform(low=-1.0, high=1.0, size=ind_range), axis=-1  # last axis
 )
 
 cub_obs_vals = cub_fn(cub_index_vals)
 
 my_GP = tfd.GaussianProcess(
-  kernel=tfk.ExponentiatedQuadratic(
-    amplitude=tf.Variable(1.0, dtype=np.float64, name="amplitude"),
-    length_scale=tf.Variable(1.0, dtype=np.float64, name="length_scale"),
-  ),
-  index_points=cub_index_vals,
+    kernel=tfk.ExponentiatedQuadratic(
+        amplitude=tf.Variable(1.0, dtype=np.float64, name="amplitude"),
+        length_scale=tf.Variable(1.0, dtype=np.float64, name="length_scale"),
+    ),
+    index_points=cub_index_vals,
 )
 
 print(my_GP.trainable_variables[1])
 
-Adam_optim = tf.optimizers.Adam()
+Adam_optim = tf.keras.optimizers.Adam()
 ```
 
 ```{python}
 @tf.function()
 def optimize():
-  with tf.GradientTape() as tape:
-    loss = -my_GP.log_prob(cub_obs_vals)
-  grads = tape.gradient(loss, my_GP.trainable_variables)
-  Adam_optim.apply_gradients(zip(grads, my_GP.trainable_variables))
-  return loss
+ with tf.GradientTape() as tape:
+  loss = -my_GP.log_prob(cub_obs_vals)
+ grads = tape.gradient(loss, my_GP.trainable_variables)
+ Adam_optim.apply_gradients(zip(grads, my_GP.trainable_variables))
+ return loss
 
 
 num_iters = 7000
 
 lls_ = np.zeros(num_iters, np.float64)
 for i in range(num_iters):
-  loss = optimize()
-  lls_[i] = loss
+ loss = optimize()
+ lls_[i] = loss
 
 amp_fin = my_GP.trainable_variables[0].numpy()
 len_fin = my_GP.trainable_variables[1].numpy()
@@ -367,33 +369,33 @@ optimized_kernel = tfk.ExponentiatedQuadratic(amp_fin, len_fin)
 num_samples = 20
 
 for ind in range(ind_range):
-  gprm = tfd.GaussianProcessRegressionModel(
-    kernel=optimized_kernel,
-    index_points=predictive_index_points_,
-    observation_index_points=cub_index_vals[range(ind+1)],
-    observations=cub_obs_vals[range(ind+1)],
-    predictive_noise_variance=0.0,
-  )
+ gprm = tfd.GaussianProcessRegressionModel(
+  kernel=optimized_kernel,
+  index_points=predictive_index_points_,
+  observation_index_points=cub_index_vals[range(ind+1)],
+  observations=cub_obs_vals[range(ind+1)],
+  predictive_noise_variance=0.0,
+ )
 
-  samples = gprm.sample(num_samples, seed = sampling_seed)
+ samples = gprm.sample(num_samples, seed = sampling_seed)
 
-  plt.figure(figsize=(7, 4))
-  plt.plot(predictive_index_points_, cub_fn(predictive_index_points_),
-    label='True fn')
-  for i in range(num_samples):
-    plt.plot(predictive_index_points_, samples[i, :], c='r', alpha=.2,
-      label='Posterior Sample' if i == 0 else None)
-  plt.scatter(cub_index_vals[range(ind+1)], cub_obs_vals[range(ind+1)],
-    label='Observations')
-  leg = plt.legend(loc='upper right')
-  for lh in leg.legend_handles:
-    lh.set_alpha(1)
-  plt.xlabel("x")
-  plt.ylabel("f(x)")
-  plt.ylim(-1, 1)
-  # plt.title(r"Function estimation with GP")
-  plt.savefig("write_up/images/cub_GP_" + str(ind + 1) + "_iters.pdf")
-  plt.show()
+ plt.figure(figsize=(7, 4))
+ plt.plot(predictive_index_points_, cub_fn(predictive_index_points_),
+  label='Target fn')
+ for i in range(num_samples):
+  plt.plot(predictive_index_points_, samples[i, :], c='r', alpha=.2,
+   label='Posterior Sample' if i == 0 else None)
+ plt.scatter(cub_index_vals[range(ind+1)], cub_obs_vals[range(ind+1)],
+  label='Observations')
+ leg = plt.legend(loc='upper right')
+ for lh in leg.legend_handles:
+  lh.set_alpha(1)
+ plt.xlabel("x")
+ plt.ylabel("f(x)")
+ plt.ylim(-1, 1)
+ # plt.title(r"Function estimation with GP")
+ plt.savefig("write_up/images/cub_GP_" + str(ind + 1) + "_iters.pdf")
+ plt.show()
 ```
 
 # GP for Cubic Target Function with Noise
@@ -404,26 +406,157 @@ num_obs_err = 20
 my_seed_err = np.random.default_rng(seed=914)
 
 # cub_obs_vals_err = cub_obs_vals + my_seed.normal(
-#         scale=0.1, size=num_obs_err
-#     )
+#     scale=0.1, size=num_obs_err
+#   )
 
 def cub_fn_err(x):
-    return x[..., 0] * (x[..., 0] - 1) * (x[..., 0] + 1) + my_seed.normal(
-        scale=0.1, size=ind_range
-    )
+  return x[..., 0] * (x[..., 0] - 1) * (x[..., 0] + 1) + my_seed_err.normal(
+    scale=0.1, size=x.shape[0]
+  )
 
 
 cub_obs_vals_err = cub_fn_err(cub_index_vals)
 
 for ind in range(ind_range):
+  gprm = tfd.GaussianProcessRegressionModel(
+    kernel=optimized_kernel,
+    index_points=predictive_index_points_,
+    observation_index_points=cub_index_vals[range(ind + 1)],
+    observations=cub_obs_vals_err[range(ind + 1)],
+    observation_noise_variance=tf.Variable(
+      0.01, dtype=np.float64, name="observation_noise_variance_err"
+    ),
+    predictive_noise_variance=0.0,
+  )
+
+  samples = gprm.sample(num_samples, seed=sampling_seed)
+
+  plt.figure(figsize=(7, 4))
+  plt.plot(
+    predictive_index_points_, cub_fn(predictive_index_points_), label="Target fn"
+  )
+  for i in range(num_samples):
+    plt.plot(
+      predictive_index_points_,
+      samples[i, :],
+      c="r",
+      alpha=0.2,
+      label="Posterior Sample" if i == 0 else None,
+    )
+  plt.scatter(
+    cub_index_vals[range(ind + 1)],
+    cub_obs_vals_err[range(ind + 1)],
+    label="Observations",
+  )
+  leg = plt.legend(loc="upper right")
+  for lh in leg.legend_handles:
+    lh.set_alpha(1)
+  plt.xlabel("x")
+  plt.ylabel("f(x)")
+  plt.ylim(-1, 1)
+  # plt.title(r"Function estimation with GP")
+  plt.savefig("write_up/images/cub_GP_err_" + str(ind + 1) + "_iters.pdf")
+  plt.show()
+
+```
+
+```{python}
+UCB_index_points = np.array([[0.0]])
+UCB_obs_points = cub_fn_err(UCB_index_points)
+
+next_point = tfp.util.TransformedVariable(
+    initial_value=0.6,
+    bijector=tfb.Sigmoid(np.float64(-1.0), np.float64(1.0)),
+    dtype=np.float64,
+)
+
+UCB_GP_reg = tfd.GaussianProcessRegressionModel(
+    kernel=optimized_kernel,
+    observation_index_points=UCB_index_points,
+    observations=UCB_obs_points,
+    observation_noise_variance=0.01,
+)
+
+
+def update_UCB(GP_reg, x_val):
+    def UCB_loss(x_val):
+        x = tf.reshape(x_val, [1, 1])
+        mean_t = GP_reg.mean_fn(x)
+        std_t = GP_reg.stddev(index_points=x)
+        loss = tf.squeeze(mean_t - 3 * std_t)
+        return loss
+
+    optimizer_fast = tf.keras.optimizers.Adam(learning_rate=0.01)
+
+    @tf.function(autograph=False, jit_compile=False)
+    def opt_var():
+        with tf.GradientTape() as tape:
+            loss = UCB_loss(x_val)
+        grads = tape.gradient(loss, next_point.trainable_variables)
+        optimizer_fast.apply_gradients(zip(grads, next_point.trainable_variables))
+        return loss
+
+    max_iters = 1000
+
+    tolerance = 1e-6  # Set your desired tolerance level
+    previous_loss = float("inf")
+
+    for i in range(max_iters):
+        loss = opt_var()
+
+        # Check if change in loss is less than tolerance
+        if abs(loss - previous_loss) < tolerance:
+            print(f"Acquisition function convergence reached at iteration {i+1}.")
+            break
+
+        previous_loss = loss
+
+
+update_UCB(UCB_GP_reg, next_point)
+```
+
+```{python}
+for t in range(ind_range):
+    UCB_GP_reg = tfd.GaussianProcessRegressionModel(
+        kernel=optimized_kernel,
+        index_points=predictive_index_points_,
+        observation_index_points=UCB_index_points,
+        observations=UCB_obs_points,
+        observation_noise_variance=0.01,
+        predictive_noise_variance=0.0,
+    )
+
+    next_point.assign(np.float64(np.random.uniform(-1, 1)))
+
+    print("Next point before optimisation ", next_point.numpy())
+
+    update_UCB(UCB_GP_reg, next_point)
+
+    print("Next point after optimisation ", next_point.numpy())
+    print("Next point mean ", UCB_GP_reg.mean_fn(np.array([[next_point.numpy()]])))
+    print(
+        "Next point std ",
+        UCB_GP_reg.stddev(index_points=np.array([[next_point.numpy()]])),
+    )
+
+    UCB_index_points = np.append(
+        UCB_index_points,
+        np.array([[next_point.numpy()]]),
+        axis=0,
+    )
+    UCB_obs_points = np.append(
+        UCB_obs_points,
+        cub_fn_err(np.array([[next_point.numpy()]])),
+    )
+
+
+for ind in range(ind_range):
     gprm = tfd.GaussianProcessRegressionModel(
         kernel=optimized_kernel,
         index_points=predictive_index_points_,
-        observation_index_points=cub_index_vals[range(ind + 1)],
-        observations=cub_obs_vals_err[range(ind + 1)],
-        observation_noise_variance=tf.Variable(
-            0.01, dtype=np.float64, name="observation_noise_variance_err"
-        ),
+        observation_index_points=UCB_index_points[range(ind + 1)],
+        observations=UCB_obs_points[range(ind + 1)],
+        observation_noise_variance=0.01,
         predictive_noise_variance=0.0,
     )
 
@@ -431,7 +564,7 @@ for ind in range(ind_range):
 
     plt.figure(figsize=(7, 4))
     plt.plot(
-        predictive_index_points_, cub_fn(predictive_index_points_), label="True fn"
+        predictive_index_points_, cub_fn(predictive_index_points_), label="Target fn"
     )
     for i in range(num_samples):
         plt.plot(
@@ -442,8 +575,8 @@ for ind in range(ind_range):
             label="Posterior Sample" if i == 0 else None,
         )
     plt.scatter(
-        cub_index_vals[range(ind + 1)],
-        cub_obs_vals_err[range(ind + 1)],
+        UCB_index_points[range(ind + 1)],
+        UCB_obs_points[range(ind + 1)],
         label="Observations",
     )
     leg = plt.legend(loc="upper right")
@@ -453,29 +586,79 @@ for ind in range(ind_range):
     plt.ylabel("f(x)")
     plt.ylim(-1, 1)
     # plt.title(r"Function estimation with GP")
-    plt.savefig("write_up/images/cub_GP_err_" + str(ind + 1) + "_iters.pdf")
+    plt.savefig("write_up/images/UCB_" + str(ind + 1) + "_iters.pdf")
     plt.show()
-
 ```
 
 ```{python}
-Adam_optim = tf.optimizers.Adam() # somehow need this again? maybe when you do the optimize function it stores info?
+
+figure, axis = plt.subplots(3, 2)
+snaps = np.array([[1, 2], [3, 6], [9, 15]])
+
+for i in range(3):
+    for j in range(2):
+        gprm = tfd.GaussianProcessRegressionModel(
+            kernel=optimized_kernel,
+            index_points=predictive_index_points_,
+            observation_index_points=UCB_index_points[range(snaps[i, j])],
+            observations=UCB_obs_points[range(snaps[i, j])],
+            observation_noise_variance=0.01,
+            predictive_noise_variance=0.0,
+        )
+        samples = gprm.sample(num_samples, seed=sampling_seed)
+
+        axis[i, j].plot(
+            predictive_index_points_,
+            cub_fn(predictive_index_points_),
+            label="Target fn",
+        )
+        for k in range(num_samples):
+            axis[i, j].plot(
+                predictive_index_points_,
+                samples[k, :],
+                c="r",
+                alpha=0.2,
+                label="Posterior Sample" if k == 0 else None,
+            )
+        axis[i, j].scatter(
+            UCB_index_points[range(snaps[i, j])],
+            UCB_obs_points[range(snaps[i, j])],
+            label="Observations",
+        )
+        axis[i,j].set_title(str(snaps[i, j]) + " Acquisitions")
+        # leg = plt.legend(loc="upper right")
+        # for lh in leg.legend_handles:
+        #     lh.set_alpha(1)
+        plt.ylim(-1, 1)
+# plt.xlabel("x")
+# plt.ylabel("f(x)")
+# plt.title(r"Function estimation with GP")
+# plt.savefig("write_up/images/UCB_" + str(ind + 1) + "_iters.pdf")
+# plt.figure(num = SubFigure, figsize=(10, 3.5))
+plt.show()
+print(i, j)
+
+```
+
+
+```{python}
+Adam_optim = tf.keras.optimizers.Adam() # somehow need this again? maybe when you do the optimize function it stores info?
 
 @tf.function()
 def optimize_err():
-  with tf.GradientTape() as tape:
-    loss = -my_GP_err.log_prob(cub_obs_vals_err)
-  grads = tape.gradient(loss, my_GP_err.trainable_variables)
-  Adam_optim.apply_gradients(zip(grads, my_GP_err.trainable_variables))
-  return loss
+ with tf.GradientTape() as tape:
+  loss = -my_GP_err.log_prob(cub_obs_vals_err)
+ grads = tape.gradient(loss, my_GP_err.trainable_variables)
+ Adam_optim.apply_gradients(zip(grads, my_GP_err.trainable_variables))
+ return loss
 
 
 num_iters_err = 5000
 
 lls_err = np.zeros(num_iters_err, np.float64)
 for i in range(num_iters_err):
-  loss_err = optimize_err()
-  lls_err[i] = loss_err
+ loss_err = optimize_err()
+ lls_err[i] = loss_err
 
 amp_fin_err = my_GP_err.trainable_variables[0].numpy()
 len_fin_err = my_GP_err.trainable_variables[1].numpy()
@@ -496,12 +679,12 @@ plt.show()
 ```{python}
 optimized_kernel_err = tfk.ExponentiatedQuadratic(amp_fin_err, len_fin_err)
 gprm_err = tfd.GaussianProcessRegressionModel(
-  kernel=optimized_kernel_err,
-  index_points=predictive_index_points_,
-  observation_index_points=cub_index_vals_err,
-  observations=cub_obs_vals_err,
-  observation_noise_variance=obs_var_fin_err,
-  predictive_noise_variance=0.)
+ kernel=optimized_kernel_err,
+ index_points=predictive_index_points_,
+ observation_index_points=cub_index_vals_err,
+ observations=cub_obs_vals_err,
+ observation_noise_variance=obs_var_fin_err,
+ predictive_noise_variance=0.)
 
 num_samples_err = 50
 samples_err = gprm_err.sample(num_samples_err, seed = sampling_seed)
@@ -510,15 +693,15 @@ samples_err = gprm_err.sample(num_samples_err, seed = sampling_seed)
 ```{python}
 plt.figure(figsize=(7, 4))
 plt.plot(predictive_index_points_, cub_fn(predictive_index_points_),
-  label='True fn')
+ label='Target fn')
 plt.scatter(cub_index_vals_err[:, 0], cub_obs_vals_err,
-  label='Observations')
+ label='Observations')
 for i in range(num_samples_err):
-  plt.plot(predictive_index_points_, samples_err[i, :], c='r', alpha=.1,
-    label='Posterior Sample' if i == 0 else None)
+ plt.plot(predictive_index_points_, samples_err[i, :], c='r', alpha=.1,
+  label='Posterior Sample' if i == 0 else None)
 leg = plt.legend(loc='upper right')
 for lh in leg.legend_handles:
-  lh.set_alpha(1)
+ lh.set_alpha(1)
 plt.xlabel("x")
 plt.ylabel("f(x)")
 plt.show()
@@ -533,46 +716,46 @@ my_seed_quad=np.random.default_rng(seed=687)
 
 
 cub_index_vals_quad = np.expand_dims( # this makes the size of the sample (3,1)
-  my_seed_quad.uniform(low=-1., high=1., size=num_obs_quad),
-  axis=-1 # last axis
+ my_seed_quad.uniform(low=-1., high=1., size=num_obs_quad),
+ axis=-1 # last axis
 )
 
 cub_obs_vals_quad = cub_fn(cub_index_vals_quad)
 
 def custom_mean_fn(x):
-  # You can define your own mean function here
-  # For example, a linear mean function: return 2.0 * x
-  return - x[..., 0]**2
+ # You can define your own mean function here
+ # For example, a linear mean function: return 2.0 * x
+ return - x[..., 0]**2
 
 my_GP_quad = tfd.GaussianProcess(
-  kernel=tfk.ExponentiatedQuadratic(
-    amplitude=tf.Variable(1., dtype=np.float64, name="amplitude_quad"),
-    length_scale=tf.Variable(1., dtype=np.float64, name="length_scale_quad")
-  ),
-  index_points=cub_index_vals_quad,
-  mean_fn=custom_mean_fn)
+ kernel=tfk.ExponentiatedQuadratic(
+  amplitude=tf.Variable(1., dtype=np.float64, name="amplitude_quad"),
+  length_scale=tf.Variable(1., dtype=np.float64, name="length_scale_quad")
+ ),
+ index_points=cub_index_vals_quad,
+ mean_fn=custom_mean_fn)
 
 print(my_GP_quad.trainable_variables)
 ```
 
 ```{python}
-Adam_optim = tf.optimizers.Adam() # somehow need this again? maybe when you do the optimize function it stores info?
+Adam_optim = tf.keras.optimizers.Adam() # somehow need this again? maybe when you do the optimize function it stores info?
 
 @tf.function()
 def optimize_quad():
-  with tf.GradientTape() as tape:
-    loss = -my_GP_quad.log_prob(cub_obs_vals_quad)
-  grads = tape.gradient(loss, my_GP_quad.trainable_variables)
-  Adam_optim.apply_gradients(zip(grads, my_GP_quad.trainable_variables))
-  return loss
+ with tf.GradientTape() as tape:
+  loss = -my_GP_quad.log_prob(cub_obs_vals_quad)
+ grads = tape.gradient(loss, my_GP_quad.trainable_variables)
+ Adam_optim.apply_gradients(zip(grads, my_GP_quad.trainable_variables))
+ return loss
 
 
 num_iters_quad = 5000
 
 lls_quad = np.zeros(num_iters_quad, np.float64)
 for i in range(num_iters_quad):
-  loss_quad = optimize_quad()
-  lls_quad[i] = loss_quad
+ loss_quad = optimize_quad()
+ lls_quad[i] = loss_quad
 
 amp_fin_quad = my_GP_quad.trainable_variables[0].numpy()
 len_fin_quad = my_GP_quad.trainable_variables[1].numpy()
@@ -591,12 +774,12 @@ plt.show()
 ```{python}
 optimized_kernel_quad = tfk.ExponentiatedQuadratic(amp_fin_quad, len_fin_quad)
 gprm_quad = tfd.GaussianProcessRegressionModel(
-  kernel=optimized_kernel_quad,
-  index_points=predictive_index_points_,
-  observation_index_points=cub_index_vals_quad,
-  observations=cub_obs_vals_quad,
-  predictive_noise_variance=0.,
-  mean_fn=custom_mean_fn)
+ kernel=optimized_kernel_quad,
+ index_points=predictive_index_points_,
+ observation_index_points=cub_index_vals_quad,
+ observations=cub_obs_vals_quad,
+ predictive_noise_variance=0.,
+ mean_fn=custom_mean_fn)
 
 num_samples_quad = 50
 samples_quad = gprm_quad.sample(num_samples_quad, seed = sampling_seed)
@@ -605,15 +788,15 @@ samples_quad = gprm_quad.sample(num_samples_quad, seed = sampling_seed)
 ```{python}
 plt.figure(figsize=(7, 4))
 plt.plot(predictive_index_points_, cub_fn(predictive_index_points_),
-  label='True fn')
+ label='Target fn')
 plt.scatter(cub_index_vals_quad[:, 0], cub_obs_vals_quad,
-  label='Observations')
+ label='Observations')
 for i in range(num_samples_quad):
-  plt.plot(predictive_index_points_, samples_quad[i, :], c='r', alpha=.1,
-    label='Posterior Sample' if i == 0 else None)
+ plt.plot(predictive_index_points_, samples_quad[i, :], c='r', alpha=.1,
+  label='Posterior Sample' if i == 0 else None)
 leg = plt.legend(loc='upper right')
 for lh in leg.legend_handles:
-  lh.set_alpha(1)
+ lh.set_alpha(1)
 plt.xlabel("x")
 plt.ylabel("f(x)")
 plt.show()
@@ -624,80 +807,80 @@ plt.show()
 ```{python}
 
 def varying_variance(num_low, num_high, var_low, var_high):
-  seed_low=np.random.default_rng(seed=973)
-  seed_high=np.random.default_rng(seed=8973)
-  seed_other=np.random.default_rng(seed=873)
+ seed_low=np.random.default_rng(seed=973)
+ seed_high=np.random.default_rng(seed=8973)
+ seed_other=np.random.default_rng(seed=873)
 
-  samples_low_ = seed_low.normal(scale = np.sqrt(var_low), size = num_low) #+ np.ones(num_low)
-  samples_high_ = seed_high.normal(scale = np.sqrt(var_high), size = num_high) + np.ones(num_high)
+ samples_low_ = seed_low.normal(scale = np.sqrt(var_low), size = num_low) #+ np.ones(num_low)
+ samples_high_ = seed_high.normal(scale = np.sqrt(var_high), size = num_high) + np.ones(num_high)
 
-  x_indices_ = np.expand_dims( # this makes the size of the sample (3,1)
-    np.concatenate((np.zeros(num_low), np.ones(num_high))),
-    axis=-1 # last axis
-    )
-  y_vals_ = np.concatenate((samples_low_, samples_high_))
-
-  GP_ = tfd.GaussianProcess(
-    kernel=tfk.ExponentiatedQuadratic(
-      amplitude=tf.Variable(1., dtype=np.float64, name="amplitude"),
-      length_scale=tf.Variable(1., dtype=np.float64, name="length_scale")
-    ),
-    observation_noise_variance=tf.Variable(1., dtype=np.float64, name="observation_noise_variance"),
-    index_points=x_indices_
+ x_indices_ = np.expand_dims( # this makes the size of the sample (3,1)
+  np.concatenate((np.zeros(num_low), np.ones(num_high))),
+  axis=-1 # last axis
   )
+ y_vals_ = np.concatenate((samples_low_, samples_high_))
 
-  optimizer_ = tf.optimizers.Adam() # somehow need this again? maybe when you do the optimize function it stores info?
+ GP_ = tfd.GaussianProcess(
+  kernel=tfk.ExponentiatedQuadratic(
+   amplitude=tf.Variable(1., dtype=np.float64, name="amplitude"),
+   length_scale=tf.Variable(1., dtype=np.float64, name="length_scale")
+  ),
+  observation_noise_variance=tf.Variable(1., dtype=np.float64, name="observation_noise_variance"),
+  index_points=x_indices_
+ )
 
-  @tf.function()
-  def optimize_():
-    with tf.GradientTape() as tape:
-      loss = -GP_.log_prob(y_vals_)
-    grads = tape.gradient(loss, GP_.trainable_variables)
-    optimizer_.apply_gradients(zip(grads, GP_.trainable_variables))
-    return loss
+ optimizer_ = tf.keras.optimizers.Adam() # somehow need this again? maybe when you do the optimize function it stores info?
+
+ @tf.function()
+ def optimize_():
+  with tf.GradientTape() as tape:
+   loss = -GP_.log_prob(y_vals_)
+  grads = tape.gradient(loss, GP_.trainable_variables)
+  optimizer_.apply_gradients(zip(grads, GP_.trainable_variables))
+  return loss
 
 
-  num_iters_ = 5000
+ num_iters_ = 5000
 
-  lls_ = np.zeros(num_iters_, np.float64)
-  for i in range(num_iters_):
-    loss_ = optimize_()
-    lls_[i] = loss_
+ lls_ = np.zeros(num_iters_, np.float64)
+ for i in range(num_iters_):
+  loss_ = optimize_()
+  lls_[i] = loss_
 
-  amp_fin_ = GP_.trainable_variables[0].numpy()
-  len_fin_ = GP_.trainable_variables[1].numpy()
-  noise_fin_ = GP_.trainable_variables[2].numpy()
+ amp_fin_ = GP_.trainable_variables[0].numpy()
+ len_fin_ = GP_.trainable_variables[1].numpy()
+ noise_fin_ = GP_.trainable_variables[2].numpy()
 
-  predictive_index_points_ = np.linspace(-.2, 1.2, 20, dtype=np.float64)
-  # Reshape to [200, 1] -- 1 is the dimensionality of the feature space.
-  predictive_index_points_ = predictive_index_points_[..., np.newaxis]
+ predictive_index_points_ = np.linspace(-.2, 1.2, 20, dtype=np.float64)
+ # Reshape to [200, 1] -- 1 is the dimensionality of the feature space.
+ predictive_index_points_ = predictive_index_points_[..., np.newaxis]
 
-  optimized_kernel_ = tfk.ExponentiatedQuadratic(amp_fin_, len_fin_)
-  gprm_ = tfd.GaussianProcessRegressionModel(
-    kernel=optimized_kernel_,
-    index_points=predictive_index_points_,
-    observation_index_points=x_indices_,
-    observations=y_vals_,
-    observation_noise_variance=noise_fin_,
-    predictive_noise_variance=0.)
+ optimized_kernel_ = tfk.ExponentiatedQuadratic(amp_fin_, len_fin_)
+ gprm_ = tfd.GaussianProcessRegressionModel(
+  kernel=optimized_kernel_,
+  index_points=predictive_index_points_,
+  observation_index_points=x_indices_,
+  observations=y_vals_,
+  observation_noise_variance=noise_fin_,
+  predictive_noise_variance=0.)
 
-  num_fn_samples_ = 50
-  tf.random.set_seed(25626)
-  samples_ = gprm_.sample(num_fn_samples_, seed = sampling_seed)
-  plt.figure(figsize=(7, 4))
-  plt.scatter(x_indices_[:, 0], y_vals_,
-    label='Observations')
-  for i in range(num_fn_samples_):
-    plt.plot(predictive_index_points_, samples_[i, :], c='r', alpha=.1,
-      label='Posterior Sample' if i == 0 else None)
-  leg = plt.legend(loc='upper left')
-  for lh in leg.legend_handles:
-    lh.set_alpha(1)
-  plt.xlabel("x")
-  plt.ylabel("f(x)")
-  plt.show()
+ num_fn_samples_ = 50
+ tf.random.set_seed(25626)
+ samples_ = gprm_.sample(num_fn_samples_, seed = sampling_seed)
+ plt.figure(figsize=(7, 4))
+ plt.scatter(x_indices_[:, 0], y_vals_,
+  label='Observations')
+ for i in range(num_fn_samples_):
+  plt.plot(predictive_index_points_, samples_[i, :], c='r', alpha=.1,
+   label='Posterior Sample' if i == 0 else None)
+ leg = plt.legend(loc='upper left')
+ for lh in leg.legend_handles:
+  lh.set_alpha(1)
+ plt.xlabel("x")
+ plt.ylabel("f(x)")
+ plt.show()
 
-  return amp_fin_, len_fin_, noise_fin_
+ return amp_fin_, len_fin_, noise_fin_
 
 varying_variance(100, 2, 0.01, 1)
 

@@ -1,0 +1,159 @@
+---
+title: "Some examples of Gaussian Processes"
+format:
+  pdf: default
+jupyter: python3
+---
+
+# Imports
+
+```{python}
+import sys
+print(sys.executable)
+```
+
+```{python}
+import numpy as np
+
+import tensorflow as tf
+import tensorflow_probability as tfp
+
+tfb = tfp.bijectors
+tfd = tfp.distributions
+tfk = tfp.math.psd_kernels
+
+import matplotlib.pyplot as plt
+
+sampling_seed = tfp.random.sanitize_seed(seed=146098)
+```
+
+```{python}
+my_seed_err = np.random.default_rng(seed=914)
+
+def cub_fn_err(x):
+  return x[..., 0] * (x[..., 0] - 1) * (x[..., 0] + 1) + my_seed_err.normal(
+    scale=0.1, size=x.shape[0]
+  )
+
+optimized_kernel = tfk.ExponentiatedQuadratic(np.float64(0.96), np.float64(0.72))
+predictive_index_points_ = np.linspace(-1.2, 1.2, 200, dtype=np.float64)
+predictive_index_points_ = predictive_index_points_[..., np.newaxis]
+
+num_samples = 10
+```
+
+
+```{python}
+UCB_index_points = np.array([[0.0]])
+UCB_obs_points = cub_fn_err(UCB_index_points)
+
+next_point = tfp.util.TransformedVariable(
+    initial_value=0.5,
+    bijector=tfb.Sigmoid(np.float64(-1.0), np.float64(1.0)),
+    dtype=np.float64,
+)
+
+UCB_GP_reg = tfd.GaussianProcessRegressionModel(
+    kernel=optimized_kernel,
+    observation_index_points=UCB_index_points,
+    observations=UCB_obs_points,
+    observation_noise_variance=0.01,
+)
+
+
+def update_UCB(GP_reg, x_val):
+    def UCB_loss(x_val):
+        x = tf.reshape(x_val, [1, 1])
+        mean_t = GP_reg.mean_fn(x)
+        std_t = GP_reg.stddev(index_points=x)
+        loss = tf.squeeze(mean_t - 3 * std_t)
+        return loss
+
+    optimizer_fast = tf.keras.optimizers.Adam(learning_rate=0.01)
+
+    @tf.function(autograph=False, jit_compile=False)
+    def opt_var():
+        with tf.GradientTape() as tape:
+            loss = UCB_loss(next_point)
+        grads = tape.gradient(loss, next_point.trainable_variables)
+        optimizer_fast.apply_gradients(zip(grads, next_point.trainable_variables))
+        return loss
+
+    max_iters = 1000
+
+    tolerance = 1e-6  # Set your desired tolerance level
+    previous_loss = float("inf")
+
+    for i in range(max_iters):
+        loss = opt_var()
+
+        # Check if change in loss is less than tolerance
+        if abs(loss - previous_loss) < tolerance:
+            print(f"Acquisition function convergence reached at iteration {i+1}.")
+            break
+
+        previous_loss = loss
+
+
+print(next_point.numpy())
+update_UCB(UCB_GP_reg, next_point)
+print(next_point.numpy())
+```
+
+```{python}
+for t in range(10):
+    UCB_GP_reg = tfd.GaussianProcessRegressionModel(
+        kernel=optimized_kernel,
+        index_points=predictive_index_points_,
+        observation_index_points=UCB_index_points,
+        observations=UCB_obs_points,
+        observation_noise_variance=0.01,
+        predictive_noise_variance=0.0,
+    )
+
+    next_point.assign(np.float64(np.random.uniform(-1, 1))) 
+    
+    print("Next point before optimisation ", next_point.numpy())
+    update_UCB(UCB_GP_reg, next_point)
+
+    print("Next point after optimisation ", next_point.numpy())
+    print("Next point mean ",UCB_GP_reg.mean_fn(np.array([[next_point.numpy()]])))
+    print("Next point std ",UCB_GP_reg.stddev(index_points=np.array([[next_point.numpy()]])))
+    
+    UCB_index_points = np.append(
+        UCB_index_points,
+        np.array([[next_point.numpy()]]),
+        axis=0,
+    )
+    UCB_obs_points = np.append(
+        UCB_obs_points,
+        cub_fn_err(np.array([[next_point.numpy()]])),
+    )
+
+samples = UCB_GP_reg.sample(num_samples, seed=sampling_seed)
+
+plt.figure(figsize=(7, 4))
+plt.plot(predictive_index_points_, cub_fn(predictive_index_points_), label="True fn")
+for i in range(num_samples):
+    plt.plot(
+        predictive_index_points_,
+        samples[i, :],
+        c="r",
+        alpha=0.2,
+        label="Posterior Sample" if i == 0 else None,
+    )
+plt.scatter(
+    UCB_index_points,
+    UCB_obs_points,
+    label="Observations",
+)
+leg = plt.legend(loc="upper right")
+for lh in leg.legend_handles:
+    lh.set_alpha(1)
+plt.xlabel("x")
+plt.ylabel("f(x)")
+plt.ylim(-1, 1)
+# plt.title(r"Function estimation with GP")
+# plt.savefig("write_up/images/cub_GP_err_" + str(ind + 1) + "_iters.pdf")
+plt.show()
+```

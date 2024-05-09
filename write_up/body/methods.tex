@@ -81,10 +81,13 @@ values reported in the literature.
 
 To approximate the true discrepancy function, a Gaussian process with constant
 mean $\mu_{\mathcal{GP}}$, and 5/2 Mat\'ern kernel was used with automatic
-relevance determination - i.e.\ each parameter $\theta\in\bm{\theta}$ was 
+relevance determination - i.e.\ each parameter $\theta\in\bm{\theta}$ was
 scaled by $\ell_\theta,$ such
 that the kernel is
-$$ k(\bm{\theta}_i, \bm{\theta}_i^\prime) = \sigma_a^2 (1 + z_i + \frac{z_i^2}{3})\exp(-z_i)$$
+$$
+    k(\bm{\theta}_i, \bm{\theta}_i^\prime)
+    = \sigma_a^2 (1 + z_i + \frac{z_i^2}{3})\exp(-z_i)
+$$
 where
 $$
     z_i = \sqrt{
@@ -103,18 +106,27 @@ $\sigma_O^2, \sigma_a^2, \ell_\alpha, \ell_\beta, \ell_{\gamma_L}, \ell_\lambda,
 and $\ell_r$ were chosen by maximising the leave one out predictive
 log-probability as described in \cite[116]{rasmussen_gaussian_2008}.
 
-The acquisition function used was 
-$$\mu(\bm\theta) - \eta_t\sqrt{\mathrm{v}(\bm\theta)}$$ 
-with $\eta_t:= \sqrt{2\ln(\frac{t^{2d + 2}\pi^2}{3\varepsilon})},$ and $\varepsilon \in (0, 1)$ that can be chosen (with a lower epsilon resulting in more exploration), $\mu(\bm\theta)$ and $\mathrm{v}(\bm\theta)$ are the posterior mean and variance. $\varepsilon = 0.1$ was used.
+The acquisition function used was
+$$\mu(\bm\theta) - \eta_t\sqrt{\mathrm{v}(\bm\theta)}$$
+with $\eta_t:= \sqrt{2\ln(\frac{t^{2d + 2}\pi^2}{3\varepsilon})},$ and
+$\varepsilon \in (0, 1)$ that can be chosen
+(with a lower epsilon resulting in more exploration), $\mu(\bm\theta)$ and
+$\mathrm{v}(\bm\theta)$ are the posterior mean and variance.
+$\varepsilon = 0.1$ was used.
 $$(\mu_\text{min} - \mu(\bm\theta))
-    \varPhi\left(\frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}\right) + \sqrt{\mathrm{v}(\bm\theta)}
-    \phi\left(\frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}\right)$$
+    \varPhi\left(
+    \frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}
+    \right) + \sqrt{\mathrm{v}(\bm\theta)}
+    \phi\left(
+    \frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}
+    \right)$$
 $\mu_\text{min} := \min_{\bm{\theta}} \mu(\bm\theta)$
 $\varPhi, \phi$
 
 \subsection*{Justification}
 
-Using relative differences limits the impact between the scale differences of the summary statistics.
+Using relative differences limits the impact between the scale differences of
+the summary statistics.
 
 \section{Running the Model and Our Choices}
 
@@ -130,15 +142,23 @@ we used a Mat\'ern kernel with $\nu = 5/2$. This is not as constrained as a
 squared exponential kernel, but realisations are twice mean square
 differentiable.
 
-A constant mean was used, rather than the quadratic mean, because the 
-parameters are well bounded, and we don't need to worry about what happens when 
-they go to infinity. Post-hoc mean fitting could be done on the discrepencies 
-sampled space in order to extend the likelihood into regions that haven't been 
+A constant mean was used, rather than the quadratic mean, because the
+parameters are well bounded, and we don't need to worry about what happens when
+they go to infinity. Post-hoc mean fitting could be done on the discrepencies
+sampled space in order to extend the likelihood into regions that haven't been
 tested without reverting to the mean function.
 
-There seems to be a mistake in \cite{gutmann_bayesian_2016}, where the exploration parameters is written as $\eta_t:= \sqrt{2\ln(\frac{t^{2d + 2}\pi^2}{3\varepsilon})}.$ This seems to be inherited from \cite{brochu_tutorial_2010}. We use Brochu's original citation \cite{srinivas_gaussian_2010} to revise this to $\eta_t:= \sqrt{2\ln(\frac{t^{2d + 2}\pi^2}{3\varepsilon})}.$ \footnote{The python package implementing BOLFI admits this mistake, see \url{https://github.com/elfi-dev/elfi/blob/dev/elfi/methods/bo/acquisition.py}}
+There seems to be a mistake in \cite{gutmann_bayesian_2016}, where the
+exploration parameters is written as
+$\eta_t:= \sqrt{2\ln(\frac{t^{2d + 2}\pi^2}{3\varepsilon})}.$ This seems to be
+inherited from \cite{brochu_tutorial_2010}. We use Brochu's original citation
+\cite{srinivas_gaussian_2010} to revise this to
+$\eta_t:= \sqrt{2\ln(\frac{t^{2d + 2}\pi^2}{3\varepsilon})}.$
+\footnote{One Python package that implements BOLFI notes this error, see:
+    \url{https://github.com/elfi-dev/elfi/blob/dev/elfi/methods/bo/acquisition.py}}
 
-This was implemented using TensorFlow's Gaussian Process framework in Python \cite{abadi_tensorflow_2015}.
+The Gaussian process and Gaussian process regression was implemented using
+TensorFlow in Python \cite{abadi_tensorflow_2015}.
 
 \section{Results}
 
