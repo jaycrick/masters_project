@@ -217,7 +217,10 @@ $$k_\nu(x, x^\prime)
     = \sigma^2\frac{2^{1 - \nu}}{\Gamma(\nu)}
     \left(\frac{\sqrt{2\nu}||x - x^\prime||}{\ell}\right)^\nu
     K_\nu\left(-\frac{\sqrt{2\nu}||x - x^\prime||}{\ell}\right)$$
-where $K_\nu$ is a modified Bessel function (see \cite[374]{abramowitz_handbook_2013}). The general form is not very insightful, but for the most common values of $\nu = 1/2, 3/2$ and $5/2,$ we have the forms:
+where $K_\nu$ is a modified Bessel function
+(see \cite[374]{abramowitz_handbook_2013}). The general form is not very
+insightful, but for the most common values of $\nu = 1/2, 3/2$ and $5/2,$ we
+have the forms:
 $$k_{1/2}(x, x^\prime)
     = \sigma^2\exp\left(-\frac{||x - x^\prime||}{\ell}\right)$$
 $$k_{3/2}(x, x^\prime)
@@ -235,6 +238,7 @@ Zero mean processes with a Mat\'ern kernel are $n$ times mean square
 differentiable, for all $n < \nu.$ As $\nu\to\infty,$ with appropriate
 rescaling, the limit of the Mat\'ern kernel is the squared exponential
 kernel.\cite[85]{rasmussen_gaussian_2008}
+\textcolor{red}{LOOK AT CHAPTER 4 SKOROKHOD STOCHASTIC I}
 
 \subsection*{Squared Exponential}
 
@@ -252,26 +256,71 @@ functions.
 \subsection*{Choosing an Appropriate Kernel}
 
 The appropriate choice of kernel will depend on the properties behaviour of the
-target function to approximate. In the case of estimating an extremely 
-stochastic distribution (such as the stock market over time), we expect many
-`spikes,' and hence no mean square differentiability is required.
+target function to approximate. In the case of estimating an extremely
+stochastic distribution (such as the price of a stock over time), it is
+unlikely to be smooth, so no mean square differentiability is required, and a
+Mat\'ern 1/2 kernel would be appropriate. If it is known that our target
+function is extremely smooth, such as a finite sum of infinitely differentiable
+functions (such as polynomials, sin, cos etc.) then the choice of squared
+exponential kernel is the most appropriate kernel. Realistically, the
+smoothness of the function will not be known a priori, and hence some sort of
+compromise (such as Mat\'ern 5/2) kernel allows for flexibility.
 
-\subsection*{Length parameter}
+Many other kernels exist that induce varying behaviours, such as periodic
+kernels \textcolor{red}{find periodic kernel}, and non-stationary kernels
+(where the covariance is dependent on $x$ and $x^\prime$, not just
+$|x - x^\prime|$)
+\textcolor{red}{have i defined stationary?}.
+
+\subsection*{Length and Amplitude Hyperparameters}
 
 \begin{figure}
     \missingfigure{different lengths on exponential kernel}
-    \caption{a figure about kernel lengths}
+    \caption{a figure about kernel lengths but generated from the same seed}
     \label{fig:no_reg_lengths}
 \end{figure}
 
-In both of the above kernels, there is a hyperparameter $\ell,$ which we call
+In both the Mat\'ern and squared quadratic kernels
+(as well as most other common kernels), there is a choice of
+hyperparameter $\ell,$ called
 the length parameter. This value determines how close two points need to be to
-be highly correlated. A small value of $\ell$ leads to a more wiggly function
-as seen in \ref{fig:no_reg_lengths}.
+be highly correlated. Larger value of $\ell$ generates functions with larger
+degrees of local dependence, as seen in Figure \ref{fig:no_reg_lengths}. All kernels
+also have an amplitude parameter $\sigma^2.$ The amplitude does not change size
+of correlation between $x$ and $x^\prime,$ but just scales the correlation
+matrix. In other words, larger $\sigma^2$ increase size but not rate of
+fluctuations. This can be seen in Figure \ref{fig:no_reg_amps}.
+
+\begin{figure}
+    \missingfigure{GP differing amplitudes}
+    \caption{Bunch of GPs generated from the same seed}
+    \label{fig:no_reg_amps}
+\end{figure}
 
 \section{Gaussian Process Regression}
 
-Given a choice of
+After choosing a set of prior distributions, given a set of observations, we
+can condition our Gaussian process on these priors to update our distribution
+of plausible functions. This is where beauty and simplicity in using Gaussian
+processes shines through. A conditional multivariate normal distribution
+is still multivariate normal, and so the distribution of unobserved points
+reduces to elementary linear algebra.
+
+Consider
+$$
+    \begin{bmatrix}
+        f(\mathbf{x}_1) \\
+        f(\mathbf{x}_2)
+    \end{bmatrix} \sim \mathcal{N}\left(
+    \begin{bmatrix}
+            m(\mathbf{x}_1) \\
+            m(\mathbf{x}_2)
+        \end{bmatrix}, \begin{bmatrix}
+            K_{11} & K_{12} \\
+            K_{21} & K_{22}
+        \end{bmatrix}
+    \right)
+$$
 
 
 \begin{figure}
@@ -279,13 +328,7 @@ Given a choice of
 \end{figure}
 
 
-\begin{figure}
-    \missingfigure{GP differing lengths and amplitudes}
-\end{figure}
 
-It asymptotically approaches the squared exponential class.
-
-LOOK AT CHAPTER 4 SKOROKHOD STOCHASTIC I
 
 \subsection*{Adding in observation variance}
 
@@ -320,9 +363,16 @@ Posterior variance
               \item $\mu(\bm\theta)$ and $\mathrm{v}(\bm\theta)$ are the posterior mean and variance
           \end{itemize}
 
-    \item Could use expected information $$(\mu_\text{min} - \mu(\bm\theta))
-              \varPhi\left(\frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}\right) + \sqrt{\mathrm{v}(\bm\theta)}
-              \phi\left(\frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}\right)$$\begin{itemize}
+    \item Could use expected information
+          $$
+              (\mu_\text{min} - \mu(\bm\theta)) \varPhi \left(
+              \frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}
+              \right)
+              + \sqrt{\mathrm{v}(\bm\theta)}\phi\left(
+              \frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}
+              \right)
+          $$
+          \begin{itemize}
               \item $\mu_\text{min} := \min_{\bm{\theta}} \mu(\bm\theta)$
               \item $\varPhi, \phi$ CDF and PDF of standard normal
           \end{itemize}
