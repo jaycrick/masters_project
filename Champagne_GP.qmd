@@ -18,6 +18,7 @@ import pandas as pd
 import numpy as np
 from typing import Any
 import matplotlib.pyplot as plt
+import random
 
 from scipy.stats import qmc
 from scipy.stats import norm
@@ -59,7 +60,7 @@ lambda_max = 0.1
 f_max = 1/14
 r_max = 1/14
 
-num_lhc_samples = 128
+num_lhc_samples = 36
 initial_repeats = 1
 ```
 
@@ -1252,7 +1253,7 @@ def update_var_EI(GP_reg, alpha, beta, gamma_L, lambda_, f, r, min_obs):
     num_iters = 10000
 
     lls_ = np.zeros(num_iters, np.float64)
-    tolerance = 1e-6  # Set your desired tolerance level
+    tolerance = 1e-9  # Set your desired tolerance level
     previous_loss = np.float64("inf")
 
     for i in range(num_iters):
@@ -1311,12 +1312,12 @@ min_index = index_vals[
 ][0]
 simulation_reps = 20
 
-for t in range(401):
-    # min_index = index_vals[
-    #     champ_GP_reg.mean_fn(index_vals) == min(champ_GP_reg.mean_fn(index_vals))
-    # ][
-    #     0,
-    # ]
+for t in range(501):
+    min_index = index_vals[
+        champ_GP_reg.mean_fn(index_vals) == min(champ_GP_reg.mean_fn(index_vals))
+    ][
+        0,
+    ]
     optimizer_slow = tf.keras.optimizers.Adam()
     eta_t.assign(new_eta_t(t, d, exploration_rate))
     min_obs.assign(min(champ_GP_reg.mean_fn(index_vals)))
@@ -1325,11 +1326,22 @@ for t in range(401):
 
     ######################################################################
 
+    # for var in [next_alpha, next_beta, next_gamma_L, next_lambda, next_f, next_r]:
+    #     var.assign(
+    #         var.bijector.forward(np.float64(100000000.0))
+    #         * np.float64(np.random.uniform())
+    #     )
+
+    index_update = 0
     for var in [next_alpha, next_beta, next_gamma_L, next_lambda, next_f, next_r]:
-        var.assign(
-            var.bijector.forward(np.float64(100000000.0))
-            * np.float64(np.random.uniform())
-        )
+        if np.random.uniform() > 0.2:
+            var.assign(min_index[index_update])
+        else:
+            var.assign(
+                var.bijector.forward(np.float64(100000000.0))
+                * np.float64(np.random.uniform())
+            )
+        index_update += 1
 
     # update_var_UCB(eta_t, champ_GP_reg)
     update_var_EI(
