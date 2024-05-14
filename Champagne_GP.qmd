@@ -284,7 +284,7 @@ observed_sum_stats = champ_sum_stats(
 )
 
 
-def discrepency_fn(alpha_, beta_, gamma_L, lambda_, f, r, mean_of = 20):  # best is L1 norm
+def discrepency_fn(alpha_, beta_, gamma_L, lambda_, f, r, mean_of = 30):  # best is L1 norm
     mean_obs = 0
     for i in range(mean_of):
         x = champ_sum_stats(alpha_, beta_, gamma_L, lambda_, f, r)
@@ -1302,6 +1302,19 @@ def new_eta_t(t, d, exploration_rate):
 ```
 
 ```{python}
+num_slice_updates = 11
+
+all_slices = [np.linspace(0, 1, num_slice_updates, dtype=np.float64),  # alpha
+        np.linspace(0, 1, num_slice_updates, dtype=np.float64),  # beta
+        np.linspace(0, gamma_L_max, num_slice_updates, dtype=np.float64),  # gamma_L
+        np.linspace(0, lambda_max, num_slice_updates, dtype=np.float64),  # lambda
+        np.linspace(0, f_max, num_slice_updates, dtype=np.float64),  # f
+        np.linspace(0, r_max, num_slice_updates, dtype=np.float64),  # r
+]
+
+```
+
+```{python}
 exploration_rate = 1
 d = 6
 update_GP_hp_freq = 20  # how many iterations before updating GP hyperparams
@@ -1312,7 +1325,7 @@ min_index = index_vals[
 ][0]
 simulation_reps = 20
 
-for t in range(501):
+for t in range(201):
     min_index = index_vals[
         champ_GP_reg.mean_fn(index_vals) == min(champ_GP_reg.mean_fn(index_vals))
     ][
@@ -1380,6 +1393,35 @@ for t in range(501):
     obs_vals = np.append(obs_vals, new_discrepency)
 
     print("The mean of the samples was {}".format(new_discrepency.round(3)))
+
+    slice_var = [next_alpha, next_beta, next_gamma_L, next_lambda, next_f, next_r][t % 6]
+    for val in all_slices[t % 6]:
+        if np.random.uniform() < 1/5 + np.exp(1 - t/4):
+            slice_var.assign(val)
+
+            new_params = np.array(
+                [
+                    next_alpha.numpy(),
+                    next_beta.numpy(),
+                    next_gamma_L.numpy(),
+                    next_lambda.numpy(),
+                    next_f.numpy(),
+                    next_r.numpy(),
+                ]
+            ).reshape(1, -1)
+
+            new_discrepency = discrepency_fn(
+                next_alpha.numpy(),
+                next_beta.numpy(),
+                next_gamma_L.numpy(),
+                next_lambda.numpy(),
+                next_f.numpy(),
+                next_r.numpy(),
+            )
+
+            index_vals = np.append(index_vals, new_params, axis=0)
+            obs_vals = np.append(obs_vals, new_discrepency)
+
     ######################################################################
 
     champ_GP_reg = tfd.GaussianProcessRegressionModel(
@@ -1548,7 +1590,7 @@ for var in vars:
 
 ```{python}
 # print(index_vals[-600,].round(3))
-print(index_vals[-400,].round(3))
+# print(index_vals[-400,].round(3))
 print(index_vals[-200,].round(3))
 print(index_vals[-80,].round(3))
 print(index_vals[-40,].round(3))
