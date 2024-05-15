@@ -34,7 +34,7 @@ sampling_seed = tfp.random.sanitize_seed(seed=146098)
 predictive_index_points_ = np.linspace(-1.2, 1.2, 200, dtype=np.float64)
 predictive_index_points_ = predictive_index_points_[..., np.newaxis]
 
-num_samples = 20
+num_samples = 10
 
 gp = tfd.GaussianProcess(
     kernel=tfk.ExponentiatedQuadratic(np.float64(1), np.float64(0.5)),
@@ -43,7 +43,7 @@ gp = tfd.GaussianProcess(
 
 samples = gp.sample(num_samples, seed=sampling_seed)
 
-plt.figure(figsize=(7, 4))
+plt.figure(figsize=(2.9, 2))
 for i in range(num_samples):
     plt.plot(
         predictive_index_points_,
@@ -52,12 +52,12 @@ for i in range(num_samples):
         alpha=0.1 + 0.9 * (i + 1 == num_samples),
         label="Posterior Sample" if i == 0 else None,
     )
-leg = plt.legend(loc="lower right")
-for lh in leg.legend_handles:
-    lh.set_alpha(1)
-plt.xlabel("x")
-plt.ylabel("f(x)")
-plt.title(r"Gaussian Process Realisation With the Squared Exponential Kernel")
+# leg = plt.legend(loc="lower right")
+# for lh in leg.legend_handles:
+#     lh.set_alpha(1)
+# plt.xlabel("x")
+# plt.ylabel("f(x)")
+# plt.title(r"Gaussian Process Realisation With the Squared Exponential Kernel")
 plt.savefig("write_up/images/exponentiated_kernel.pdf")
 plt.show()
 
@@ -68,7 +68,7 @@ gp = tfd.GaussianProcess(
 
 samples = gp.sample(num_samples, seed=sampling_seed)
 
-plt.figure(figsize=(7, 4))
+plt.figure(figsize=(2.9, 2))
 for i in range(num_samples):
     plt.plot(
         predictive_index_points_,
@@ -77,12 +77,12 @@ for i in range(num_samples):
         alpha=0.1 + 0.9 * (i + 1 == num_samples),
         label="Posterior Sample" if i == 0 else None,
     )
-leg = plt.legend(loc="lower right")
-for lh in leg.legend_handles:
-    lh.set_alpha(1)
-plt.xlabel("x")
-plt.ylabel("f(x)")
-plt.title(r"Gaussian Process Realisation with Matern Kernel $\nu = 1/2$")
+# leg = plt.legend(loc="lower right")
+# for lh in leg.legend_handles:
+#     lh.set_alpha(1)
+# plt.xlabel("x")
+# plt.ylabel("f(x)")
+# plt.title(r"Gaussian Process Realisation with Matern Kernel $\nu = 1/2$")
 plt.savefig("write_up/images/maternonehalf_kernel.pdf")
 plt.show()
 
@@ -93,7 +93,7 @@ gp = tfd.GaussianProcess(
 
 samples = gp.sample(num_samples, seed=sampling_seed)
 
-plt.figure(figsize=(7, 4))
+plt.figure(figsize=(2.9, 2))
 for i in range(num_samples):
     plt.plot(
         predictive_index_points_,
@@ -102,12 +102,12 @@ for i in range(num_samples):
         alpha=0.1 + 0.9 * (i + 1 == num_samples),
         label="Posterior Sample" if i == 0 else None,
     )
-leg = plt.legend(loc="lower right")
-for lh in leg.legend_handles:
-    lh.set_alpha(1)
-plt.xlabel("x")
-plt.ylabel("f(x)")
-plt.title(r"Gaussian Process Realisation with Matern Kernel $\nu = 3/2$")
+# leg = plt.legend(loc="lower right")
+# for lh in leg.legend_handles:
+#     lh.set_alpha(1)
+# plt.xlabel("x")
+# plt.ylabel("f(x)")
+# plt.title(r"Gaussian Process Realisation with Matern Kernel $\nu = 3/2$")
 plt.savefig("write_up/images/maternthreehalves_kernel.pdf")
 plt.show()
 
@@ -118,7 +118,7 @@ gp = tfd.GaussianProcess(
 
 samples = gp.sample(num_samples, seed=sampling_seed)
 
-plt.figure(figsize=(7, 4))
+plt.figure(figsize=(2.9, 2))
 for i in range(num_samples):
     plt.plot(
         predictive_index_points_,
@@ -127,47 +127,49 @@ for i in range(num_samples):
         alpha=0.1 + 0.9 * (i + 1 == num_samples),
         label="Posterior Sample" if i == 0 else None,
     )
-leg = plt.legend(loc="lower right")
-for lh in leg.legend_handles:
-    lh.set_alpha(1)
-plt.xlabel("x")
-plt.ylabel("f(x)")
-plt.title(r"Gaussian Process Realisation with Matern Kernel $\nu = 5/2$")
+# leg = plt.legend(loc="lower right")
+# for lh in leg.legend_handles:
+#     lh.set_alpha(1)
+# plt.xlabel("x")
+# plt.ylabel("f(x)")
+# plt.title(r"Gaussian Process Realisation with Matern Kernel $\nu = 5/2$")
 plt.savefig("write_up/images/maternfivehalves_kernel.pdf")
 plt.show()
 ```
 
 ## Changing length parameter no regression
 ```{python}
-num_samples = 50
+num_samples = 10
 
-for ell in [0.5, 1, 2]:
-    gp = tfd.GaussianProcess(
-        kernel=tfk.ExponentiatedQuadratic(np.float64(1), np.float64(ell)),
-        index_points=predictive_index_points_,
-    )
-
-    samples = gp.sample(num_samples, seed=sampling_seed)
-
-    plt.figure(figsize=(7, 4))
-    for i in range(num_samples):
-        plt.plot(
-            predictive_index_points_,
-            samples[i, :],
-            c="r",
-            alpha=0.1 + 0.9 * (i + 1 == num_samples),
-            label="Posterior Sample" if i == 0 else None,
+for ell in [0.5, 2]:
+    for sigma_2 in [0.5, 2]:
+        gp = tfd.GaussianProcess(
+            kernel=tfk.ExponentiatedQuadratic(
+                np.float64(np.sqrt(sigma_2)), np.float64(ell)
+            ),
+            index_points=predictive_index_points_,
         )
-    leg = plt.legend(loc="lower right")
-    for lh in leg.legend_handles:
-        lh.set_alpha(1)
-    plt.xlabel("x")
-    plt.ylabel("f(x)")
-    plt.title(r"Squared Exponential kernel with $\ell = $" + str(ell))
-    plt.savefig(
-        "write_up/images/exponentiated_GP_ell_" + str(int(ell * 10)) + "_tenths.pdf"
-    )
-    plt.show()
+
+        samples = gp.sample(num_samples, seed=sampling_seed)
+
+        plt.figure(figsize=(2.9, 2))
+        for i in range(num_samples):
+            plt.plot(
+                predictive_index_points_,
+                samples[i, :],
+                c="r",
+                alpha=0.1 + 0.9 * (i + 1 == num_samples),
+                label="Posterior Sample" if i == 0 else None,
+            )
+        plt.ylim(-4, 4)
+        # leg = plt.legend(loc="lower right")
+        # for lh in leg.legend_handles:
+        #     lh.set_alpha(1)
+        # plt.xlabel("x")
+        # plt.ylabel("f(x)")
+        # plt.title(r"Squared Exponential kernel with $\ell = $" + str(ell))
+        plt.savefig("write_up/images/GP_ell_" + str(int(ell * 10)) + "_sigma2_" + str(int(sigma_2 * 10)) + "_tenths.pdf")
+        plt.show()
 ```
 
 ## Changing length parameter with regression
@@ -191,7 +193,7 @@ plt.show()
 ```{python}
 predictive_index_points_ = np.linspace(-1.2, 1.2, 200, dtype=np.float64)
 predictive_index_points_ = predictive_index_points_[..., np.newaxis]
-num_samples = 50
+num_samples = 25
 
 for ell in [0.5, 1, 2]:
     gprm = tfd.GaussianProcessRegressionModel(
@@ -204,7 +206,7 @@ for ell in [0.5, 1, 2]:
 
     samples = gprm.sample(num_samples, seed=sampling_seed)
 
-    plt.figure(figsize=(7, 4))
+    plt.figure(figsize=(2.9, 2))
     for i in range(num_samples):
         plt.plot(
             predictive_index_points_,
@@ -214,11 +216,11 @@ for ell in [0.5, 1, 2]:
             label="Posterior Sample" if i == 0 else None,
         )
     plt.scatter(flat_index[:, 0], easy_obs, label="Observations")
-    leg = plt.legend(loc="lower right")
-    for lh in leg.legend_handles:
-        lh.set_alpha(1)
-    plt.xlabel("x")
-    plt.ylabel("f(x)")
+    # leg = plt.legend(loc="lower right")
+    # for lh in leg.legend_handles:
+    #     lh.set_alpha(1)
+    # plt.xlabel("x")
+    # plt.ylabel("f(x)")
     plt.ylim(-2, 2)
     plt.title(r"Squared Exponential Kernel with $\ell = $" + str(ell))
     plt.savefig("write_up/images/flatish_GP_ell_" + str(int(ell * 10)) + "_tenths.pdf")
@@ -238,7 +240,7 @@ for sigma in [0.5, 1, 2]:
 
     samples = gprm.sample(num_samples, seed=sampling_seed)
 
-    plt.figure(figsize=(7, 4))
+    plt.figure(figsize=(2.9, 2))
     for i in range(num_samples):
         plt.plot(
             predictive_index_points_,
@@ -248,13 +250,13 @@ for sigma in [0.5, 1, 2]:
             label="Posterior Sample" if i == 0 else None,
         )
     plt.scatter(flat_index[:, 0], easy_obs, label="Observations")
-    leg = plt.legend(loc="lower right")
-    for lh in leg.legend_handles:
-        lh.set_alpha(1)
-    plt.xlabel("x")
-    plt.ylabel("f(x)")
+    # leg = plt.legend(loc="lower right")
+    # for lh in leg.legend_handles:
+    #     lh.set_alpha(1)
+    # plt.xlabel("x")
+    # plt.ylabel("f(x)")
     plt.ylim(-2, 2)
-    plt.title(r"Function estimation with $\sigma = $" + str(sigma))
+    # plt.title(r"Function estimation with $\sigma = $" + str(sigma))
     plt.savefig("write_up/images/flatish_GP_sigma_" + str(sigma * 10) + "_tenths.pdf")
     plt.show()
 ```
@@ -275,7 +277,7 @@ for nu in [0.5, 1.5, 2.5]:
 
     samples = gprm.sample(num_samples / 2, seed=sampling_seed)
 
-    plt.figure(figsize=(7, 4))
+    plt.figure(figsize=(2.9, 2))
     for i in range(int(num_samples / 2)):
         plt.plot(
             predictive_index_points_,
@@ -285,13 +287,13 @@ for nu in [0.5, 1.5, 2.5]:
             label="Posterior Sample" if i == 0 else None,
         )
     plt.scatter(flat_index[:, 0], easy_obs, label="Observations", alpha=1)
-    leg = plt.legend(loc="lower right")
-    for lh in leg.legend_handles:
-        lh.set_alpha(1)
-    plt.xlabel("x")
-    plt.ylabel("f(x)")
+    # leg = plt.legend(loc="lower right")
+    # for lh in leg.legend_handles:
+    #     lh.set_alpha(1)
+    # plt.xlabel("x")
+    # plt.ylabel("f(x)")
     plt.ylim(-2, 2)
-    plt.title(r"Matern Kernel with $\nu = $" + str(nu))
+    # plt.title(r"Matern Kernel with $\nu = $" + str(nu))
     plt.savefig("write_up/images/flatish_GP_matern_" + str(nu * 10) + "_tenths.pdf")
     plt.show()
 ```
@@ -306,7 +308,7 @@ def cub_fn(x):
     return x[..., 0] * (x[..., 0] - 1) * (x[..., 0] + 1)
 
 
-ind_range = 15
+ind_range = 16
 cub_index_vals = np.expand_dims(  # this makes the size of the sample (3,1)
     my_seed.uniform(low=-1.0, high=1.0, size=ind_range), axis=-1  # last axis
 )
@@ -369,33 +371,45 @@ optimized_kernel = tfk.ExponentiatedQuadratic(amp_fin, len_fin)
 num_samples = 20
 
 for ind in range(ind_range):
- gprm = tfd.GaussianProcessRegressionModel(
-  kernel=optimized_kernel,
-  index_points=predictive_index_points_,
-  observation_index_points=cub_index_vals[range(ind+1)],
-  observations=cub_obs_vals[range(ind+1)],
-  predictive_noise_variance=0.0,
- )
+    gprm = tfd.GaussianProcessRegressionModel(
+        kernel=optimized_kernel,
+        index_points=predictive_index_points_,
+        observation_index_points=cub_index_vals[range(ind + 1)],
+        observations=cub_obs_vals[range(ind + 1)],
+        predictive_noise_variance=0.0,
+    )
 
- samples = gprm.sample(num_samples, seed = sampling_seed)
+    samples = gprm.sample(num_samples, seed=sampling_seed)
 
- plt.figure(figsize=(7, 4))
- plt.plot(predictive_index_points_, cub_fn(predictive_index_points_),
-  label='Target fn')
- for i in range(num_samples):
-  plt.plot(predictive_index_points_, samples[i, :], c='r', alpha=.2,
-   label='Posterior Sample' if i == 0 else None)
- plt.scatter(cub_index_vals[range(ind+1)], cub_obs_vals[range(ind+1)],
-  label='Observations')
- leg = plt.legend(loc='upper right')
- for lh in leg.legend_handles:
-  lh.set_alpha(1)
- plt.xlabel("x")
- plt.ylabel("f(x)")
- plt.ylim(-1, 1)
- # plt.title(r"Function estimation with GP")
- plt.savefig("write_up/images/cub_GP_" + str(ind + 1) + "_iters.pdf")
- plt.show()
+    plt.figure(figsize=(2.9, 2))
+    plt.plot(
+        predictive_index_points_,
+        cub_fn(predictive_index_points_),
+        label="Target fn",
+        c="black",
+    )
+    for i in range(num_samples):
+        plt.plot(
+            predictive_index_points_,
+            samples[i, :],
+            c="r",
+            alpha=0.2,
+            label="Posterior Sample" if i == 0 else None,
+        )
+    plt.scatter(
+        cub_index_vals[range(ind + 1)],
+        cub_obs_vals[range(ind + 1)],
+        label="Observations",
+    )
+    #  leg = plt.legend(loc='upper right')
+    #  for lh in leg.legend_handles:
+    #   lh.set_alpha(1)
+    #  plt.xlabel("x")
+    #  plt.ylabel("f(x)")
+    plt.ylim(-1, 1)
+    # plt.title(r"Function estimation with GP")
+    plt.savefig("write_up/images/cub_GP_" + str(ind + 1) + "_iters.pdf")
+    plt.show()
 ```
 
 # GP for Cubic Target Function with Noise
@@ -409,54 +423,58 @@ my_seed_err = np.random.default_rng(seed=914)
 #     scale=0.1, size=num_obs_err
 #   )
 
+
 def cub_fn_err(x):
-  return x[..., 0] * (x[..., 0] - 1) * (x[..., 0] + 1) + my_seed_err.normal(
-    scale=0.1, size=x.shape[0]
-  )
+    return x[..., 0] * (x[..., 0] - 1) * (x[..., 0] + 1) + my_seed_err.normal(
+        scale=0.1, size=x.shape[0]
+    )
 
 
 cub_obs_vals_err = cub_fn_err(cub_index_vals)
 
 for ind in range(ind_range):
-  gprm = tfd.GaussianProcessRegressionModel(
-    kernel=optimized_kernel,
-    index_points=predictive_index_points_,
-    observation_index_points=cub_index_vals[range(ind + 1)],
-    observations=cub_obs_vals_err[range(ind + 1)],
-    observation_noise_variance=tf.Variable(
-      0.01, dtype=np.float64, name="observation_noise_variance_err"
-    ),
-    predictive_noise_variance=0.0,
-  )
-
-  samples = gprm.sample(num_samples, seed=sampling_seed)
-
-  plt.figure(figsize=(7, 4))
-  plt.plot(
-    predictive_index_points_, cub_fn(predictive_index_points_), label="Target fn"
-  )
-  for i in range(num_samples):
-    plt.plot(
-      predictive_index_points_,
-      samples[i, :],
-      c="r",
-      alpha=0.2,
-      label="Posterior Sample" if i == 0 else None,
+    gprm = tfd.GaussianProcessRegressionModel(
+        kernel=optimized_kernel,
+        index_points=predictive_index_points_,
+        observation_index_points=cub_index_vals[range(ind + 1)],
+        observations=cub_obs_vals_err[range(ind + 1)],
+        observation_noise_variance=tf.Variable(
+            0.01, dtype=np.float64, name="observation_noise_variance_err"
+        ),
+        predictive_noise_variance=0.0,
     )
-  plt.scatter(
-    cub_index_vals[range(ind + 1)],
-    cub_obs_vals_err[range(ind + 1)],
-    label="Observations",
-  )
-  leg = plt.legend(loc="upper right")
-  for lh in leg.legend_handles:
-    lh.set_alpha(1)
-  plt.xlabel("x")
-  plt.ylabel("f(x)")
-  plt.ylim(-1, 1)
-  # plt.title(r"Function estimation with GP")
-  plt.savefig("write_up/images/cub_GP_err_" + str(ind + 1) + "_iters.pdf")
-  plt.show()
+
+    samples = gprm.sample(num_samples, seed=sampling_seed)
+
+    plt.figure(figsize=(2.9, 2))
+    plt.plot(
+        predictive_index_points_,
+        cub_fn(predictive_index_points_),
+        label="Target fn",
+        c="black",
+    )
+    for i in range(num_samples):
+        plt.plot(
+            predictive_index_points_,
+            samples[i, :],
+            c="r",
+            alpha=0.2,
+            label="Posterior Sample" if i == 0 else None,
+        )
+    plt.scatter(
+        cub_index_vals[range(ind + 1)],
+        cub_obs_vals_err[range(ind + 1)],
+        label="Observations",
+    )
+    #   leg = plt.legend(loc="upper right")
+    #   for lh in leg.legend_handles:
+    #     lh.set_alpha(1)
+    #   plt.xlabel("x")
+    #   plt.ylabel("f(x)")
+    plt.ylim(-1, 1)
+    # plt.title(r"Function estimation with GP")
+    plt.savefig("write_up/images/cub_GP_err_" + str(ind + 1) + "_iters.pdf")
+    plt.show()
 
 ```
 
@@ -562,9 +580,12 @@ for ind in range(ind_range):
 
     samples = gprm.sample(num_samples, seed=sampling_seed)
 
-    plt.figure(figsize=(7, 4))
+    plt.figure(figsize=(2.9, 2))
     plt.plot(
-        predictive_index_points_, cub_fn(predictive_index_points_), label="Target fn"
+        predictive_index_points_,
+        cub_fn(predictive_index_points_),
+        label="Target fn",
+        c="black",
     )
     for i in range(num_samples):
         plt.plot(
@@ -582,8 +603,8 @@ for ind in range(ind_range):
     leg = plt.legend(loc="upper right")
     for lh in leg.legend_handles:
         lh.set_alpha(1)
-    plt.xlabel("x")
-    plt.ylabel("f(x)")
+    # plt.xlabel("x")
+    # plt.ylabel("f(x)")
     plt.ylim(-1, 1)
     # plt.title(r"Function estimation with GP")
     plt.savefig("write_up/images/UCB_" + str(ind + 1) + "_iters.pdf")
@@ -610,7 +631,7 @@ for i in range(3):
         axis[i, j].plot(
             predictive_index_points_,
             cub_fn(predictive_index_points_),
-            label="Target fn",
+            label="Target fn", c="black",
         )
         for k in range(num_samples):
             axis[i, j].plot(
@@ -692,16 +713,24 @@ samples_err = gprm_err.sample(num_samples_err, seed = sampling_seed)
 
 ```{python}
 plt.figure(figsize=(7, 4))
-plt.plot(predictive_index_points_, cub_fn(predictive_index_points_),
- label='Target fn')
-plt.scatter(cub_index_vals_err[:, 0], cub_obs_vals_err,
- label='Observations')
+plt.plot(
+    predictive_index_points_,
+    cub_fn(predictive_index_points_),
+    c="black",
+    label="Target fn",
+)
+plt.scatter(cub_index_vals_err[:, 0], cub_obs_vals_err, label="Observations")
 for i in range(num_samples_err):
- plt.plot(predictive_index_points_, samples_err[i, :], c='r', alpha=.1,
-  label='Posterior Sample' if i == 0 else None)
-leg = plt.legend(loc='upper right')
+    plt.plot(
+        predictive_index_points_,
+        samples_err[i, :],
+        c="r",
+        alpha=0.1,
+        label="Posterior Sample" if i == 0 else None,
+    )
+leg = plt.legend(loc="upper right")
 for lh in leg.legend_handles:
- lh.set_alpha(1)
+    lh.set_alpha(1)
 plt.xlabel("x")
 plt.ylabel("f(x)")
 plt.show()
@@ -787,16 +816,24 @@ samples_quad = gprm_quad.sample(num_samples_quad, seed = sampling_seed)
 
 ```{python}
 plt.figure(figsize=(7, 4))
-plt.plot(predictive_index_points_, cub_fn(predictive_index_points_),
- label='Target fn')
-plt.scatter(cub_index_vals_quad[:, 0], cub_obs_vals_quad,
- label='Observations')
+plt.plot(
+    predictive_index_points_,
+    cub_fn(predictive_index_points_),
+    c="black",
+    label="Target fn",
+)
+plt.scatter(cub_index_vals_quad[:, 0], cub_obs_vals_quad, label="Observations")
 for i in range(num_samples_quad):
- plt.plot(predictive_index_points_, samples_quad[i, :], c='r', alpha=.1,
-  label='Posterior Sample' if i == 0 else None)
-leg = plt.legend(loc='upper right')
+    plt.plot(
+        predictive_index_points_,
+        samples_quad[i, :],
+        c="r",
+        alpha=0.1,
+        label="Posterior Sample" if i == 0 else None,
+    )
+leg = plt.legend(loc="upper right")
 for lh in leg.legend_handles:
- lh.set_alpha(1)
+    lh.set_alpha(1)
 plt.xlabel("x")
 plt.ylabel("f(x)")
 plt.show()

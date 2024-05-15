@@ -24,9 +24,9 @@ likelihood estimates.
 
 To do this, we make the assumptions $\mu(\bm\theta) = \E(D(\bm\theta))$
 (or $\E[\ln(D(\bm\theta))] = \mu(\bm\theta)$) is
-continuous in theta, $\mathrm{var}(D(\bm\theta)) = \sigma^2$
-(or $\mathrm{var}[\ln(D(\bm\theta))] = \sigma^2$) constant for all theta,
-and $D(\bm\theta) \sim N(\mu(\bm\theta), \sigma^2)$ for fixed $\bm\theta.$
+continuous in theta, $\mathrm{var}(D(\bm\theta)) = \sigma^2_o$
+(or $\mathrm{var}[\ln(D(\bm\theta))] = \sigma^2_o$) constant for all theta,
+and $D(\bm\theta) \sim N(\mu(\bm\theta), \sigma^2_o)$ for fixed $\bm\theta.$
 
 We consider a class of plausible functions for $\mu(\bm\theta)$, and assign
 some underlying prior
@@ -81,7 +81,7 @@ Some common examples of Gaussian processes include \begin{enumerate}
           $$
               m\equiv 0, \quad \text{and}
               \quad k(s, t)
-              = \frac{\sigma^2}{2\theta} \left(
+              = \frac{\sigma^2_k}{2\theta} \left(
               e^{-\theta|t - s|} - e^{-\theta(t + s)}
               \right)
           $$
@@ -184,7 +184,7 @@ Some common
 
 \begin{theorem}[Positive Semi-Definiteness of RBF]\label{thm:rbf_pos_def}
     The radial basis function
-    $\frac{1}{\sigma^2}\exp(-\frac{(x - x^\prime)^2}{2\gamma^2})$ is a positive
+    ${\sigma^2_k}\exp(-\frac{(x - x^\prime)^2}{2\gamma^2})$ is a positive
     semi-definite kernel.
 \end{theorem}
 
@@ -205,37 +205,76 @@ Some common
 
 \subsection*{Mat\'{e}rn Class}
 
-\begin{figure}
-    \missingfigure{Multiple kernels}
-\end{figure}
-
 The Mat\'ern class of kernel gives flexibility over how many times mean square
 differentiable the realised function is.
 
 The Mat\'ern exponential kernel is of the form
 $$k_\nu(x, x^\prime)
-    = \sigma^2\frac{2^{1 - \nu}}{\Gamma(\nu)}
+    = \sigma^2_k \frac{2^{1 - \nu}}{\Gamma(\nu)}
     \left(\frac{\sqrt{2\nu}||x - x^\prime||}{\ell}\right)^\nu
     K_\nu\left(-\frac{\sqrt{2\nu}||x - x^\prime||}{\ell}\right)$$
 where $K_\nu$ is a modified Bessel function
-(see \cite[374]{abramowitz_handbook_2013}). The general form is not very
-insightful, but for the most common values of $\nu = 1/2, 3/2$ and $5/2,$ we
-have the forms:
-$$k_{1/2}(x, x^\prime)
-    = \sigma^2\exp\left(-\frac{||x - x^\prime||}{\ell}\right)$$
-$$k_{3/2}(x, x^\prime)
-    = \sigma^2
+(defined in \cite[374]{abramowitz_handbook_2013}). The general form is not very
+insightful, however for $\nu = 1/2, 3/2$ and $5/2,$ the kernel
+can be written as:
+$$
+    k_{1/2}(x, x^\prime)
+    = \sigma^2_k\exp\left(-\frac{||x - x^\prime||}{\ell}\right)
+$$
+$$
+    k_{3/2}(x, x^\prime)
+    = \sigma^2_k
     \left(1 + \frac{\sqrt{3}||x - x^\prime||}{\ell}\right)
-    \exp\left(-\frac{\sqrt{3}||x - x^\prime||}{\ell}\right)$$
-$$k_{5/2}(x, x^\prime)
-    = \sigma^2
+    \exp\left(-\frac{\sqrt{3}||x - x^\prime||}{\ell}\right)
+$$
+$$
+    k_{5/2}(x, x^\prime)
+    = \sigma^2_k
     \left(
     1 + \frac{\sqrt{5}||x - x^\prime||}{\ell} + \frac{5||x - x^\prime||}{3\ell^2}
     \right)
-    \exp\left(-\frac{||x - x^\prime||^2}{2*\ell^2}\right)$$
+    \exp\left(-\frac{||x - x^\prime||^2}{2*\ell^2}\right)
+$$
 
-Zero mean processes with a Mat\'ern kernel are $n$ times mean square
-differentiable, for all $n < \nu.$ As $\nu\to\infty,$ with appropriate
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{maternonehalf_kernel.pdf}
+        \subcaption{Mat\'ern 1/2 Kernel}
+        \label{fig:mat_one_half}
+    \end{subfigure}%
+    \hfill%
+    \begin{subfigure}[b]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{maternthreehalves_kernel.pdf}
+        \subcaption{Mat\'ern 3/2 Kernel}
+        \label{fig:mat_three_halves}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{maternfivehalves_kernel.pdf}
+        \subcaption{Mat\'ern 5/2 Kernel}
+        \label{fig:mat_five_halves}
+    \end{subfigure}%
+    \hfill%
+    \begin{subfigure}[b]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{exponentiated_kernel.pdf}
+        \subcaption{Squared Exponential Kernel}
+        \label{fig:squared_exp}
+    \end{subfigure}%
+    \caption{
+        Ten sample realisations from 4 different kernels with hyperparameters
+        $\ell = 1,$ and $\sigma^2_o = 1.$ One realisation is bolded. Samples
+        for each kernel were generated from the same seed.
+    }
+    \label{fig:kernels}
+\end{figure}
+
+Zero mean Gaussian processes with a Mat\'ern kernel are $n$ times mean square
+differentiable, for all $n < \nu.$ This can be seen in Figure \ref{fig:kernels}
+As $\nu\to\infty,$ with appropriate
 rescaling, the limit of the Mat\'ern kernel is the squared exponential
 kernel.\cite[85]{rasmussen_gaussian_2008}
 \textcolor{red}{LOOK AT CHAPTER 4 SKOROKHOD STOCHASTIC I}
@@ -245,13 +284,14 @@ kernel.\cite[85]{rasmussen_gaussian_2008}
 The squared exponential kernel is of the form
 $$
     k(x, x^\prime)
-    = \sigma^2\exp\left(-\frac{||x - x^\prime||^2}{2\ell^2}\right)
+    = \sigma^2_k\exp\left(-\frac{||x - x^\prime||^2}{2\ell^2}\right)
 $$
 
 As the limit of Mat\'ern kernels, the squared exponential kernel is infinitely
 mean square differentiable. Despite this being the `default' kernel in much of
 the literature, infinite differentiability is a very strong condition on
-functions.
+functions which are very smooth, which can be seen in Figure
+\ref{fig:squared_exp}
 
 \subsection*{Choosing an Appropriate Kernel}
 
@@ -274,28 +314,53 @@ $|x - x^\prime|$)
 
 \subsection*{Length and Amplitude Hyperparameters}
 
-\begin{figure}
-    \missingfigure{different lengths on exponential kernel}
-    \caption{a figure about kernel lengths but generated from the same seed}
-    \label{fig:no_reg_lengths}
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{GP_ell_5_sigma2_5_tenths.pdf}
+        \subcaption{$\ell = \sigma^2_k = 1/2$}
+        \label{fig:half_half}
+    \end{subfigure}%
+    \hfill%
+    \begin{subfigure}[b]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{GP_ell_5_sigma2_20_tenths.pdf}
+        \subcaption{$\ell = 1/2, \sigma^2_k = 2$}
+        \label{fig:half_two}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{GP_ell_20_sigma2_5_tenths.pdf}
+        \subcaption{$\ell = 2, \sigma^2_k = 1/2$}
+        \label{fig:two_half}
+    \end{subfigure}%
+    \hfill%
+    \begin{subfigure}[b]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{GP_ell_20_sigma2_20_tenths.pdf}
+        \subcaption{$\ell = \sigma^2_k = 2$}
+        \label{fig:two_two}
+    \end{subfigure}%
+    \caption{
+        Ten realisations of zero mean Gaussian processes with the squared
+        exponential kernel, varying the length and amplitude parameters.
+        The samples were generated using the same seed
+    }
+    \label{fig:length_amp}
 \end{figure}
 
 In both the Mat\'ern and squared quadratic kernels
-(as well as most other common kernels), there is a choice of
-hyperparameter $\ell,$ called
-the length parameter. This value determines how close two points need to be to
-be highly correlated. Larger value of $\ell$ generates functions with larger
-degrees of local dependence, as seen in Figure \ref{fig:no_reg_lengths}. All kernels
-also have an amplitude parameter $\sigma^2.$ The amplitude does not change size
-of correlation between $x$ and $x^\prime,$ but just scales the correlation
-matrix. In other words, larger $\sigma^2$ increase size but not rate of
-fluctuations. This can be seen in Figure \ref{fig:no_reg_amps}.
-
-\begin{figure}
-    \missingfigure{GP differing amplitudes}
-    \caption{Bunch of GPs generated from the same seed}
-    \label{fig:no_reg_amps}
-\end{figure}
+(as well as most other common kernels choices), there are two
+hyperparameters $\ell$ and $\sigma^2_k$ which are referred to as length and
+amplitude hyperparameters. $\ell$ determines how close two points need
+to be to be highly correlated. Larger values of $\ell$ generates functions with
+higher correlation within a larger neighbourhood,
+as seen in Figure \ref{fig:length_amp}. $\sigma^2_k$ does not impact
+the correlation between $x$ and $x^\prime,$ but scales the correlation
+matrix. In other words, larger $\sigma^2_k$ increase the size but not rate of
+fluctuations. This can be seen comparing Figure \ref{fig:half_half} to Figure
+\ref{fig:half_two}.
 
 \section{Gaussian Process Regression}
 
@@ -321,39 +386,126 @@ $$
         \end{bmatrix}
     \right)
 $$
+where $K_{ij} = \begin{bmatrix}
+        k(x_{i1}, x_{j1})     & k(x_{i1}, x_{j2})     & \cdots & k(x_{i1}, x_{j{n_j}})     \\
+        k(x_{i2}, x_{j1})     & k(x_{i2}, x_{j2})     & \cdots & k(x_{i2}, x_{j{n_j}})     \\
+        \vdots                & \vdots                & \ddots & \vdots                    \\
+        k(x_{i{n_i}}, x_{j1}) & k(x_{i{n_i}}, x_{j2}) & \cdots & k(x_{i{n_i}}, x_{j{n_j}})
+    \end{bmatrix}$ if $\mathbf{x}_i$ is of length $n_i,$ and $\mathbf{x}_j$ is of length
+length $n_j.$ Note that $K_{12} = K_{21}^T.$
 
+$$
+    f(\mathbf{x}_1) | f(\mathbf{x}_2)
+    \sim \mathcal{N}\left(
+    m(\mathbf{x}_1) + K_{12}K_{22}^{-1}(f(\mathbf{x}_2) - m(\mathbf{x}_2)), \,\,
+    K_{11} - K_{12}K_{22}^{-1}K_{21}
+    \right)
+$$
 
-\begin{figure}
-    \missingfigure{Progressing GP finding}
+\textcolor{red}{The proof is in the appendices.}
+
+Therefore after observing the function at multiple indices, we update the
+predictive distribution of any unobserved points as seen in Figure \ref{fig:no_var_cub_reg}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{cub_GP_1_iters.pdf}
+    \end{subfigure}%
+    \hfill%
+    \begin{subfigure}[b]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{cub_GP_2_iters.pdf}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{cub_GP_4_iters.pdf}
+    \end{subfigure}%
+    \hfill%
+    \begin{subfigure}[b]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{cub_GP_8_iters.pdf}
+    \end{subfigure}%
+    \caption{
+        Sequence of Gaussian process regressions on the target function
+        (black) $f(x) = x(x-1)(x+1),$ after 1, 2, 4, and 8 observations in
+        blue. The red lines are new realisations from the conditioned Gaussian
+        process. The Gaussian process was zero mean and had a squared
+        exponential kernel. The hyperparameters were fixed with $\ell = 2.7$
+        and $\sigma^2_k = 1.1$
+    }
+    \label{fig:no_var_cub_reg}
 \end{figure}
-
-
-
 
 \subsection*{Adding in observation variance}
 
-\begin{figure}
-    \missingfigure{GP differing mat\'ern $nu$s}
+Observation noise can be used by $K + \sigma^2_o I$
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{cub_GP_err_2_iters.pdf}
+    \end{subfigure}%
+    \hfill%
+    \begin{subfigure}[b]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{cub_GP_err_4_iters.pdf}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{cub_GP_err_8_iters.pdf}
+    \end{subfigure}%
+    \hfill%
+    \begin{subfigure}[b]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{cub_GP_err_16_iters.pdf}
+    \end{subfigure}%
+    \caption{
+        Sequence of Gaussian process regressions on the target function
+        (black) $f(x) = x(x-1)(x+1),$ after 2, 4, 8, and 16 observations of
+        $f(x_i) + \varepsilon_i,$ where $\varepsilon_i$ is i.i.d.\
+        $\mathcal{N}(0, \sigma^2_o)$ with $\sigma^2_o = 0.01$
+        in blue. The red lines are new realisations from the conditioned
+        Gaussian process. The Gaussian process was 0 mean and had a squared
+        exponential kernel. The hyperparameters were fixed with $\ell = 2.7$
+        and $\sigma^2_k = 1.1$
+    }
+    \label{fig:var_cub_reg}
 \end{figure}
 
-New covariance function
+Adding noise to the observations makes the Gaussian process regression
+much less stable (Figure \ref{fig:var_cub_reg})
+
+\subsection*{Model Selection}
+
+A brief discussion of hyperparameter and mean function choice follows.
+The hyperparameters $\ell$ and $\sigma^2_k$ for the choice of kernel have to be
+fit, as they will not be known beforehand. There are two main ways to do this:
+maximum likelihood estimation, and leave-one-out cross validation. 
+
+\textcolor{red}{describe the two methods, look at ``Spline models for observational data"}
+
+Recent work has shown that at least under specific conditions, the 
+leave-one-out estimates for the scale parameter are more robust to a larger
+class of target functions \parencite{naslidnyk_comparing_2024}, and the
+broader literature seems
+
 
 \section{Differing mean functions}
 
 
 
-\begin{figure}
+\begin{figure}[htbp]
     \missingfigure{GP mean functions}
 \end{figure}
 
-
-\section{Gaussian Process Regression}
-
-Posterior mean
-
-Posterior variance
-
 \section{Bayesian Acquisition Functions}
+
+When considering Bayesian acquisition functions
+
+
 
 \begin{itemize}
     \item Choosing the next point to sample
@@ -377,5 +529,4 @@ Posterior variance
               \item $\varPhi, \phi$ CDF and PDF of standard normal
           \end{itemize}
 \end{itemize}
-
 exploration parameter proven by \cite{srinivas_gaussian_2010}
