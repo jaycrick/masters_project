@@ -2,11 +2,10 @@
 
 \begin{itemize}
     \item Prove all pos-sem is cov
-    \item expand on intro to motive the section
     \item prove exponential quad kern is pos semi-def
 \end{itemize}
 
-\section{Motivation and Preliminaries}
+\section{Motivation and Definitions}
 
 Fundamentally, approximate Bayesian computation is a form of Monte Carlo
 integration, where sampling a discrepancy is sampling from the discrepancy
@@ -293,25 +292,6 @@ the literature, infinite differentiability is a very strong condition on
 functions which are very smooth, which can be seen in Figure
 \ref{fig:squared_exp}
 
-\subsection*{Choosing an Appropriate Kernel}
-
-The appropriate choice of kernel will depend on the properties behaviour of the
-target function to approximate. In the case of estimating an extremely
-stochastic distribution (such as the price of a stock over time), it is
-unlikely to be smooth, so no mean square differentiability is required, and a
-Mat\'ern 1/2 kernel would be appropriate. If it is known that our target
-function is extremely smooth, such as a finite sum of infinitely differentiable
-functions (such as polynomials, sin, cos etc.) then the choice of squared
-exponential kernel is the most appropriate kernel. Realistically, the
-smoothness of the function will not be known a priori, and hence some sort of
-compromise (such as Mat\'ern 5/2) kernel allows for flexibility.
-
-Many other kernels exist that induce varying behaviours, such as periodic
-kernels \textcolor{red}{find periodic kernel}, and non-stationary kernels
-(where the covariance is dependent on $x$ and $x^\prime$, not just
-$|x - x^\prime|$)
-\textcolor{red}{have i defined stationary?}.
-
 \subsection*{Length and Amplitude Hyperparameters}
 
 \begin{figure}[htbp]
@@ -362,50 +342,204 @@ matrix. In other words, larger $\sigma^2_k$ increase the size but not rate of
 fluctuations. This can be seen comparing Figure \ref{fig:half_half} to Figure
 \ref{fig:half_two}.
 
-\section{Gaussian Process Regression}
+\chapter{Gaussian Process Regression}
 
-After choosing a set of prior distributions, given a set of observations, we
-can condition our Gaussian process on these priors to update our distribution
-of plausible functions. This is where beauty and simplicity in using Gaussian
-processes shines through. A conditional multivariate normal distribution
-is still multivariate normal, and so the distribution of unobserved points
-reduces to elementary linear algebra.
+Given the set of observations $f(\mathbf{x}_*)$ for the set of indices
+$\mathbf{x}_*,$ it is
+often desirable to infer information about the function values at
+unobserved values. By choosing a Gaussian process with fixed kernel and
+hyperparameters, we
+can condition the process on the observed data, limiting the class of
+possible functions that we assume truly describe the model.
+Under the assumption that the function is a realisation of a Gaussian
+process predicting unseen function values reduces to elementary linear algebra.
+This is because a conditional multivariate normal distribution
+is still multivariate normal, and so the distribution of unobserved points will
+be multivariate normal.
 
 Consider
 $$
     \begin{bmatrix}
-        f(\mathbf{x}_1) \\
-        f(\mathbf{x}_2)
+        f(\mathbf{x}) \\
+        f(\mathbf{x}_*)
     \end{bmatrix} \sim \mathcal{N}\left(
     \begin{bmatrix}
-            m(\mathbf{x}_1) \\
-            m(\mathbf{x}_2)
+            m(\mathbf{x}) \\
+            m(\mathbf{x}_*)
         \end{bmatrix}, \begin{bmatrix}
-            K_{11} & K_{12} \\
-            K_{21} & K_{22}
+            K       & K_{*}  \\
+            K_{*}^T & K_{**}
         \end{bmatrix}
     \right)
 $$
-where $K_{ij} = \begin{bmatrix}
-        k(x_{i1}, x_{j1})     & k(x_{i1}, x_{j2})     & \cdots & k(x_{i1}, x_{j{n_j}})     \\
-        k(x_{i2}, x_{j1})     & k(x_{i2}, x_{j2})     & \cdots & k(x_{i2}, x_{j{n_j}})     \\
-        \vdots                & \vdots                & \ddots & \vdots                    \\
-        k(x_{i{n_i}}, x_{j1}) & k(x_{i{n_i}}, x_{j2}) & \cdots & k(x_{i{n_i}}, x_{j{n_j}})
-    \end{bmatrix}$ if $\mathbf{x}_i$ is of length $n_i,$ and $\mathbf{x}_j$ is of length
-length $n_j.$ Note that $K_{12} = K_{21}^T.$
 
-$$
-    f(\mathbf{x}_1) | f(\mathbf{x}_2)
-    \sim \mathcal{N}\left(
-    m(\mathbf{x}_1) + K_{12}K_{22}^{-1}(f(\mathbf{x}_2) - m(\mathbf{x}_2)), \,\,
-    K_{11} - K_{12}K_{22}^{-1}K_{21}
-    \right)
-$$
+\begin{theorem}[Conditional Multivariate Normal Distribution is Multivariate Normal]
+    \label{thm:cond_mvn}
 
-\textcolor{red}{The proof is in the appendices.}
+    With $f(\mathbf{x})$ and $f(\mathbf{x}_*),$ the conditional distribution is
+    $$
+        f(\mathbf{x}) | f(\mathbf{x}_*)
+        \sim \mathcal{N}\left(
+        m(\mathbf{x}) + K_{*}K_{**}^{-1}(f(\mathbf{x}_*) - m(\mathbf{x}_*)), \,\,
+        K - K_{*}K_{**}^{-1}K_{*}^T
+        \right).
+    $$
+\end{theorem}
+\begin{proof}
+    % https://statproofbook.github.io/P/mvn-cond.html
+    Since marginal distribution of the multivariate normal distribution, is also
+    multivariate normal,
+    $f(\mathbf{x}_*) \sim \mathcal{N}(m(\mathbf{x}_*), K).$
+    Let the inverse of $\begin{bmatrix}
+            K       & K_{*}  \\
+            K_{*}^T & K_{**}
+        \end{bmatrix}$ be defined as
+    $$
+        \begin{bmatrix}
+            \tilde{K}       & \tilde{K}_{*}  \\
+            \tilde{K}_{*}^T & \tilde{K}_{**}
+        \end{bmatrix} =
+        \begin{bmatrix}
+            (K - K_{*} K_{**}^{-1} K_{*}^T)^{-1}
+             & -(K
+            - K_{*} K_{**}^{-1} K_{*}^T)^{-1} K_{*} K_{**}^{-1} \\
+            -K_{**}^{-1} K_{*}^T (K
+            - K_{*} K_{**}^{-1} K_{*}^T)^{-1}
+             & K_{**}^{-1} + K_{**}^{-1} K_{*}^T (K
+            - K_{*} K_{**}^{-1} K_{*}^T)^{-1} K_{*} K_{**}^{-1}
+        \end{bmatrix}
+    $$ by the inverse of a block matrix. Therefore
+    \begin{align*}
+        p(f(\mathbf{x}) | f(\mathbf{x}_*))
+        =       & \frac{p(f(\mathbf{x}), f(\mathbf{x}_*))}{p(f(\mathbf{x}_*))} \\
+        \propto & \frac{\exp \left[ -\frac{1}{2} \left(\begin{bmatrix}
+                                                               f(\mathbf{x}) \\
+                                                               f(\mathbf{x}_*)
+                                                           \end{bmatrix} -
+        \begin{bmatrix}
+                m(\mathbf{x}) \\
+                m(\mathbf{x}_*)
+            \end{bmatrix}
+        \right)^\mathrm{T} \begin{bmatrix}
+                               K       & K_{*} \\
+                               K_{*}^T & K
+                           \end{bmatrix}^{-1} \left(
+        \begin{bmatrix}
+                f(\mathbf{x}) \\
+                f(\mathbf{x}_*)
+            \end{bmatrix}-
+        \begin{bmatrix}
+                m(\mathbf{x}) \\
+                m(\mathbf{x}_*)
+            \end{bmatrix}\right) \right]}
+        {
+        \exp \left[
+        -\frac{1}{2}
+        (f(\mathbf{x}_*)-m(\mathbf{x}_*))^\mathrm{T}
+        K_{**}^{-1}
+        (f(\mathbf{x}_*)-m(\mathbf{x}_*))
+        \right]
+        }                                                                      \\
+        =       & \exp \left[ -\frac{1}{2} \left(\begin{bmatrix}
+                                                         f(\mathbf{x}) \\
+                                                         f(\mathbf{x}_*)
+                                                     \end{bmatrix} -
+        \begin{bmatrix}
+                m(\mathbf{x}) \\
+                m(\mathbf{x}_*)
+            \end{bmatrix}
+        \right)^\mathrm{T} \begin{bmatrix}
+                               K       & K_{*}  \\
+                               K_{*}^T & K_{**}
+                           \end{bmatrix}^{-1} \left(
+        \begin{bmatrix}
+                f(\mathbf{x}) \\
+                f(\mathbf{x}_*)
+            \end{bmatrix} -
+        \begin{bmatrix}
+                m(\mathbf{x}) \\
+                m(\mathbf{x}_*)
+            \end{bmatrix} \right)\right.                                           \\
+                & \hphantom{\exp \left[\right.} \left.
+        + \frac{1}{2}(f(\mathbf{x}_*)-m(\mathbf{x}_*))^\mathrm{T}
+        K_{**}^{-1}
+        (f(\mathbf{x}_*)-m(\mathbf{x}_*))\right]                               \\
+        =       & \exp \left[
+        -\frac{1}{2} \left(
+        (f(\mathbf{x})-m(\mathbf{x}))^\mathrm{T}
+        \tilde{K}
+        (f(\mathbf{x})-m(\mathbf{x}))\right.\right.                            \\
+                & \hphantom{\exp \left[
+        -\frac{1}{2} \left( \right.\right.}
+        + 2 (f(\mathbf{x})-m(\mathbf{x}))^\mathrm{T}
+        \tilde{K}_{*}
+        (f(\mathbf{x}_*)-m(\mathbf{x}_*))                                      \\
+                & \hphantom{\exp \left[
+        -\frac{1}{2} \left( \right.\right.}
+        \left.
+        + (f(\mathbf{x}_*)-m(\mathbf{x}_*))^\mathrm{T}
+        \tilde{K}_{**}
+        (f(\mathbf{x}_*)-m(\mathbf{x}_*))
+        \right)
+        \\
+                & \hphantom{\exp \left[
+        -\frac{1}{2} \left( \right.\right.}\left.
+        + \frac{1}{2} (f(\mathbf{x}_*)-m(\mathbf{x}_*))^\mathrm{T}
+        K_{**}^{-1}
+        (f(\mathbf{x}_*)-m(\mathbf{x}_*))
+        \right]                                                                \\
+        \propto & \exp \left[
+        -\frac{1}{2}
+        (f(\mathbf{x})-m(\mathbf{x}))^\mathrm{T}
+        \tilde{K}
+        (f(\mathbf{x})-m(\mathbf{x}))\right.                                   \\
+                & \hphantom{\exp \left[
+        -\frac{1}{2} \left( \right.\right.}
+        -\left.
+        (f(\mathbf{x})-m(\mathbf{x}))^\mathrm{T}
+        \tilde{K}_{*}
+        (f(\mathbf{x}_*)-m(\mathbf{x}_*))
+        \right] \tag{by removing the terms independent of $f(\mathbf{x})$}.
+    \end{align*}
+    Since
+    $$
+        p(\mathbf{z})
+        \propto \exp\left(
+        -\frac{1}{2}\mathbf{z}^T\Sigma^{-1}\mathbf{z}
+        + \mathbf{z}^T\mathbf{c}
+        \right)
+        \implies \mathbf{z} \sim \mathcal{N}\left(\Sigma \mathbf{c}, \Sigma\right),
+    $$
+    $f(\mathbf{x}) - m(\mathbf{x}) | f(\mathbf{x}_*)$ is
+    multivariate normal with mean
+    \begin{align*}
+        - \tilde{K}^{-1}\tilde{K}_{*}(f(\mathbf{x}_*) - m(\mathbf{x}_*))
+        = & (K - K_{*} K_{**}^{-1} K_{*}^T)                              \\
+          & \times(K - K_{*} K_{**}^{-1} K_{*}^T)^{-1} K_{*} K_{**}^{-1}
+        (f(\mathbf{x}_*) - m(\mathbf{x}_*))                              \\
+        = & K_{*} K_{**}^{-1}(f(\mathbf{x}_*) - m(\mathbf{x}_*))
+    \end{align*}
+    and covariance matrix
+    $$
+        \tilde{K}^{-1} = K - K_{*} K_{**}^{-1} K_{*}^T
+    $$
+    by the alternative parametrisation of the multivariate normal distribution
+    as a member of the exponential family of distributions
+    (see \cite[Table of Distributions]{noauthor_exponential_2024}).
+    Finally, by the linearity of the multivariate normal mean,
+    $$
+        f(\mathbf{x}) | f(\mathbf{x}_*)
+        \sim \mathcal{N}\left(
+        m(\mathbf{x}) + K_{*}K_{**}^{-1}(f(\mathbf{x}_*) - m(\mathbf{x}_*)), \,\,
+        K - K_{*}K_{**}^{-1}K_{*}^T
+        \right).
+    $$
+\end{proof}
 
-Therefore after observing the function at multiple indices, we update the
-predictive distribution of any unobserved points as seen in Figure \ref{fig:no_var_cub_reg}
+After observing the function at multiple indices, we update the
+predictive distribution of any unobserved points, and generate new paths. The
+more points that the Gaussian process is conditioned on, the more narrow the
+sample paths, as seen in Figure \ref{fig:no_var_cub_reg}
 
 \begin{figure}[htbp]
     \centering
@@ -438,9 +572,33 @@ predictive distribution of any unobserved points as seen in Figure \ref{fig:no_v
     \label{fig:no_var_cub_reg}
 \end{figure}
 
-\subsection*{Adding in observation variance}
+\section{Observation Variance}
 
-Observation noise can be used by $K + \sigma^2_o I$
+For most functions, model outputs, or processes desirable for
+approximating through Gaussian process regression, multiple
+observations (through model runs or an real life measurements) of the same point
+will result in different observations. This is in contrast to exact realisations
+as in Figure \ref{fig:no_var_cub_reg}. The simplest assumption is that the
+observations are of the form
+$$
+    f_o(\mathbf{x}_*) = f(\mathbf{x}_*) + \bm{\varepsilon}
+$$
+where $\bm{\varepsilon} \sim \mathcal{N}(\mathbf{0}, \sigma^2_o I).$
+Under these assumptions,
+$\mathrm{Cov}(f_o(\mathbf{x}_*), f_o(\mathbf{x}_*)) = K_{**} + \sigma^2_o I,$
+where $K_{**} = \mathrm{Cov}(f(\mathbf{x}_*), f(\mathbf{x}_*))$
+matrix of $f(\mathbf{x}_*)$ without noise. Therefore the conditional
+distribution of our unobserved function outputs given noisy observations
+$$
+    f(\mathbf{x}) | f_o(\mathbf{x}_*)
+    \sim \mathcal{N}\left(
+    m(\mathbf{x}) + K_{*}
+    (K_{**} + \sigma^2_o I)^{-1}
+    (f(\mathbf{x}_*) - m(\mathbf{x}_*)), \,\,
+    K - K_{*}(K_{**} + \sigma^2_o I)^{-1}K_{*}^T
+    \right).
+$$
+
 
 \begin{figure}[htbp]
     \centering
@@ -475,27 +633,109 @@ Observation noise can be used by $K + \sigma^2_o I$
     \label{fig:var_cub_reg}
 \end{figure}
 
-Adding noise to the observations makes the Gaussian process regression
-much less stable (Figure \ref{fig:var_cub_reg})
+Adding noise to the observations makes the predictive distributions means
+that a single observation gives less information about the underlying function,
+and hence the predictive distributions of unseen data are
+much less stable, as empirically seen in Figure \ref{fig:var_cub_reg}.
 
-\subsection*{Model Selection}
+\section{Model Selection}
 
-A brief discussion of hyperparameter and mean function choice follows.
-The hyperparameters $\ell$ and $\sigma^2_k$ for the choice of kernel have to be
-fit, as they will not be known beforehand. There are two main ways to do this:
-maximum likelihood estimation, and leave-one-out cross validation. 
+\subsection*{Class of Kernel}
 
-\textcolor{red}{describe the two methods, look at ``Spline models for observational data"}
+The appropriate choice of kernel will depend on the properties behaviour of the
+target function to approximate. In the case of estimating an extremely
+stochastic distribution (such as the price of a stock over time), it is
+unlikely to be smooth, so no mean square differentiability is required, and a
+Mat\'ern 1/2 kernel would be appropriate. If it is known that our target
+function is extremely smooth, such as a finite sum of infinitely differentiable
+functions (such as polynomials, sin, cos etc.) then the choice of squared
+exponential kernel is the most appropriate kernel. Realistically, the
+smoothness of the function will not be known a priori, and hence some sort of
+compromise (such as Mat\'ern 5/2) kernel allows for flexibility.
 
-Recent work has shown that at least under specific conditions, the 
-leave-one-out estimates for the scale parameter are more robust to a larger
+Many other kernels exist that induce varying behaviours, such as periodic
+kernels \textcolor{red}{find periodic kernel}, and non-stationary kernels
+(where the covariance is dependent on $x$ and $x^\prime$, not just
+$|x - x^\prime|$)
+\textcolor{red}{have i defined stationary?}.
+
+\subsection*{Hyperparameters}
+
+The hyperparameters $\ell$ and $\sigma^2_k$ for a choice of kernel have to be
+are not known beforehand, unless the function is actually a realisation from
+a Gaussian process. Similarly, the observation variance $\sigma^2_o$
+hyperparameter may not be a priori
+known. There are two main (frequentist) ways to fit these hyperparameters:
+maximum likelihood estimation, and leave-one-out cross validation.
+
+Defining the likelihood
+$
+    \mathcal{L}(\ell, \sigma^2_k, \sigma^2_o)
+    := p(f(\mathbf{x}_*) | \ell, \sigma^2_k, \sigma^2_o)
+$ in the usual way,
+the maximum likelihood estimates are
+$$
+    \{\hat{\ell}, \hat{\sigma}^2_k, \hat{\sigma}^2_o\} :=
+    \argmax_{\{\ell, \sigma^2_k, \sigma^2_o\}}
+    \mathcal{L}(\ell, \sigma^2_k, \sigma^2_o)
+$$
+which is equivalent to minimising
+$$
+    -\ln(\mathcal{L}) =\frac{1}{2} \left[
+    \ln (|K_{**}(\ell, \sigma^2_k) + \sigma^2_o|\,)
+    + (f(\mathbf{x}_*) - m(\mathbf{x}_*))^T
+    (K_{**}(\ell, \sigma^2_k) + \sigma^2_o)^{-1}
+    (f(\mathbf{x}_*) - m(\mathbf{x}_*)) + c
+    \right].
+$$
+The covariance matrix generated by the choice of kernel $K_{**}$ is
+explicitly written with its dependence on $\ell$ and $\sigma^2_k.$ $c$ is a
+constant.
+
+Leave-one-out cross validation aims to maximise the predictive log
+probability.
+$$
+    \{\tilde{\ell}, \tilde{\sigma}^2_k, \tilde{\sigma}^2_o\}
+    := \argmax_{\ell, \sigma^2_k, \sigma^2_o} \sum_{i}
+    \ln p(f_i(\mathbf{x}_*) | f_{-i}(\mathbf{x}_*), \ell, \sigma^2_k, \sigma^2_o),
+$$ where $f_i(\mathbf{x}_*) | f_{-i}(\mathbf{x}_*)$ is the distribution of the
+$i$th element of $f(\mathbf{x}_*)$ conditioned on the rest of the
+observed data excluding that element (represented by $f_{-i}(\mathbf{x}_*)$).
+$f_i(\mathbf{x}_*) | f_{-i}(\mathbf{x}_*)$ can be found by
+Theorem \ref{thm:cond_mvn}. Computationally efficient methods for calculating
+the predictive log probability that avoid having to invert the covariance
+matrix for every summand element exist. In particular it can be shown that
+$f_i(\mathbf{x}_*) | f_{-i}(\mathbf{x}_*)$ has mean
+$$
+    f_i(\mathbf{x}_*) - m_i(\mathbf{x}_*)
+    - [(K_{**} + \sigma^2_o I)^{-1}(f(\mathbf{x}_*) - m(\mathbf{x}_*))]_i
+    /[(K_{**} + \sigma^2_o I)^{-1}]_{ii}
+$$
+and variance $1/[(K_{**} + \sigma^2_o I)^{-1}]_{ii},$ where both the mean and
+covariance are (surprisingly) independent of $f_i(\mathbf{x}_*)$
+\parencite{rasmussen_gaussian_2008}.
+
+Both methods can be extended to include estimating hyperparameters given a class
+of possible mean functions. For example \cite{gutmann_bayesian_2016} use
+maximimum likelihood estimates for the amplitude and turning points of the
+quadratic mean functions.
+
+Recent work has shown that at least under specific conditions, the
+leave-one-out estimates for the scale hyperparameter are more robust to a larger
 class of target functions \parencite{naslidnyk_comparing_2024}, and the
-broader literature seems
+broader literature seems to favor leave-one-out cross validation.
 
+Finally there is scope for a Bayesian approach to model selection. By setting
+priors on the hyperparameters to be estimated and using the likelihood as described
+in the maximum likelihood estimation approach, a posterior distribution can be
+easily contrived. A set of samples from this posterior could then be taken, or
+a less prinicipled maximum a posteriori probability
+estimate could then be taken for a point estimate of the hyperparameters. This
+approach has some obvious benefits, particularly when taking a posterior
+sample. Most obviously is that since multiple values for each hyperparameter are
+sampled, the set of functions after
 
 \section{Differing mean functions}
-
-
 
 \begin{figure}[htbp]
     \missingfigure{GP mean functions}
@@ -503,13 +743,29 @@ broader literature seems
 
 \section{Bayesian Acquisition Functions}
 
-When considering Bayesian acquisition functions
+Under the assumptions that making observations from the underlying function is
+costly, and we care about regions of the function with high (or low)
+values, new observations should be taken where there is high probability the
+function will be low. There also needs to be a trade-off between observing from
+areas with high predictive mean, and high predictive variance. These ideas are
+formalised by Bayesian acquisition functions $\mathcal{A}(x),$ with larger 
+values corresponding to a higher `desirability.' The target function is then 
+sampled at the $x$ which maximises this aquisition function. The new 
+observation is then incorporated into the acquisition function.
 
+\subsection*{Upper Confidence Bound}
 
+The upper confidence bound is one common way of exploring this trade off. The 
+upper confidence bound
+$$
+    \mathcal{A}_\text{UCB}(x)
+    := \E[f(x) | f(\mathbf{x}_*)]
+    + \eta_t \sqrt{\mathrm{Var}[f(x) | f(\mathbf{x}_*)]}
+$$
+
+Similarly we can also define 
 
 \begin{itemize}
-    \item Choosing the next point to sample
-    \item $\argmin_{\bm{\theta}}A(\bm\theta)$ where A is an acquisition function.
     \item BOLFI paper uses $$\mu(\bm\theta) - \eta_t\sqrt{\mathrm{v}(\bm\theta)}$$ \begin{itemize}
               \item $\eta_t:= \sqrt{c + 2\ln(t^{d/2 + 2})},$ and $c$ can be chosen
               \item $\mu(\bm\theta)$ and $\mathrm{v}(\bm\theta)$ are the posterior mean and variance
