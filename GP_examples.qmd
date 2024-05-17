@@ -214,15 +214,16 @@ for ell in [0.5, 1, 2]:
             c="r",
             alpha=0.1 + 0.9 * (i + 1 == num_samples),
             label="Posterior Sample" if i == 0 else None,
+            zorder=1,
         )
-    plt.scatter(flat_index[:, 0], easy_obs, label="Observations")
+    plt.scatter(flat_index[:, 0], easy_obs, label="Observations", zorder=2)
     # leg = plt.legend(loc="lower right")
     # for lh in leg.legend_handles:
     #     lh.set_alpha(1)
     # plt.xlabel("x")
     # plt.ylabel("f(x)")
     plt.ylim(-2, 2)
-    plt.title(r"Squared Exponential Kernel with $\ell = $" + str(ell))
+    # plt.title(r"Squared Exponential Kernel with $\ell = $" + str(ell))
     plt.savefig("write_up/images/flatish_GP_ell_" + str(int(ell * 10)) + "_tenths.pdf")
     plt.show()
 ```
@@ -248,8 +249,9 @@ for sigma in [0.5, 1, 2]:
             c="r",
             alpha=0.1 + 0.9 * (i + 1 == num_samples),
             label="Posterior Sample" if i == 0 else None,
+            zorder=1,
         )
-    plt.scatter(flat_index[:, 0], easy_obs, label="Observations")
+    plt.scatter(flat_index[:, 0], easy_obs, label="Observations", zorder=2)
     # leg = plt.legend(loc="lower right")
     # for lh in leg.legend_handles:
     #     lh.set_alpha(1)
@@ -285,8 +287,9 @@ for nu in [0.5, 1.5, 2.5]:
             c="r",
             alpha=0.1 + 0.9 * (i + 1 == int(num_samples / 2)),
             label="Posterior Sample" if i == 0 else None,
+            zorder=1,
         )
-    plt.scatter(flat_index[:, 0], easy_obs, label="Observations", alpha=1)
+    plt.scatter(flat_index[:, 0], easy_obs, label="Observations", alpha=1, zorder=2)
     # leg = plt.legend(loc="lower right")
     # for lh in leg.legend_handles:
     #     lh.set_alpha(1)
@@ -387,6 +390,7 @@ for ind in range(ind_range):
         cub_fn(predictive_index_points_),
         label="Target fn",
         c="black",
+        zorder=2,
     )
     for i in range(num_samples):
         plt.plot(
@@ -395,6 +399,7 @@ for ind in range(ind_range):
             c="r",
             alpha=0.2,
             label="Posterior Sample" if i == 0 else None,
+            zorder=1,
         )
     plt.scatter(
         cub_index_vals[range(ind + 1)],
@@ -452,6 +457,7 @@ for ind in range(ind_range):
         cub_fn(predictive_index_points_),
         label="Target fn",
         c="black",
+        zorder=2,
     )
     for i in range(num_samples):
         plt.plot(
@@ -460,6 +466,7 @@ for ind in range(ind_range):
             c="r",
             alpha=0.2,
             label="Posterior Sample" if i == 0 else None,
+            zorder=1,
         )
     plt.scatter(
         cub_index_vals[range(ind + 1)],
@@ -586,6 +593,7 @@ for ind in range(ind_range):
         cub_fn(predictive_index_points_),
         label="Target fn",
         c="black",
+        zorder=2,
     )
     for i in range(num_samples):
         plt.plot(
@@ -594,18 +602,20 @@ for ind in range(ind_range):
             c="r",
             alpha=0.2,
             label="Posterior Sample" if i == 0 else None,
+            zorder=1,
         )
     plt.scatter(
         UCB_index_points[range(ind + 1)],
         UCB_obs_points[range(ind + 1)],
         label="Observations",
     )
-    leg = plt.legend(loc="upper right")
-    for lh in leg.legend_handles:
-        lh.set_alpha(1)
+    # leg = plt.legend(loc="upper right")
+    # for lh in leg.legend_handles:
+    #     lh.set_alpha(1)
     # plt.xlabel("x")
     # plt.ylabel("f(x)")
     plt.ylim(-1, 1)
+    plt.xlim(-1.1,1.1)
     # plt.title(r"Function estimation with GP")
     plt.savefig("write_up/images/UCB_" + str(ind + 1) + "_iters.pdf")
     plt.show()
