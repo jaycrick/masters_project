@@ -60,7 +60,7 @@ lambda_max = 0.1
 f_max = 1/14
 r_max = 1/14
 
-num_lhc_samples = 36
+num_lhc_samples = 50
 initial_repeats = 1
 ```
 
@@ -955,7 +955,7 @@ for var in vars:
     # if var not in ["alpha", "beta"]:
     #     plt.xscale("log", base=np.e)
     plt.ylabel("log(Discrepancy)")
-    plt.ylim((-3, 6))
+    plt.ylim((-3, 2))
     plt.savefig("champagne_GP_images/initial_" + var + "_slice_log_discrep.pdf")
     plt.show()
 ```
@@ -1107,22 +1107,27 @@ plt.show()
 ```
 
 ```{python}
-def update_GP_LOO():
+def update_GP_LOO(champ_GP, index_vals, obs_vals, observation_noise_variance_champ):
+
+    def LOO_loss(champ_GP, index_vals, obs_vals, observation_noise_variance_champ):
+        K = (
+            champ_GP.kernel.matrix(index_vals, index_vals)
+            + tf.eye(index_vals.shape[0], dtype=np.float64)
+            * observation_noise_variance_champ
+        )
+        means = champ_GP.mean_fn(index_vals)
+        K_inv = tf.linalg.inv(K)
+        K_inv_y = K_inv @ tf.reshape(obs_vals - means, shape=[obs_vals.shape[0], 1])
+        K_inv_diag = tf.linalg.diag_part(K_inv)
+        log_var = tf.math.log(K_inv_diag)
+        log_mu = tf.reshape(K_inv_y, shape=[-1]) ** 2
+        return -tf.math.reduce_sum(log_var - log_mu)
+
+
     @tf.function(autograph=False, jit_compile=False)
     def opt_GP():
         with tf.GradientTape() as tape:
-            K = (
-                champ_GP.kernel.matrix(index_vals, index_vals)
-                + tf.eye(index_vals.shape[0], dtype=np.float64)
-                * observation_noise_variance_champ
-            )
-            means = champ_GP.mean_fn(index_vals)
-            K_inv = tf.linalg.inv(K)
-            K_inv_y = K_inv @ tf.reshape(obs_vals - means, shape=[obs_vals.shape[0], 1])
-            K_inv_diag = tf.linalg.diag_part(K_inv)
-            log_var = tf.math.log(K_inv_diag)
-            log_mu = tf.reshape(K_inv_y, shape=[-1]) ** 2
-            loss = -tf.math.reduce_sum(log_var - log_mu)
+            loss = LOO_loss(champ_GP, index_vals, obs_vals, observation_noise_variance_champ)
         grads = tape.gradient(loss, champ_GP.trainable_variables)
         optimizer_slow.apply_gradients(zip(grads, champ_GP.trainable_variables))
         return loss
@@ -1325,7 +1330,7 @@ min_index = index_vals[
 ][0]
 simulation_reps = 20
 
-for t in range(201):
+for t in range(501):
     min_index = index_vals[
         champ_GP_reg.mean_fn(index_vals) == min(champ_GP_reg.mean_fn(index_vals))
     ][
@@ -1347,7 +1352,7 @@ for t in range(201):
 
     index_update = 0
     for var in [next_alpha, next_beta, next_gamma_L, next_lambda, next_f, next_r]:
-        if np.random.uniform() > 0.2:
+        if np.random.uniform() > 0.5:
             var.assign(min_index[index_update])
         else:
             var.assign(
@@ -1440,8 +1445,8 @@ for t in range(201):
             index_points=index_vals,
             mean_fn=const_mean_fn(),
         )
-        # update_GP_LOO()
-        update_GP_MLE(champ_GP)
+        update_GP_LOO(champ_GP, index_vals, obs_vals, observation_noise_variance_champ)
+        # update_GP_MLE(champ_GP)
         min_value = min(champ_GP_reg.mean_fn(index_vals))
         min_index = index_vals[champ_GP_reg.mean_fn(index_vals) == min_value][0,]
         print(
@@ -1534,7 +1539,7 @@ for t in range(201):
                     "$\\" + var + "$ slice after " + str(t) + " Bayesian acquisitions"
                 )
             plt.ylabel("log(Discrepancy)")
-            plt.ylim((-3, 6))
+            plt.ylim((-3, 2))
             plt.savefig(
                 "champagne_GP_images/"
                 + var
@@ -1547,7 +1552,7 @@ for t in range(201):
 ```
 
 ```{python}
-epsilon = -2.
+epsilon = -1.5
 for var in vars:
     champ_GP_reg = tfd.GaussianProcessRegressionModel(
         kernel=kernel_champ,
@@ -1590,7 +1595,7 @@ for var in vars:
 
 ```{python}
 # print(index_vals[-600,].round(3))
-# print(index_vals[-400,].round(3))
+print(index_vals[-400,].round(3))
 print(index_vals[-200,].round(3))
 print(index_vals[-80,].round(3))
 print(index_vals[-40,].round(3))
