@@ -60,7 +60,11 @@ lambda_max = 0.1
 f_max = 1/14
 r_max = 1/14
 
+<<<<<<< HEAD
 num_lhc_samples = 50
+=======
+num_lhc_samples = 128
+>>>>>>> 08c18f8e2e18b02a8c87f0b6c74ee3e1fa773183
 initial_repeats = 1
 ```
 
@@ -284,7 +288,11 @@ observed_sum_stats = champ_sum_stats(
 )
 
 
+<<<<<<< HEAD
 def discrepency_fn(alpha_, beta_, gamma_L, lambda_, f, r, mean_of = 30):  # best is L1 norm
+=======
+def discrepency_fn(alpha_, beta_, gamma_L, lambda_, f, r, mean_of = 20):  # best is L1 norm
+>>>>>>> 08c18f8e2e18b02a8c87f0b6c74ee3e1fa773183
     mean_obs = 0
     for i in range(mean_of):
         x = champ_sum_stats(alpha_, beta_, gamma_L, lambda_, f, r)
@@ -1107,6 +1115,7 @@ plt.show()
 ```
 
 ```{python}
+<<<<<<< HEAD
 def update_GP_LOO(champ_GP, index_vals, obs_vals, observation_noise_variance_champ):
 
     def LOO_loss(champ_GP, index_vals, obs_vals, observation_noise_variance_champ):
@@ -1124,6 +1133,9 @@ def update_GP_LOO(champ_GP, index_vals, obs_vals, observation_noise_variance_cha
         return -tf.math.reduce_sum(log_var - log_mu)
 
 
+=======
+def update_GP_LOO():
+>>>>>>> 08c18f8e2e18b02a8c87f0b6c74ee3e1fa773183
     @tf.function(autograph=False, jit_compile=False)
     def opt_GP():
         with tf.GradientTape() as tape:
@@ -1258,7 +1270,7 @@ def update_var_EI(GP_reg, alpha, beta, gamma_L, lambda_, f, r, min_obs):
     num_iters = 10000
 
     lls_ = np.zeros(num_iters, np.float64)
-    tolerance = 1e-9  # Set your desired tolerance level
+    tolerance = 1e-6  # Set your desired tolerance level
     previous_loss = np.float64("inf")
 
     for i in range(num_iters):
@@ -1307,6 +1319,7 @@ def new_eta_t(t, d, exploration_rate):
 ```
 
 ```{python}
+<<<<<<< HEAD
 num_slice_updates = 11
 
 all_slices = [np.linspace(0, 1, num_slice_updates, dtype=np.float64),  # alpha
@@ -1320,6 +1333,8 @@ all_slices = [np.linspace(0, 1, num_slice_updates, dtype=np.float64),  # alpha
 ```
 
 ```{python}
+=======
+>>>>>>> 08c18f8e2e18b02a8c87f0b6c74ee3e1fa773183
 exploration_rate = 1
 d = 6
 update_GP_hp_freq = 20  # how many iterations before updating GP hyperparams
@@ -1330,12 +1345,21 @@ min_index = index_vals[
 ][0]
 simulation_reps = 20
 
+<<<<<<< HEAD
 for t in range(501):
     min_index = index_vals[
         champ_GP_reg.mean_fn(index_vals) == min(champ_GP_reg.mean_fn(index_vals))
     ][
         0,
     ]
+=======
+for t in range(401):
+    # min_index = index_vals[
+    #     champ_GP_reg.mean_fn(index_vals) == min(champ_GP_reg.mean_fn(index_vals))
+    # ][
+    #     0,
+    # ]
+>>>>>>> 08c18f8e2e18b02a8c87f0b6c74ee3e1fa773183
     optimizer_slow = tf.keras.optimizers.Adam()
     eta_t.assign(new_eta_t(t, d, exploration_rate))
     min_obs.assign(min(champ_GP_reg.mean_fn(index_vals)))
@@ -1352,6 +1376,7 @@ for t in range(501):
 
     index_update = 0
     for var in [next_alpha, next_beta, next_gamma_L, next_lambda, next_f, next_r]:
+<<<<<<< HEAD
         if np.random.uniform() > 0.5:
             var.assign(min_index[index_update])
         else:
@@ -1360,6 +1385,12 @@ for t in range(501):
                 * np.float64(np.random.uniform())
             )
         index_update += 1
+=======
+        var.assign(
+            var.bijector.forward(np.float64(100000000.0))
+            * np.float64(np.random.uniform())
+        )
+>>>>>>> 08c18f8e2e18b02a8c87f0b6c74ee3e1fa773183
 
     # update_var_UCB(eta_t, champ_GP_reg)
     update_var_EI(
@@ -1398,6 +1429,7 @@ for t in range(501):
     obs_vals = np.append(obs_vals, new_discrepency)
 
     print("The mean of the samples was {}".format(new_discrepency.round(3)))
+<<<<<<< HEAD
 
     slice_var = [next_alpha, next_beta, next_gamma_L, next_lambda, next_f, next_r][t % 6]
     for val in all_slices[t % 6]:
@@ -1427,6 +1459,8 @@ for t in range(501):
             index_vals = np.append(index_vals, new_params, axis=0)
             obs_vals = np.append(obs_vals, new_discrepency)
 
+=======
+>>>>>>> 08c18f8e2e18b02a8c87f0b6c74ee3e1fa773183
     ######################################################################
 
     champ_GP_reg = tfd.GaussianProcessRegressionModel(
@@ -1445,8 +1479,13 @@ for t in range(501):
             index_points=index_vals,
             mean_fn=const_mean_fn(),
         )
+<<<<<<< HEAD
         update_GP_LOO(champ_GP, index_vals, obs_vals, observation_noise_variance_champ)
         # update_GP_MLE(champ_GP)
+=======
+        # update_GP_LOO()
+        update_GP_MLE(champ_GP)
+>>>>>>> 08c18f8e2e18b02a8c87f0b6c74ee3e1fa773183
         min_value = min(champ_GP_reg.mean_fn(index_vals))
         min_index = index_vals[champ_GP_reg.mean_fn(index_vals) == min_value][0,]
         print(
