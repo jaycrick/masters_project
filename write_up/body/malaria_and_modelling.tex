@@ -195,7 +195,7 @@ This model does not account for continual depletion of liver stage parasites whi
         \draw[->] (S0) edge[sloped] node[above] {$(1 - \alpha)(\lambda I_\mathrm{total} + \delta)$} (IL);
         \draw[->] (S0) edge[in = 80, out = 280, sloped] node[above] {$\alpha( 1 -\beta)(\lambda I_\mathrm{total} + \delta)$} (SL);
         \draw[->] (SL) edge[in = 260, out = 100, sloped] node [above] {$\gamma_\mathrm{L} + \alpha\beta(\lambda I_\mathrm{total} + \delta + f)$} (S0);
-        \draw[->] (SL) edge[in = 170, out = 10, sloped] node [above] {$\alpha( 1 -\beta)(\lambda I_\mathrm{total} + \delta + f)$} (IL);
+        \draw[->] (SL) edge[in = 170, out = 10, sloped] node [above] {$(1 -\alpha)(\lambda I_\mathrm{total} + \delta + f)$} (IL);
         \draw[->] (IL) edge[in = -10, out = 190] node [midway, label=below:{$r$}] (r) {} (SL);
         \draw[->] (IL) edge[in = 260, out = 100, sloped] node [above] {$\gamma_\mathrm{L}$} (I0);
         \draw[->] (I0) edge[in = 80, out = 280, sloped] node [above] {$\lambda I_\mathrm{total} + \delta$} (IL);
@@ -214,6 +214,17 @@ The Champagne model - described in \parencite{champagne_using_2022} and diagramm
 
 The compartments have the same interpretation as in the White model, however the rates between compartments are significantly modified.
 
-The new parameters are $\lambda:$ the rate of infection, $\delta:$ importation rate, $\alpha:$ proportion of those infected but cleared of blood stage infections (through treatment), and $\beta:$ a further proportion are also cleared of liver stage parasites, given that they were also cleared of blood stage infection (radical cure). In other words, the proportion of infected individuals $\alpha\beta$ are completely cured from liver and blood stage parasites. The model assumes treatment clears infection instantaneously. Individuals in $S_\mathrm{L}$ who relapse or get a new infection are assumed to be cured with the same proportions as new infections from $S_0,$ but individuals in $I_0$ who are superinfected are assumed not to seek treatment.
+The new parameters are $\lambda:$ the rate of infection, 
+$\delta:$ importation rate, 
+$\alpha:$ proportion of those infected who clear blood stage
+infections through immediate treatment, and 
+$\beta:$ proportion of those cleared of blood stage infection who
+are also cleared of liver stage parasites (radical cure)
+In other words, the proportion of infected individuals $\alpha\beta$ are 
+completely cured from liver and blood stage parasites. The model assumes 
+treatment clears infection instantaneously. Individuals in $S_\mathrm{L}$ who 
+relapse or get a new infection are assumed to be cured with the same 
+proportions as new infections from $S_0,$ but individuals in $I_0$ who are 
+superinfected are assumed not to seek treatment.
 
 In contrast to the White model, the Champagne model allows analysis of potential treatment interventions, or how much of an impact limiting the importation rate might have on case numbers (through border control/testing). Although the lack of mosquito dynamics simplifies the model and it's running, it is unrealistic. The model still has some of the same problems as the White model, such as not incorporating hypnozoite depletion rates and a lack of population dynamics, meaning all analytic results are done assuming the system is at equilibrium.
