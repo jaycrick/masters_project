@@ -701,7 +701,7 @@ $$
 $$
 and variance $1/[(K_{**} + \sigma^2_o I)^{-1}]_{ii},$ where both the mean and
 covariance are (surprisingly) independent of $f_i(\mathbf{x}_*)$
-\parencite{rasmussen_gaussian_2008}.
+\parencite[116]{rasmussen_gaussian_2008}.
 
 Both methods can be extended to include estimating hyperparameters given a family
 of possible mean functions. For example \cite{gutmann_bayesian_2016} use
@@ -751,6 +751,15 @@ $$
     + \eta_t \sqrt{\mathrm{Var}[f(x) | f(\mathbf{x}_*)]}
 $$
 
+
+$$\mu(\bm\theta) - \eta_t\sqrt{\mathrm{v}(\bm\theta)}$$
+with $\eta_t:= \sqrt{2\ln(\frac{t^{2d + 2}\pi^2}{3\varepsilon})},$ and
+$\varepsilon \in (0, 1)$ that can be chosen
+(with a lower epsilon resulting in more exploration), $\mu(\bm\theta)$ and
+$\mathrm{v}(\bm\theta)$ are the posterior mean and variance.
+$\varepsilon = 0.1$ was used.
+
+
 Similarly we can also define 
 
 \begin{itemize}
@@ -774,3 +783,5 @@ Similarly we can also define
           \end{itemize}
 \end{itemize}
 exploration parameter proven by \cite{srinivas_gaussian_2010}
+
+\textcolor{red}{Show why Bayesian Acquisition fn not work for infinite space.}

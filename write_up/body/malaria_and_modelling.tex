@@ -94,11 +94,14 @@ money are spent on trials.
         \node[draw, right=of SH, minimum size=1.5cm] (IH) {$I_\mathrm{H}$};
         \node[draw, below=of SH, minimum size=1.5cm] (SM) {$S_\mathrm{M}$};
         \node[draw, below=of IH, minimum size=1.5cm] (IM) {$I_\mathrm{M}$};
-        \draw[->] (SH) edge node [midway, label=above:{$\lambda_\mathrm{H}$}] (lambdaH) {} (IH);
-        \draw[->] (SM) edge node [midway, label=below:{$\lambda_\mathrm{M}$}] (lambdaM) {} (IM);
+        \draw[->] (SH) edge node [midway, label=above:{$\lambda_\mathrm{H}$}]
+        (lambdaH) {} (IH);
+        \draw[->] (SM) edge node [midway, label=below:{$\lambda_\mathrm{M}$}]
+        (lambdaM) {} (IM);
         \draw[->, dashed, ruby] (IH) to (lambdaM);
         \draw[->, dashed, ruby] (IM) to (lambdaH);
-        \draw[->] (IH) edge[in = 90, out = 90] node [midway, label=above:{$\gamma_\mathrm{H}$}] (omegaH) {} (SH);
+        \draw[->] (IH) edge[in = 90, out = 90] node
+        [midway, label=above:{$\gamma_\mathrm{H}$}] (omegaH) {} (SH);
         \node[below=of SM] (b_SM) {};
         \node[left=of SM] (l_SM) {};
         \node[below=of IM] (b_IM) {};
@@ -106,21 +109,55 @@ money are spent on trials.
         \draw[->] (l_SM) edge node [pos = 0.1, label=above:{$N_M\mu_M$}] (NmuM) {} (SM);
         \draw[->] (IM) edge node [midway, label=right:{$\mu_M$}] (ImuM) {} (b_IM);
     \end{tikzpicture}
-    \caption{A simple Ross-Macdonald malaria model schematic, as described by \cite{aron_population_1982}. $S_\mathrm{H}$ and $I_\mathrm{H}$ are the number of susceptable and infected humans respectively, and $S_\mathrm{M}$ and $I_\mathrm{M}$ are the number of susceptable and infected mosquitos. The rate of human infection ($\lambda_\mathrm{H}$) is dependant on $I_\mathrm{M}$, and the rate of human infection ($\lambda_\mathrm{M}$) is dependant on $I_\mathrm{H}$.}\label{fig:ross_mac}
+    \caption{
+        A simple Ross-Macdonald malaria model schematic, as described by
+        \cite{aron_population_1982}. $S_\mathrm{H}$ and $I_\mathrm{H}$ are the
+        number of susceptable and infected humans respectively, and
+        $S_\mathrm{M}$ and $I_\mathrm{M}$ are the number of susceptable and
+        infected mosquitos. The rate of human infection ($\lambda_\mathrm{H}$)
+        is dependant on $I_\mathrm{M}$, and the rate of human infection
+        ($\lambda_\mathrm{M}$) is dependant on $I_\mathrm{H}$.
+    }
+    \label{fig:ross_mac}
 \end{figure}
 
-Modelling malaria presents an additional challenge, as the disease is transmitted from mosquito to human and human to mosquito, rather than having direct human to human transmission. The most simple Ross-Macdonald model is depicted in figure \ref{fig:ross_mac}. The ODEs for this model are \begin{align*}
-    \frac{\diff S_\mathrm{H}}{\diff t} = & \, \gamma_\mathrm{H}I_\mathrm{H} - bT_{\mathrm{HM}}I_\mathrm{M}\frac{S_\mathrm{H}}{N_\mathrm{H}}                                         \\
-    \frac{\diff I_\mathrm{H}}{\diff t} = & \, bT_{\mathrm{HM}}I_\mathrm{M}\frac{S_\mathrm{H}}{N_\mathrm{H}} - \gamma I_\mathrm{H}                                                   \\
-    \frac{\diff S_\mathrm{M}}{\diff t} = & \, N_\mathrm{M}\mu_M + \gamma_\mathrm{M}I_\mathrm{M} - bT_{\mathrm{MH}}S_\mathrm{M}\frac{I_\mathrm{H}}{N_\mathrm{H}} - S_\mathrm{M}\mu_M \\
-    \frac{\diff I_\mathrm{M}}{\diff t} = & \, bT_{\mathrm{MH}}S_\mathrm{M}\frac{I_\mathrm{H}}{N_\mathrm{H}} - \gamma_\mathrm{M}I_\mathrm{M}
-\end{align*} where $b$ is the biting rate per mosquito, and $T_{\mathrm{HM}}$ is the probability of tranmission to a human given a bite by an infectious mosquito, with $T_{\mathrm{MH}}$ being vice-versa. Note that it is $\frac{I_\mathrm{H}}{N_\mathrm{H}}$ in the mosquito dynamics. Biologically this is assuming the number of blood meals a mosquito takes per day is invariant to the size of the human population. Mosquitos don't `recover' from malaria due to their short lifespans, but the births and deaths are mathematically equivalent to assuming that the rate of `recovery' amongst mosquitos is $\mu_\mathrm{M}I_\mathrm{M}$ per unit time, with no population dynamics.
+Modelling malaria presents an additional challenge, as the disease is
+transmitted from mosquito to human and human to mosquito, rather than having
+direct human to human transmission. The most simple Ross-Macdonald model is
+depicted in figure \ref{fig:ross_mac}. The ODEs for this model are
+\begin{align*}
+    \frac{\diff S_\mathrm{H}}{\diff t}
+    = & \, \gamma_\mathrm{H}I_\mathrm{H}
+    - bT_{\mathrm{HM}}I_\mathrm{M}\frac{S_\mathrm{H}}{N_\mathrm{H}}      \\
+    \frac{\diff I_\mathrm{H}}{\diff t}
+    = & \, bT_{\mathrm{HM}}I_\mathrm{M}\frac{S_\mathrm{H}}{N_\mathrm{H}}
+    - \gamma I_\mathrm{H}                                                \\
+    \frac{\diff S_\mathrm{M}}{\diff t}
+    = & \, N_\mathrm{M}\mu_M + \gamma_\mathrm{M}I_\mathrm{M}
+    - bT_{\mathrm{MH}}S_\mathrm{M}\frac{I_\mathrm{H}}{N_\mathrm{H}}
+    - S_\mathrm{M}\mu_M                                                  \\
+    \frac{\diff I_\mathrm{M}}{\diff t}
+    = & \, bT_{\mathrm{MH}}S_\mathrm{M}\frac{I_\mathrm{H}}{N_\mathrm{H}}
+    - \gamma_\mathrm{M}I_\mathrm{M}
+\end{align*}
+where $b$ is the biting rate per mosquito, and $T_{\mathrm{HM}}$ is the
+probability of tranmission to a human given a bite by an infectious mosquito,
+with $T_{\mathrm{MH}}$ being vice-versa. Note that it is
+$\frac{I_\mathrm{H}}{N_\mathrm{H}}$ in the mosquito dynamics. Biologically this
+is assuming the number of blood meals a mosquito takes per day is invariant to
+the size of the human population. Mosquitos don't `recover' from malaria due to
+their short lifespans, but the births and deaths are mathematically equivalent
+to assuming that the rate of `recovery' amongst mosquitos is
+$\mu_\mathrm{M}I_\mathrm{M}$ per unit time, with no population dynamics.
 
-A Ross-Macdonald style model simplifies the lifecycle of malaria to the following four steps \parencite{smith_ross_2012}: \begin{enumerate}
+A Ross-Macdonald style model simplifies the lifecycle of malaria to the
+following four steps \parencite{smith_ross_2012}: \begin{enumerate}
     \item Malaria is transmitted to human (or vertebrate) via a blood feed.
-    \item Malaria proliferates in the human host until it circulates in the peripheral blood
+    \item Malaria proliferates in the human host until it circulates in the
+          peripheral blood
     \item A mosquito then takes a blood feed, ingesting the pathogen
-    \item Malaria develops within the mosquito host, progressing to its salivary glands, able to infect a human.
+    \item Malaria develops within the mosquito host, progressing to its
+          salivary glands, able to infect a human.
 \end{enumerate}
 
 \subsection*{Models of \textit{P.\ Vivax} Malaria}
@@ -131,59 +168,173 @@ A Ross-Macdonald style model simplifies the lifecycle of malaria to the followin
     \centering
     \begin{tikzpicture}[thick]
         \node[draw, minimum size=1cm] (S0) {$S_0$};
-        \node[draw, right of=S0, minimum size=1cm, node distance=3.5cm] (I0) {$I_0$};
-        \node[draw, below of=S0, minimum size=1cm, node distance=3.5cm] (SL) {$S_\mathrm{L}$};
-        \node[draw, below of=I0, minimum size=1cm, node distance=3.5cm] (IL) {$I_\mathrm{L}$};
-        \node[draw, right of=I0, minimum size=1cm, node distance=3.5cm] (SM) {$S_\mathrm{M}$};
-        \node[draw, right of=IL, minimum size=1cm, node distance=3.5cm] (IM) {$I_\mathrm{M}$};
-        \draw[->] (S0) edge node [midway, label=above:{$\lambda_\mathrm{H}$}] (lambdaH1) {} (IL);
-        \draw[->] (SL) edge node [midway, label=left:{$\gamma_\mathrm{L}$}] (gammaL1) {} (S0);
-        \draw[->] (SL) edge[in = 170, out = 10] node [midway, label=above:{$\lambda_\mathrm{H} + f$}] (lambdaf) {} (IL);
-        \draw[->] (IL) edge[in = -10, out = 190] node [midway, label=below:{$r$}] (r) {} (SL);
-        \draw[->] (IL) edge[in = 260, out = 100] node [midway, label=left:{$\gamma_\mathrm{L}$}] (gammaL2) {} (I0);
-        \draw[->] (I0) edge[in = 80, out = 280] node [midway, label=right:{$\lambda_\mathrm{H}$}] (lambdaH2) {} (IL);
+        \node[draw, right of=S0, minimum size=1cm, node distance=3.5cm] (I0)
+        {$I_0$};
+        \node[draw, below of=S0, minimum size=1cm, node distance=3.5cm] (SL)
+        {$S_\mathrm{L}$};
+        \node[draw, below of=I0, minimum size=1cm, node distance=3.5cm] (IL)
+        {$I_\mathrm{L}$};
+        \node[draw, right of=I0, minimum size=1cm, node distance=3.5cm] (SM)
+        {$S_\mathrm{M}$};
+        \node[draw, right of=IL, minimum size=1cm, node distance=3.5cm] (IM)
+        {$I_\mathrm{M}$};
+        \draw[->] (S0) edge node [midway, label=above:{$\lambda_\mathrm{H}$}]
+        (lambdaH1) {} (IL);
+        \draw[->] (SL) edge node [midway, label=left:{$\gamma_\mathrm{L}$}]
+        (gammaL1) {} (S0);
+        \draw[->] (SL) edge[in = 170, out = 10] node
+        [midway, label=above:{$\lambda_\mathrm{H} + f$}] (lambdaf) {} (IL);
+        \draw[->] (IL) edge[in = -10, out = 190] node
+        [midway, label=below:{$r$}] (r) {} (SL);
+        \draw[->] (IL) edge[in = 260, out = 100] node
+        [midway, label=left:{$\gamma_\mathrm{L}$}] (gammaL2) {} (I0);
+        \draw[->] (I0) edge[in = 80, out = 280] node
+        [midway, label=right:{$\lambda_\mathrm{H}$}] (lambdaH2) {} (IL);
         \draw[->] (I0) edge node [midway, label=above:{$r$}] (r2) {} (S0);
-        \draw[->] (SM) edge node [midway, label=left:{$\lambda_\mathrm{M}$}] (lambdaM) {} (IM);
+        \draw[->] (SM) edge node [midway, label=left:{$\lambda_\mathrm{M}$}]
+        (lambdaM) {} (IM);
     \end{tikzpicture}
-    \caption{Diagram for \textit{P.\ vivax} model in a tropical setting described by \cite{white_variation_2016}. $S$ and $I$ are the number of susceptable and infected humans and mosquitos (denoted by subscript M). $\lambda_\mathrm{H} = mabI_\mathrm{M}$ and $\lambda_\mathrm{M} = ac(I_0 + I_\mathrm{L})$}\label{fig:white_2}
+    \caption{
+        Diagram for \textit{P.\ vivax} model in a tropical setting described by
+        \cite{white_variation_2016}. $S$ and $I$ are the number of susceptable
+        and infected humans and mosquitos (denoted by subscript M).
+        $\lambda_\mathrm{H} = mabI_\mathrm{M}$ and
+        $\lambda_\mathrm{M} = ac(I_0 + I_\mathrm{L})$
+    }
+    \label{fig:white_2}
 \end{figure}
 
-The White model - described in \cite{white_variation_2016} (tropical model) and depicted in Figure \ref{fig:white_2} - is characterised by the following ordinary differential equations:
+The White model - described in \cite{white_variation_2016} (tropical model) and 
+depicted in Figure \ref{fig:white_2} - is characterised by the following 
+ordinary differential equations:
 
 \begin{align*}
-    \frac{\diff S_0}{\diff t} =          & -\lambda_\mathrm{H} S_0 + rI_0 + \gamma_\mathrm{L}S_\mathrm{L}                                                                            \\
-    \frac{\diff I_0}{\diff t} =          & -\lambda_\mathrm{H} I_0 - rI_0 + \gamma_\mathrm{L}I_\mathrm{L}                                                                            \\
-    \frac{\diff S_\mathrm{L}}{\diff t} = & -\lambda_\mathrm{H} S_\mathrm{L} + rI_\mathrm{L} - fS_\mathrm{L} -\gamma_\mathrm{L}S_\mathrm{L}                                           \\
-    \frac{\diff I_\mathrm{L}}{\diff t} = & \lambda_\mathrm{H} (S_0 + I_0 + S_\mathrm{L}) - rI_\mathrm{L} + fS_\mathrm{L} -\gamma_\mathrm{L}I_\mathrm{L}                              \\
-    \frac{\diff S_\mathrm{M}}{\diff t} = & g - \lambda_\mathrm{M}(pS_\mathrm{M} - (1 - p)I_\mathrm{M}) - gS_\mathrm{M}                                                               \\
-    \frac{\diff I_\mathrm{M}}{\diff t} = & \lambda_\mathrm{M}(pS_\mathrm{M} - (1 - p)I_\mathrm{M}) - gI_\mathrm{M}\tag{$I_0 + I_\mathrm{L}=$ total number of bloodstage infections}.
+    \frac{\diff S_0}{\diff t}
+    = & -\lambda_\mathrm{H} S_0 + rI_0 + \gamma_\mathrm{L}S_\mathrm{L} \\
+    \frac{\diff I_0}{\diff t}
+    = & -\lambda_\mathrm{H} I_0 - rI_0 + \gamma_\mathrm{L}I_\mathrm{L} \\
+    \frac{\diff S_\mathrm{L}}{\diff t}
+    = & -\lambda_\mathrm{H} S_\mathrm{L} + rI_\mathrm{L}
+    - fS_\mathrm{L} -\gamma_\mathrm{L}S_\mathrm{L}                     \\
+    \frac{\diff I_\mathrm{L}}{\diff t}
+    = & \lambda_\mathrm{H} (S_0 + I_0 + S_\mathrm{L}) - rI_\mathrm{L}
+    + fS_\mathrm{L} -\gamma_\mathrm{L}I_\mathrm{L}                     \\
+    \frac{\diff S_\mathrm{M}}{\diff t}
+    = & g - \lambda_\mathrm{M}(pS_\mathrm{M}
+    - (1 - p)I_\mathrm{M}) - gS_\mathrm{M}                             \\
+    \frac{\diff I_\mathrm{M}}{\diff t}
+    = & \lambda_\mathrm{M}(pS_\mathrm{M} - (1 - p)I_\mathrm{M})
+    - gI_\mathrm{M}
+    \tag{$I_0 + I_\mathrm{L}=$ total number of bloodstage infections}.
 \end{align*}
 
-It modifies the Ross-Macdonald models, to capture the differences in disease progression between \textit{P.\ vivax} and \textit{P.\ falciparum}. In particular, the White model includes the dormant liver stage that is unique to \textit{P.\ vivax}.
+It modifies the Ross-Macdonald models, to capture the differences in disease
+progression between \textit{P.\ vivax} and \textit{P.\ falciparum}.
+In particular, the White model includes the dormant liver stage that is
+unique to \textit{P.\ vivax}.
 
 The model is comprised of six compartments: \begin{enumerate}
-    \item \textbf{$S_0$ (Susceptible Individuals - No Latent Hypnozoite Liver Stage Infection)}: People in this compartment have no form of malarial infection. These people are susceptible to new malarial infections, and are infected into compartment $I_\mathrm{L}$ (with both blood and liver stage parasites) with rate $\lambda_\mathrm{H}$.
-    \item \textbf{$I_\mathrm{L}$ (Infected Individuals - Both Blood Stage and Latent Hypnozoite Liver Stage Infection)}:  Individuals in this compartment have both an active blood-stage infection, and latent hypnozoite infection in the liver. They can progress to either $I_0$ through the clearance of liver stage infection with rate $\gamma_\mathrm{L},$ or to $S_\mathrm{L}$ through clearance of blood stage infection with rate $r$.
-    \item \textbf{$I_0$ (Infected Individuals - Blood-Stage Infection Only)}: Those in this compartment have a blood-stage infection with no latent hypnozoite infection in the liver. They are be reinfected into $I_\mathrm{L}$ with rate $\lambda_\mathrm{H}$, relapse with rate $f$. Blood-stage infection is cleared (moving into compartment $S_0$) with rate $r$.
-    \item \textbf{$S_\mathrm{L}$ (Susceptable Individuals - Blood-Stage Infection Only)}: Those in this compartment have latent hypnozoite infection in the liver without blood-stage infection. They get novel infection through a mosquito bite into $I_\mathrm{L}$ with rate $\lambda_\mathrm{H}$, or hypnozoite activation with rate $f$. This means that those in $S_\mathrm{L}$ move to compartment $I_\mathrm{L}$ with total rate $\lambda_\mathrm{H} + f.$ Alternatively the hypnozoites are cleared from the liver (moving to compartment $S_0$) with rate $\gamma_\mathrm{L}.$
-    \item \textbf{$S_\mathrm{M}$ (Susceptable Mosquitoes)}: Suspectable mosquitoes become infectious at rate $\lambda_\mathrm{M}p.$ They die at rate $g + \lambda_\mathrm{M}(1 - p).$ Since there is a constant mosquito population assumption, mosquitoes are born into this state at rate $g + \lambda_\mathrm{M}.$
-    \item \textbf{$I_\mathrm{M}$ (Infectious Mosquitoes)}: Infectious mosquitos die at rate $g + \lambda_\mathrm{M}(1 - p).$
+    \item \textbf{
+              $S_0$ (Susceptible Individuals - No Latent Hypnozoite Liver
+              Stage Infection)
+          }: People in this compartment have no form of malarial infection.
+          These people are susceptible to new malarial infections,
+          and are infected into compartment $I_\mathrm{L}$ (with both blood
+          and liver stage parasites) with rate $\lambda_\mathrm{H}$.
+    \item \textbf{
+              $I_\mathrm{L}$ (Infected Individuals - Both Blood Stage and Latent
+              Hypnozoite Liver Stage Infection)
+          }:  Individuals in this compartment have both an active blood-stage
+          infection, and latent hypnozoite infection in the liver. They can
+          progress to either $I_0$ through the clearance of liver stage
+          infection with rate $\gamma_\mathrm{L},$ or to $S_\mathrm{L}$ through
+          clearance of blood stage infection with rate $r$.
+    \item \textbf{
+              $I_0$ (Infected Individuals - Blood-Stage Infection Only)
+          }: Those in this compartment have a blood-stage infection with no
+          latent hypnozoite infection in the liver. They are be reinfected into
+          $I_\mathrm{L}$ with rate $\lambda_\mathrm{H}$, relapse with rate $f$.
+          Blood-stage infection is cleared (moving into compartment $S_0$) with
+          rate $r$.
+    \item \textbf{
+              $S_\mathrm{L}$ (Susceptable Individuals -
+              Blood-Stage Infection Only)
+          }: Those in this compartment have latent hypnozoite infection in
+          the liver without blood-stage infection. They get novel infection
+          through a mosquito bite into $I_\mathrm{L}$ with rate
+          $\lambda_\mathrm{H}$, or hypnozoite activation with rate $f$.
+          This means that those in $S_\mathrm{L}$ move to compartment
+          $I_\mathrm{L}$ with total rate $\lambda_\mathrm{H} + f.$
+          Alternatively the hypnozoites are cleared from the liver
+          (moving to compartment $S_0$) with rate $\gamma_\mathrm{L}.$
+    \item \textbf{
+              $S_\mathrm{M}$ (Susceptable Mosquitoes)
+          }:
+          Suspectable mosquitoes become infectious at rate
+          $\lambda_\mathrm{M}p.$ They die at rate
+          $g + \lambda_\mathrm{M}(1 - p).$ Since there is a constant mosquito
+          population assumption, mosquitoes are born into this state at rate
+          $g + \lambda_\mathrm{M}.$
+    \item \textbf{$I_\mathrm{M}$ (Infectious Mosquitoes)}:
+          Infectious mosquitos die at rate $g + \lambda_\mathrm{M}(1 - p).$
 \end{enumerate}
 
-$\lambda_\mathrm{H} := mabI_\mathrm{M}$ where $m$ is the number of mosquitos per human (held constant since there is no birth or death in the human dynamics), $a$ is the mosquito biting rate, and $b$ is the probability that a human bitten by an infectious mosquito develops an infection.
+$\lambda_\mathrm{H} := mabI_\mathrm{M}$ where $m$ is the number of mosquitos
+per human (held constant since there is no birth or death in the human
+dynamics), $a$ is the mosquito biting rate, and $b$ is the probability that a
+human bitten by an infectious mosquito develops an infection.
 
-$\lambda_\mathrm{M} := ac(I_0 + I_\mathrm{L})$ where $a$ is defined above, and $c$ is the probability that a mosquito bite on an infectious mosquito causes the mosquito to become infectious. $g$ can be interpreted as the natural birth/death rate for mosquitos. $p$ is then the proportion of mosquitos that survive long enough after the initial infection that the parasite matures enough in the mosquito before becoming infectious to new susceptible humans. Under the assumption that time until parasite transmissability after infection in a mosquito is a constant $n$ days, and that mosquitoes naturally die at rate $g$, $p=e^{-gn}.$ To see this let $V\sim\mathrm{Exp}(g),$ represent the lifespan of the mosquito. $\Pr(V > n)= 1 - F_V(n) = 1 - (1 - e^{-gn}) = e^{-gn}.$
+$\lambda_\mathrm{M} := ac(I_0 + I_\mathrm{L})$ where $a$ is defined above,
+and $c$ is the probability that a mosquito bite on an infectious mosquito
+causes the mosquito to become infectious. $g$ can be interpreted as the natural
+birth/death rate for mosquitos. $p$ is then the proportion of mosquitos that
+survive long enough after the initial infection that the parasite matures
+enough in the mosquito before becoming infectious to new susceptible humans.
+Under the assumption that time until parasite transmissability after
+infection in a mosquito is a constant $n$ days, and that mosquitoes naturally
+die at rate $g$, $p=e^{-gn}.$ To see this let $V\sim\mathrm{Exp}(g),$
+represent the lifespan of the mosquito.
+$\Pr(V > n)= 1 - F_V(n) = 1 - (1 - e^{-gn}) = e^{-gn}.$
 
-$\lambda_\mathrm{M}(1 - p)$ can be interpreted as an additional rate of death, where of the mosquitos that would develop malaria after a bite, a proportion $1 - p$ die instantly. This applies to both the susceptible and infectious mosquitoes. Presumably this approximates a model where mosquitoes are moved to an `exposed' compartment for $n$ time, after initial infection, however no justification is given in \parencite{white_variation_2016} for this additional parameter $n$. A more straightforward $SI$ model could be constructed that absorbs $c$ and $n$ into the single parameter $c^*$, such that it becomes the proportion of mosquito bites on blood stage infectious humans that result in mosquito infection where the mosquito does not die before becoming infectious. With steady mosquito population, the mosquito dynamics would now be characterised by
-$$\frac{\diff I_\mathrm{M}}{\diff t} = \lambda_\mathrm{M}^*S_\mathrm{M}- gI_\mathrm{M}\quad\text{where } \lambda_\mathrm{M}^*:= ac^*(I_0 + I_\mathrm{L}).$$
+$\lambda_\mathrm{M}(1 - p)$ can be interpreted as an additional rate of death,
+where of the mosquitos that would develop malaria after a bite, a proportion
+$1 - p$ die instantly. This applies to both the susceptible and infectious
+mosquitoes. Presumably this approximates a model where mosquitoes are moved
+to an `exposed' compartment for $n$ time, after initial infection,
+however no justification is given in \parencite{white_variation_2016} for
+this additional parameter $n$. A more straightforward $SI$ model could be
+constructed that absorbs $c$ and $n$ into the single parameter $c^*$, such
+that it becomes the proportion of mosquito bites on blood stage infectious
+humans that result in mosquito infection where the mosquito does not die
+before becoming infectious. With steady mosquito population, the mosquito
+dynamics would now be characterised by
+$$
+    \frac{\diff I_\mathrm{M}}{\diff t}
+    = \lambda_\mathrm{M}^*S_\mathrm{M} - gI_\mathrm{M}
+    \quad\text{where } \lambda_\mathrm{M}^*:= ac^*(I_0 + I_\mathrm{L}).
+$$
 
-By modelling both liver and bloodstage infection, blood stage infections from relapses can be captured in the dynamics, meaning it is possible to analyse case number data that may be confounded by relapses as well as novel infections.
+By modelling both liver and bloodstage infection, blood stage infections
+from relapses can be captured in the dynamics, meaning it is possible to
+analyse case number data that may be confounded by relapses as well as
+novel infections.
 
-% Combining this model with pre-established within host dynamics, the model allows for analysis of how the hypnozoite activation rate (closely related to relapse frequency) can effect the total number of relapsing hypnozoites, the time with liver stage infection, and the basic reproduction number $R_0$ (important particularly in considering interventions and potential evolutionary strain selection).
+% Combining this model with pre-established within host dynamics, the 
+% model allows for analysis of how the hypnozoite activation rate 
+% (closely related to relapse frequency) can effect the total number of 
+% relapsing hypnozoites, the time with liver stage infection, and the basic 
+% reproduction number $R_0$ (important particularly in considering interventions
+%  and potential evolutionary strain selection).
 
-This model does not account for continual depletion of liver stage parasites which would vary the rate of relapse over time (through clearance or relapse). It also does not directly model any interventions or case importations. The lack of population dynamics means the model may only be useful on a small time scale. Finally, it doesn't account for any importation of disease from an outside area, so if $S_0 = 1,$ \textit{P.\ vivax} is presumed permanently eradicated.
+This model does not account for continual depletion of liver stage parasites
+which would vary the rate of relapse over time (through clearance or relapse).
+It also does not directly model any interventions or case importations. The
+lack of population dynamics means the model may only be useful on a small time
+scale. Finally, it doesn't account for any importation of disease from an
+outside area, so if $S_0 = 1,$ \textit{P.\ vivax} is presumed permanently
+eradicated.
 
-\subsubsection*{Champagne Model}
+\subsubsection*{Champagne Model}\label{sec:champ_mod}
 
 \begin{figure}[htbp]
     \centering
@@ -214,17 +365,17 @@ The Champagne model - described in \parencite{champagne_using_2022} and diagramm
 
 The compartments have the same interpretation as in the White model, however the rates between compartments are significantly modified.
 
-The new parameters are $\lambda:$ the rate of infection, 
-$\delta:$ importation rate, 
+The new parameters are $\lambda:$ the rate of infection,
+$\delta:$ importation rate,
 $\alpha:$ proportion of those infected who clear blood stage
-infections through immediate treatment, and 
+infections through immediate treatment, and
 $\beta:$ proportion of those cleared of blood stage infection who
 are also cleared of liver stage parasites (radical cure)
-In other words, the proportion of infected individuals $\alpha\beta$ are 
-completely cured from liver and blood stage parasites. The model assumes 
-treatment clears infection instantaneously. Individuals in $S_\mathrm{L}$ who 
-relapse or get a new infection are assumed to be cured with the same 
-proportions as new infections from $S_0,$ but individuals in $I_0$ who are 
+In other words, the proportion of infected individuals $\alpha\beta$ are
+completely cured from liver and blood stage parasites. The model assumes
+treatment clears infection instantaneously. Individuals in $S_\mathrm{L}$ who
+relapse or get a new infection are assumed to be cured with the same
+proportions as new infections from $S_0,$ but individuals in $I_0$ who are
 superinfected are assumed not to seek treatment.
 
 In contrast to the White model, the Champagne model allows analysis of potential treatment interventions, or how much of an impact limiting the importation rate might have on case numbers (through border control/testing). Although the lack of mosquito dynamics simplifies the model and it's running, it is unrealistic. The model still has some of the same problems as the White model, such as not incorporating hypnozoite depletion rates and a lack of population dynamics, meaning all analytic results are done assuming the system is at equilibrium.

@@ -93,7 +93,7 @@
         \item Two main species \emph{P. vivax} and \emph{P. falciparum}
         \item \emph{P. falciparum} main cause of death, but
               \emph{P. vivax} traditionally underestimated.
-        \item As \emph{P. falciparum} decrease, \emph{P. vivax} cases increase
+        \item Proportion of \emph{P. vivax} cases increased over last 50 years.
     \end{itemize}
 \end{frame}
 
@@ -123,7 +123,12 @@
             \draw[->] (S0) edge[in = 80, out = 280, sloped] node[above]
                 {$\alpha( 1 -\beta)(\lambda I_\mathrm{total} + \delta)$} (SL);
             \draw[->] (SL) edge[in = 260, out = 100, sloped] node [above]
-                {$\gamma_\mathrm{L} + \alpha\beta(\lambda I_\mathrm{total} + \delta + f)$} (S0);
+                {
+                    $
+                        \gamma_\mathrm{L}
+                        + \alpha\beta(\lambda I_\mathrm{total} + \delta + f)
+                    $
+                } (S0);
             \draw[->] (SL) edge[in = 170, out = 10, sloped] node [above]
                 {$(1 -\alpha)(\lambda I_\mathrm{total} + \delta + f)$} (IL);
             \draw[->] (IL) edge[in = -10, out = 190] node [midway, label=below:
@@ -176,24 +181,11 @@
     \end{align*}
 \end{frame}
 
-% Simulated using the Doob-Gillespie algorithm, which is the standard way to
-% get an exact simulation
-
-\begin{frame}
-    \frametitle{Example Simulation}
-    \begin{figure}
-        \centering
-        \includegraphics[width=0.8\textwidth]{
-            ../../champagne_GP_images/champagne_simulation.pdf
-        }
-    \end{figure}
-\end{frame}
-
 % Even with improved techniques (tau leaping)
 \begin{frame}
     \frametitle{The Problem}
     \begin{itemize}
-        \item How to parametrise such a model.
+        \item How to calibrate model parameters?
         \item <2-> Simulations take long time (and models get a lot more
               complicated)
     \end{itemize}
@@ -247,13 +239,13 @@
                   \item Sample $\bm{\theta}_i$ from prior
                   \item Run model and observe $\mathbf{Y}_{\bm{\theta}_i}$
                   \item Accept or reject $\bm{\theta}_i$ run based on how well
-                        $\mathbf{Y}_{\bm{\theta}_i}$ 'matches' $\mathbf{Y}_\text{obs}.$
+                        $\mathbf{Y}_{\bm{\theta}_i}$ `matches' $\mathbf{Y}_\text{obs}.$
               \end{enumerate}
     \end{itemize}
 \end{frame}
 
 \begin{frame}
-    \frametitle{What is 'matches'}
+    \frametitle{What is `matches'?}
     \begin{enumerate}
         \item $\mathbf{Y}_{\bm{\theta}_i} = \mathbf{Y}_\text{obs}$
               \begin{itemize}
@@ -453,7 +445,7 @@
     \begin{itemize}
         \item Mat\'ern Kernel with hyperparameter $\nu:$
               $\lfloor{\nu}\rfloor$ times mean square differentiable.
-        \item $\nu\to\infty$ - infinitely mean square differentiable squared
+        \item $\nu\to\infty:$ infinitely mean square differentiable squared
               exponential covariance kernel (strong assumption)
               $$
                   k(x, x^\prime)
@@ -495,7 +487,7 @@
               form $k(\mathbf{x}, \mathbf{x}^\prime)
                   = \sigma_k^2\kappa(||\mathbf{x}, \mathbf{x}^\prime||/\ell)$
         \item $1/\ell$ rate of covariance decay
-        \item $\sigma_k = \mathrm{Var}(f\,(\mathbf{x}))$
+        \item $\sigma_k^2 = \mathrm{Var}(f\,(\mathbf{x}))$
     \end{itemize}
 \end{frame}
 
@@ -876,10 +868,27 @@
     \end{itemize}
 \end{frame}
 
+% Simulated using the Doob-Gillespie algorithm, which is the standard way to
+% get an exact simulation
+
+\begin{frame}
+    \frametitle{Model Simulation}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.8\textwidth]{
+            ../../champagne_GP_images/champagne_simulation.pdf
+        }
+        \caption{
+            Exact stochastic simulation using parameters reported in
+            \cite{champagne_using_2022}.
+        }
+    \end{figure}
+\end{frame}
+
 \begin{frame}
     \frametitle{`Observed' Data}
     \begin{itemize}
-        \item `Observed' data from one simulation of 10 initial infections,
+        \item `Observed' data from the model simulation 10 initial infections,
               in a population of 1000 people using the parameters reported in
               \cite{champagne_using_2022}.
         \item $\mathbf{Y}_\text{obs} := \{w_\text{obs}, p_\text{obs}, m_\text{obs}\}$

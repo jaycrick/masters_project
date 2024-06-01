@@ -1,92 +1,93 @@
-\chapter{Methods and Results}
+\chapter{Methods}
 
 TODO:\begin{enumerate}
     \item Check for consistent notation
 \end{enumerate}
 
-\section{Description}
-
-\subsection*{Model and Synthetic Data Simulations}
+\section{Creation of Synthetic Data}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{../champagne_GP_images/champagne_simulation.pdf}
-    \caption{A Doob-Gillespie Simulation of the model described by \cite{champagne_using_2022}.}\label{fig:champ_doob}
+    \caption{
+        A Doob-Gillespie Simulation of the model described by
+        \cite{champagne_using_2022} with $\alpha = 0.4,$ $\beta = 0.4,$
+        $\gamma_L = 1 / 223,$ $\lambda = 0.04,$ $f = 1 / 72,$ $r = 1 / 60,$ and
+        $\delta = 0.$ The population was 1000, with 10 initial infections
+        (both blood and liver stage).
+    }
+    \label{fig:champ_doob}
 \end{figure}
 
-In order to trial this method we used the model described in
-\cite{champagne_using_2022}, and graphically depicted in Figure
-\ref{fig:champ_diag}. Exact model simulations such as in Figure
-\ref{fig:champ_doob} were computed using the
-Doob-Gillespie algorithm (Algorithm \ref{alg:doob}).
-
-Synthetic data was generated from a single run of the model, using a population
-size of 1,000, an initial infected population of 10 (with both liver and blood
+We investigated the model by \cite{champagne_using_2022} as described in
+\ref{sec:champ_mod}. A malaria epidemic was simulated using the Doob-Gillepsie
+algorithm (see Figure \ref{fig:champ_doob}), using a population
+size of 1,000, and initial infected population of 10 (with both liver and blood
 stage infection). The parameters used closely followed those reported in
 \cite{champagne_using_2022}: \begin{itemize}
     \item effective blood stage treatment proportion $\alpha = 0.4,$
     \item effective liver stage treatment proportion $\beta = 0.4,$
-    \item rate of liver stage disease clearance $\gamma_L = 1 / 223 \text{ days}^{-1},$
+    \item rate of liver stage disease clearance
+          $\gamma_L = 1 / 223 \text{ days}^{-1},$
     \item importation rate $\delta = 0$ (assumed to be known),
     \item rate of infection $\lambda = 0.04 \text{ days}^{-1},$
     \item rate of relapse $f = 1 / 72 \text{ days}^{-1},$
     \item rate of blood stage disease clearance $r = 1 / 60 \text{ days}^{-1}.$
 \end{itemize}
-To generate the synthetic data, the model was run for 30 days and at least 15,000 events
-(infections, recoveries etc.), after which time, it was assumed to have reached
-equilibrium.
 
-\subsection*{Summary Statistics and Discrepancy Function}
+From intialisation, the simulation was run for 15,000 events
+(with an event being anything that caused the size of any compartment to change
+such as an infection, recovery, relapse etc.), after which, the model was
+understood to have reached steady state behaviour.
 
-The synthetic data (as summary statistics) we measured were:
+The synthetic data (as summary statistics) measured from the steady state
+were:
 \begin{enumerate}
-    \item prevalence at the end of the model run - $p_\text{obs},$
-    \item number of cases in the first week of the epidemic
-          (first month incidence) - $m_\text{obs},$
-    \item a single observation of the number of weekly cases at equilibrium
-          (weekly incidence) - $w_\text{obs}.$
-\end{enumerate} Similarly we extracted $p, m,$ and $w$ from each new model run.
+    \item $p_\text{obs}:$ the number of currently infected individuals at the
+          end of simulated epidemic (steady state prevalence).
+    \item $m_\text{obs}:$ the number of cases in the first week of the epidemic
+          (first month incidence)
+    \item $w_\text{obs}:$ the number of cases in the last week of the epidemic
+          (steady state weekly incidence).
+\end{enumerate}
 
-Our discrepency function we used was the $L_2$ norm of the relative differences
+New infections which instantly undergo radical cure don't change the size of
+each compartment. The number of these `silent' incidences were calculated
+between events using a Poisson distribution with rate
+$\Delta t \times \alpha \beta \lambda (I_L + I_0) S_0 / N,$ where $\Delta t$ is
+the time between events.
+
+\section{Model Simulations and Discrepency Function}
+
+New epidemics were simulated as above, with 15,000 events and at least 30
+days (to allow for calculation of incidence in the first month of the
+epidemic). For each model run steady state prevalence $p$,
+first month incidence $m,$ and steady state weekly incidence $w$ were
+calculated with the identical method to the synthetic data.
+
+We defined the discrepency function to be $L_2$ norm of the relative
+differences
 $$
-    \mathcal{D}(\alpha, \beta, \gamma_L, \lambda, f, r) = \sqrt{
+    \mathcal{D}(\alpha, \beta, \gamma_L, \lambda, f, r)
+    := \sqrt{
         \left(\frac{p - p_\text{obs}}{p_\text{obs}}\right)^2
         + \left(\frac{m - m_\text{obs}}{m_\text{obs}}\right)^2
         + \left(\frac{w - w_\text{obs}}{w_\text{obs}}\right)^2
     }.
 $$
-Relative differences were chosen to limit the impact between the scale
-differences of the summary statistics. No systematic comparison of norms was done.
+Relative difference was chosen to limit the impact between the scale
+differences of the summary statistics.
 
-\begin{table}[htbp]
-    \centering
-    \begin{tabular}{c |c |c}
-        Parameter                                                     & Bound & Unit   \\
-        \hline
-        Proportion of treatment clearing blood stage disease $\alpha$ & 1     &        \\
-        Proportion of treatment clearing liver stage disease $\beta$  & 1     &        \\
-        Rate of liver stage disease clearance $\gamma_L$              & 1/30  & 1/days \\
-        Rate of infection $\lambda$                                   & 1/10  & 1/days \\
-        Rate of relapse $f$                                           & 1/14  & 1/days \\
-        Rate of blood stage disease clearance $r$                     & 1/14  & 1/days
-    \end{tabular}
-    \caption{Target parameters to be estimated and their upper bounds, derived from \cite{champagne_using_2022, white_variation_2016}.}
-    \label{table:param_bounds}
-\end{table}
+\subsection*{Gaussian Process Regression}
 
-All parameters were given conservative upper bounds after considering
-values reported in the literature.
-
-\subsection*{Gaussian Process Setup}
-
-To approximate the true discrepancy function, a Gaussian process with constant
-mean $\mu_{\mathcal{GP}}$, and 5/2 Mat\'ern kernel was used with automatic
-relevance determination - i.e.\ each parameter $\theta\in\bm{\theta}$ was
-scaled by $\ell_\theta,$ such
-that the kernel is
+We used a Gaussian process as a surrogate model for
+$\overline{\ln\mathcal{D}}(\bm{\theta}),$ where
+$\overline{\ln\mathcal{D}}(\bm{\theta}),$ is the mean of 30 samples of
+$\ln\mathcal{D}(\bm{\theta}).$
+We used the kernel
 $$
     k(\bm{\theta}_i, \bm{\theta}_i^\prime)
-    = \sigma_a^2 (1 + z_i + \frac{z_i^2}{3})\exp(-z_i)
+    = \sigma_k^2 (1 + z_i + \frac{z_i^2}{3})\exp(-z_i)
 $$
 where
 $$
@@ -94,25 +95,50 @@ $$
         5 \sum_{\theta\in \bm{\theta}}\left(
         \frac{\theta_i - \theta_i^\prime}{\ell_\theta}
         \right)^2
-    }.
-$$ and $\sigma^2_o$ is the observation variance.
+    },
+$$ that is, a Mat\'ern kernel with $\nu = 5/2$ used with automatic
+relevance determination - i.e.\ each parameter $\theta\in\bm{\theta}$ was
+scaled by $\ell_\theta.$ This can be seen as giving each parameter its own
+length hyperparameter. The Gaussian process was zero mean
+with `observation' variance $\sigma^2_o.$
 
-\subsection*{Initialisation}
+\section{Initialisation}
 
-50 Latin hypercube samples that were scaled to the upper bounds described in
-Table \ref{table:param_bounds} were taken, and for each set of parameters, two
-model run discrepencies were taken. The hyper\-parameters
-$\sigma_O^2, \sigma_a^2, \ell_\alpha, \ell_\beta, \ell_{\gamma_L}, \ell_\lambda, \ell_f,$
-and $\ell_r$ were chosen by maximising the leave one out predictive
-log-probability as described in \cite[116]{rasmussen_gaussian_2008}.
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{c |c |c}
+        Parameter                                                     & Upper Bound & Unit   \\
+        \hline
+        Proportion of treatment clearing blood stage disease $\alpha$ & 1           &        \\
+        Proportion of treatment clearing liver stage disease $\beta$  & 1           &        \\
+        Rate of liver stage disease clearance $\gamma_L$              & 1/30        & 1/days \\
+        Rate of infection $\lambda$                                   & 1/10        & 1/days \\
+        Rate of relapse $f$                                           & 1/14        & 1/days \\
+        Rate of blood stage disease clearance $r$                     & 1/14        & 1/days
+    \end{tabular}
+    \caption{
+        Conservative upper bounds for parameters to be calibrated.
+        Values were informed by
+        \cite{champagne_using_2022, white_variation_2016}. All lower bounds
+        were zero.
+    }
+    \label{table:param_bounds}
+\end{table}
 
-The acquisition function used was
-$$\mu(\bm\theta) - \eta_t\sqrt{\mathrm{v}(\bm\theta)}$$
-with $\eta_t:= \sqrt{2\ln(\frac{t^{2d + 2}\pi^2}{3\varepsilon})},$ and
-$\varepsilon \in (0, 1)$ that can be chosen
-(with a lower epsilon resulting in more exploration), $\mu(\bm\theta)$ and
-$\mathrm{v}(\bm\theta)$ are the posterior mean and variance.
-$\varepsilon = 0.1$ was used.
+All parameters to be calibrated were given conservative upper bounds after 
+considering values reported in the literature, which informed where to define
+the Gaussian process. Parameter values outside this range were not considered.
+
+Latin hypercube sampling was used to generate initialise 50 samples of the 
+parameter space (scaled to be between zero and the upper bounds described in 
+Table \ref{table:param_bounds}). For each set of parameters, 
+$\overline{\ln\mathcal{D}}(\bm{\theta})$ was generated. The hyper\-parameters
+$\sigma_o^2, \sigma_a^2, \ell_\alpha, \ell_\beta,
+    \ell_{\gamma_L}, \ell_\lambda, \ell_f,$
+and $\ell_r$ were selected by leave one out cross validation.
+
+The next set of parameters to sample $\overline{\ln\mathcal{D}}(\bm{\theta})$
+from were found by maximising the expected information acquisition function
 $$(\mu_\text{min} - \mu(\bm\theta))
     \varPhi\left(
     \frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}
@@ -122,6 +148,14 @@ $$(\mu_\text{min} - \mu(\bm\theta))
     \right)$$
 $\mu_\text{min} := \min_{\bm{\theta}} \mu(\bm\theta)$
 $\varPhi, \phi$
+
+
+$$\mu(\bm\theta) - \eta_t\sqrt{\mathrm{v}(\bm\theta)}$$
+with $\eta_t:= \sqrt{2\ln(\frac{t^{2d + 2}\pi^2}{3\varepsilon})},$ and
+$\varepsilon \in (0, 1)$ that can be chosen
+(with a lower epsilon resulting in more exploration), $\mu(\bm\theta)$ and
+$\mathrm{v}(\bm\theta)$ are the posterior mean and variance.
+$\varepsilon = 0.1$ was used.
 
 \subsection*{Justification}
 
