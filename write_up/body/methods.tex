@@ -1,7 +1,7 @@
 \chapter{Methods}
 
 TODO:\begin{enumerate}
-    \item Check for consistent notation
+    \item Add in symbol for gaussian process and regressed GP.
 \end{enumerate}
 
 \section{Creation of Synthetic Data}
@@ -78,11 +78,11 @@ $$
 Relative difference was chosen to limit the impact between the scale
 differences of the summary statistics.
 
-\subsection*{Gaussian Process Regression}
+\section{Gaussian Process and Initialisation}
 
 We used a Gaussian process as a surrogate model for
 $\overline{\ln\mathcal{D}}(\bm{\theta}),$ where
-$\overline{\ln\mathcal{D}}(\bm{\theta}),$ is the mean of 30 samples of
+$\overline{\ln\mathcal{D}}(\bm{\theta}),$ was the mean of 30 samples of
 $\ln\mathcal{D}(\bm{\theta}).$
 We used the kernel
 $$
@@ -95,14 +95,24 @@ $$
         5 \sum_{\theta\in \bm{\theta}}\left(
         \frac{\theta_i - \theta_i^\prime}{\ell_\theta}
         \right)^2
-    },
-$$ that is, a Mat\'ern kernel with $\nu = 5/2$ used with automatic
+    };
+$$ that is, a Mat\'ern kernel with $\nu = 5/2$ and automatic
 relevance determination - i.e.\ each parameter $\theta\in\bm{\theta}$ was
 scaled by $\ell_\theta.$ This can be seen as giving each parameter its own
 length hyperparameter. The Gaussian process was zero mean
 with `observation' variance $\sigma^2_o.$
 
-\section{Initialisation}
+Modelling the mean of the (log) discrepancy function is theoretically more 
+sound than modelling the (log) discrepancy function itself, as 
+we were not able to find theoretically sound reasons to assume normality,
+but the mean is asymptotically normal under reasonable conditions by the
+central limit theorem. For example, even under the simplest case that the
+discrepency is $L_2$ norm of $k$ differences $x_i$ where
+$x_i\sim\mathcal{N}(0, 1),$ $\sqrt{\sum_{i=1}^k x_i^2}\sim\chi(k),$ a Chi 
+distribution with $k$ degrees of freedom. 
+\textcolor{red}{
+    do I need to cite a reference for this distribution (wikipedia)
+} 
 
 \begin{table}[htbp]
     \centering
@@ -137,32 +147,32 @@ $\sigma_o^2, \sigma_a^2, \ell_\alpha, \ell_\beta,
     \ell_{\gamma_L}, \ell_\lambda, \ell_f,$
 and $\ell_r$ were selected by leave one out cross validation.
 
-The next set of parameters to sample $\overline{\ln\mathcal{D}}(\bm{\theta})$
-from were found by maximising the expected information acquisition function
-$$(\mu_\text{min} - \mu(\bm\theta))
-    \varPhi\left(
-    \frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}
-    \right) + \sqrt{\mathrm{v}(\bm\theta)}
-    \phi\left(
-    \frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}
-    \right)$$
-$\mu_\text{min} := \min_{\bm{\theta}} \mu(\bm\theta)$
-$\varPhi, \phi$
+\section{Bayesian Acquisition and Parameter Updates}
 
+For 500 iterations, the next $\bm{\theta}$ to sample 
+$\overline{\ln\mathcal{D}}(\bm{\theta})$ from
+at was found by maximising the expected information acquisition function. 
+At each iteration $t,$ 
+the gradient descent algorithm was initialised at the sample of $\bm{\theta}$
+which minimised the surogate Gaussian process model $\E(d(\bm{\theta})),$ but
+with each parameter having a 50\% chance of being initialised uniformly at 
+random between it's lower and upper bounds. Each iteration, there was a 
+$min\left[1/5 + \exp(1 - t/4), 1 \right]$ probability that one of the
+parameters in $\bm{\theta}$ -
+$\theta^*$ -
+was chosen, and $\overline{\ln\mathcal{D}}(\bm{\theta})$ was sampled at 
+$\bm{\theta}$ as well as at 11 evenly spaced values of
+$\theta^*.$ $1/5 + \exp(1 - t/4)>1$ for small $t,$ decaying to $1/5$ as $t$ is
+large. This was to help initialise the Gaussian process model, as well as
+optimise $\ell_\theta.$ Every 50 iterations, the hyperparameters were 
+reoptimised using leave one out cross validation. Finally, the synthetic 
+likelihood was calculated by $\Pr(d_GP).$
 
-$$\mu(\bm\theta) - \eta_t\sqrt{\mathrm{v}(\bm\theta)}$$
-with $\eta_t:= \sqrt{2\ln(\frac{t^{2d + 2}\pi^2}{3\varepsilon})},$ and
-$\varepsilon \in (0, 1)$ that can be chosen
-(with a lower epsilon resulting in more exploration), $\mu(\bm\theta)$ and
-$\mathrm{v}(\bm\theta)$ are the posterior mean and variance.
-$\varepsilon = 0.1$ was used.
+\chapter{Results}
 
-\subsection*{Justification}
+\chapter{Discussion}
 
-Using relative differences limits the impact between the scale differences of
-the summary statistics.
-
-\section{Running the Model and Our Choices}
+multiple runs at once parallelisable
 
 Although most of the procedure we used closely follows the paper by
 \cite{gutmann_bayesian_2016}, there are a few key ways in which we modified the
