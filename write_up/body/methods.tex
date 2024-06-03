@@ -1,14 +1,10 @@
 \chapter{Methods}
 
-TODO:\begin{enumerate}
-    \item Add in symbol for gaussian process and regressed GP.
-\end{enumerate}
-
 \section{Creation of Synthetic Data}
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\textwidth]{../champagne_GP_images/champagne_simulation.pdf}
+    \includegraphics{../champagne_GP_images/champagne_simulation.pdf}
     \caption{
         A Doob-Gillespie Simulation of the model described by
         \cite{champagne_using_2022} with $\alpha = 0.4,$ $\beta = 0.4,$
@@ -80,10 +76,11 @@ differences of the summary statistics.
 
 \section{Gaussian Process and Initialisation}
 
-We used a Gaussian process as a surrogate model for
-$\overline{\ln\mathcal{D}}(\bm{\theta}),$ where
-$\overline{\ln\mathcal{D}}(\bm{\theta}),$ was the mean of 30 samples of
-$\ln\mathcal{D}(\bm{\theta}).$
+We used a Gaussian process $d_\mathcal{GP}(\bm{\theta})$ as a surrogate model for
+$\E[\ln\mathcal{D}(\bm{\theta})].$ It was regressed on samples of
+$\overline{\ln\mathcal{D}}(\bm{\theta}),$ where 
+$\overline{\ln\mathcal{D}}(\bm{\theta})$ is the sample mean of 30 
+$\ln\mathcal{D}(\bm{\theta})$ samples.
 We used the kernel
 $$
     k(\bm{\theta}_i, \bm{\theta}_i^\prime)
@@ -100,10 +97,11 @@ $$ that is, a Mat\'ern kernel with $\nu = 5/2$ and automatic
 relevance determination - i.e.\ each parameter $\theta\in\bm{\theta}$ was
 scaled by $\ell_\theta.$ This can be seen as giving each parameter its own
 length hyperparameter. The Gaussian process was zero mean
-with `observation' variance $\sigma^2_o.$
+with `observation' variance $\sigma^2_o.$ $\sigma^2_o$ is naturally 
+intepretable as the sample mean variance.
 
 Modelling the mean of the (log) discrepancy function is theoretically more 
-sound than modelling the (log) discrepancy function itself, as 
+sound than modelling the (log) discrepancy function itself, because 
 we were not able to find theoretically sound reasons to assume normality,
 but the mean is asymptotically normal under reasonable conditions by the
 central limit theorem. For example, even under the simplest case that the
@@ -151,22 +149,30 @@ and $\ell_r$ were selected by leave one out cross validation.
 
 For 500 iterations, the next $\bm{\theta}$ to sample 
 $\overline{\ln\mathcal{D}}(\bm{\theta})$ from
-at was found by maximising the expected information acquisition function. 
-At each iteration $t,$ 
-the gradient descent algorithm was initialised at the sample of $\bm{\theta}$
-which minimised the surogate Gaussian process model $\E(d(\bm{\theta})),$ but
-with each parameter having a 50\% chance of being initialised uniformly at 
-random between it's lower and upper bounds. Each iteration, there was a 
-$min\left[1/5 + \exp(1 - t/4), 1 \right]$ probability that one of the
-parameters in $\bm{\theta}$ -
-$\theta^*$ -
+at was found by maximising the expected information acquisition function
+$\mathcal{A}_\text{EI}(\bm{\theta})$. 
+Let the current iteration be $t,$ and $d_\mathcal{GP}^{(i)}(\bm{\theta})$ 
+be the Gaussian process regressed on the
+simulated $\overline{\ln\mathcal{D}}(\bm{\theta})$s after $i$ iterations. 
+
+Each index of $\bm{\theta}$ was initialised randomly at either the 
+previous sample of $\bm{\theta}$
+which minimised $\E(d_\mathcal{GP}^{(t-1)}(\bm{\theta})),$ or uniformly at 
+random between it's lower and upper bounds. In each iteration, there was a 
+$\min\left[1/5 + \exp(1 - t/4), 1 \right]$ probability that one of the
+parameters (say $\theta^*$) in $\bm{\theta}$ 
 was chosen, and $\overline{\ln\mathcal{D}}(\bm{\theta})$ was sampled at 
 $\bm{\theta}$ as well as at 11 evenly spaced values of
-$\theta^*.$ $1/5 + \exp(1 - t/4)>1$ for small $t,$ decaying to $1/5$ as $t$ is
+$\theta^*,$ with the other parameters fixed.
+$1/5 + \exp(1 - t/4)>1$ for small $t,$ decaying to $1/5$ as $t$ is
 large. This was to help initialise the Gaussian process model, as well as
-optimise $\ell_\theta.$ Every 50 iterations, the hyperparameters were 
+optimise the $\ell_\theta$s. Every 50 iterations, the hyperparameters were 
 reoptimised using leave one out cross validation. Finally, the synthetic 
-likelihood was calculated by $\Pr(d_GP).$
+likelihood was calculated using 
+$\hat{\mathcal{L}}(\bm{\theta}) := \Pr(d_\mathcal{N}(\bm{\theta}) < \epsilon),$ 
+where 
+$d_\mathcal{N} 
+\sim \mathcal{N}(\E[d_\mathcal{GP}^{(500)}(\bm{\theta})], 30^2\sigma_o^2)$
 
 \chapter{Results}
 
