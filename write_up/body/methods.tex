@@ -4,7 +4,7 @@
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics{../champagne_GP_images/champagne_simulation.pdf}
+    \includegraphics[width = \textwidth]{../champagne_GP_images/champagne_simulation.pdf}
     \caption{
         A Doob-Gillespie Simulation of the model described by
         \cite{champagne_using_2022} with $\alpha = 0.4,$ $\beta = 0.4,$
@@ -78,8 +78,8 @@ differences of the summary statistics.
 
 We used a Gaussian process $d_\mathcal{GP}(\bm{\theta})$ as a surrogate model for
 $\E[\ln\mathcal{D}(\bm{\theta})].$ It was regressed on samples of
-$\overline{\ln\mathcal{D}}(\bm{\theta}),$ where 
-$\overline{\ln\mathcal{D}}(\bm{\theta})$ is the sample mean of 30 
+$\overline{\ln\mathcal{D}}(\bm{\theta}),$ where
+$\overline{\ln\mathcal{D}}(\bm{\theta})$ is the sample mean of 30
 $\ln\mathcal{D}(\bm{\theta})$ samples.
 We used the kernel
 $$
@@ -96,21 +96,21 @@ $$
 $$ that is, a Mat\'ern kernel with $\nu = 5/2$ and automatic
 relevance determination - i.e.\ each parameter $\theta\in\bm{\theta}$ was
 scaled by $\ell_\theta.$ This can be seen as giving each parameter its own
-length hyperparameter. The Gaussian process was zero mean
-with `observation' variance $\sigma^2_o.$ $\sigma^2_o$ is naturally 
+length hyperparameter. The Gaussian process was constant mean $m_\mathcal{GP}$
+with `observation' variance $\sigma^2_o.$ $\sigma^2_o$ is naturally
 intepretable as the sample mean variance.
 
-Modelling the mean of the (log) discrepancy function is theoretically more 
-sound than modelling the (log) discrepancy function itself, because 
+Modelling the mean of the (log) discrepancy function is theoretically more
+sound than modelling the (log) discrepancy function itself, because
 we were not able to find theoretically sound reasons to assume normality,
 but the mean is asymptotically normal under reasonable conditions by the
 central limit theorem. For example, even under the simplest case that the
 discrepency is $L_2$ norm of $k$ differences $x_i$ where
-$x_i\sim\mathcal{N}(0, 1),$ $\sqrt{\sum_{i=1}^k x_i^2}\sim\chi(k),$ a Chi 
-distribution with $k$ degrees of freedom. 
+$x_i\sim\mathcal{N}(0, 1),$ $\sqrt{\sum_{i=1}^k x_i^2}\sim\chi(k),$ a Chi
+distribution with $k$ degrees of freedom.
 \textcolor{red}{
     do I need to cite a reference for this distribution (wikipedia)
-} 
+}
 
 \begin{table}[htbp]
     \centering
@@ -133,82 +133,47 @@ distribution with $k$ degrees of freedom.
     \label{table:param_bounds}
 \end{table}
 
-All parameters to be calibrated were given conservative upper bounds after 
+All parameters to be calibrated were given conservative upper bounds after
 considering values reported in the literature, which informed where to define
 the Gaussian process. Parameter values outside this range were not considered.
 
-Latin hypercube sampling was used to generate initialise 50 samples of the 
-parameter space (scaled to be between zero and the upper bounds described in 
-Table \ref{table:param_bounds}). For each set of parameters, 
+Latin hypercube sampling was used to generate initialise 50 samples of the
+parameter space (scaled to be between zero and the upper bounds described in
+Table \ref{table:param_bounds}). For each set of parameters,
 $\overline{\ln\mathcal{D}}(\bm{\theta})$ was generated. The hyper\-parameters
-$\sigma_o^2, \sigma_a^2, \ell_\alpha, \ell_\beta,
-    \ell_{\gamma_L}, \ell_\lambda, \ell_f,$
+$m_\mathcal{GP},$ $\sigma_o^2, \sigma_a^2, \ell_\alpha,
+    \ell_\beta, \ell_{\gamma_L}, \ell_\lambda, \ell_f,$
 and $\ell_r$ were selected by leave one out cross validation.
 
 \section{Bayesian Acquisition and Parameter Updates}
 
-For 500 iterations, the next $\bm{\theta}$ to sample 
+For 500 iterations, the next $\bm{\theta}$ to sample
 $\overline{\ln\mathcal{D}}(\bm{\theta})$ from
 at was found by maximising the expected information acquisition function
-$\mathcal{A}_\text{EI}(\bm{\theta})$. 
-Let the current iteration be $t,$ and $d_\mathcal{GP}^{(i)}(\bm{\theta})$ 
+$\mathcal{A}_\text{EI}(\bm{\theta})$.
+Let the current iteration be $t,$ and $d_\mathcal{GP}^{(i)}(\bm{\theta})$
 be the Gaussian process regressed on the
-simulated $\overline{\ln\mathcal{D}}(\bm{\theta})$s after $i$ iterations. 
+simulated $\overline{\ln\mathcal{D}}(\bm{\theta})$s after $i$ iterations.
 
-Each index of $\bm{\theta}$ was initialised randomly at either the 
+Each index of $\bm{\theta}$ was initialised randomly at either the
 previous sample of $\bm{\theta}$
-which minimised $\E(d_\mathcal{GP}^{(t-1)}(\bm{\theta})),$ or uniformly at 
-random between it's lower and upper bounds. In each iteration, there was a 
+which minimised $\E(d_\mathcal{GP}^{(t-1)}(\bm{\theta})),$ or uniformly at
+random between it's lower and upper bounds. In each iteration, there was a
 $\min\left[1/5 + \exp(1 - t/4), 1 \right]$ probability that one of the
-parameters (say $\theta^*$) in $\bm{\theta}$ 
-was chosen, and $\overline{\ln\mathcal{D}}(\bm{\theta})$ was sampled at 
+parameters (say $\theta^*$) in $\bm{\theta}$
+was chosen, and $\overline{\ln\mathcal{D}}(\bm{\theta})$ was sampled at
 $\bm{\theta}$ as well as at 11 evenly spaced values of
 $\theta^*,$ with the other parameters fixed.
 $1/5 + \exp(1 - t/4)>1$ for small $t,$ decaying to $1/5$ as $t$ is
 large. This was to help initialise the Gaussian process model, as well as
-optimise the $\ell_\theta$s. Every 50 iterations, the hyperparameters were 
-reoptimised using leave one out cross validation. Finally, the synthetic 
-likelihood was calculated using 
-$\hat{\mathcal{L}}(\bm{\theta}) := \Pr(d_\mathcal{N}(\bm{\theta}) < \epsilon),$ 
-where 
-$d_\mathcal{N} 
-\sim \mathcal{N}(\E[d_\mathcal{GP}^{(500)}(\bm{\theta})], 30^2\sigma_o^2)$
-
-\chapter{Results}
-
-\chapter{Discussion}
-
-multiple runs at once parallelisable
-
-Although most of the procedure we used closely follows the paper by
-\cite{gutmann_bayesian_2016}, there are a few key ways in which we modified the
-manuscript's method. In particular, we felt the choice of squared exponential
-kernel was not a good assumption, since it implicitly assumes a high degree of
-smoothness in the target discrepency function. This is unlikely to be met if
-the model has any bifurcation points. To compensate for any non-smoothness in
-the function, the length scale is forced to be set very small. Therefore,
-although the squared exponential is the most commonly chosen kernel,
-we used a Mat\'ern kernel with $\nu = 5/2$. This is not as constrained as a
-squared exponential kernel, but realisations are twice mean square
-differentiable.
-
-A constant mean was used, rather than the quadratic mean, because the
-parameters are well bounded, and we don't need to worry about what happens when
-they go to infinity. Post-hoc mean fitting could be done on the discrepencies
-sampled space in order to extend the likelihood into regions that haven't been
-tested without reverting to the mean function.
-
-There seems to be a mistake in \cite{gutmann_bayesian_2016}, where the
-exploration parameters is written as
-$\eta_t:= \sqrt{2\ln(\frac{t^{2d + 2}\pi^2}{3\varepsilon})}.$ This seems to be
-inherited from \cite{brochu_tutorial_2010}. We use Brochu's original citation
-\cite{srinivas_gaussian_2010} to revise this to
-$\eta_t:= \sqrt{2\ln(\frac{t^{2d + 2}\pi^2}{3\varepsilon})}.$
-\footnote{One Python package that implements BOLFI notes this error, see:
-    \url{https://github.com/elfi-dev/elfi/blob/dev/elfi/methods/bo/acquisition.py}}
+optimise the $\ell_\theta$s. Every 50 iterations, the hyperparameters were
+reoptimised using leave one out cross validation. Finally, the synthetic
+likelihood was calculated using
+$\hat{\mathcal{L}}(\bm{\theta}) := \Pr(d_\mathcal{N}(\bm{\theta}) < \epsilon),$
+where
+$d_\mathcal{N}
+    \sim \mathcal{N}(\E[d_\mathcal{GP}^{(500)}(\bm{\theta})], 30^2\sigma_o^2)$
 
 The Gaussian process and Gaussian process regression was implemented using
-TensorFlow in Python \cite{abadi_tensorflow_2015}.
-
-\section{Results}
+TensorFlow in Python \parencite{abadi_tensorflow_2015}.
 

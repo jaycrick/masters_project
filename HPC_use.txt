@@ -1,0 +1,13 @@
+salloc -c 8 --mem 16GB --gres gpu:1 --partition
+
+create venv
+
+then load venv
+module load quarto
+
+#SBATCH --gres gpu:A30:1
+#SBATCH --partition gpuq
+
+quarto render 
+
+start a30s then can a100
