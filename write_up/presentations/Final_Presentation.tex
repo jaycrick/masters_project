@@ -159,27 +159,27 @@
     \end{itemize}
 \end{frame}
 
-\begin{frame}
-    \frametitle{Ordinary Differential Equations - Champagne et.\ al}
-    \begin{align*}
-        \frac{\diff I_\mathrm{L}}{\diff t}
-        = & (1 - \alpha)(\lambda I_\mathrm{total} + \delta)(S_0 + S_\mathrm{L})
-        + (\lambda I_\mathrm{total} + \delta)I_0                                        \\
-          & + (1 - \alpha)fS_\mathrm{L} - \gamma_\mathrm{L}I_\mathrm{L}
-        - rI_\mathrm{L}                                                                 \\
-        \frac{\diff I_0}{\diff t}
-        = & -(\lambda I_\mathrm{total} + \delta)I_0
-        + \gamma_\mathrm{L}I_\mathrm{L} - rI_0                                          \\
-        \frac{\diff S_\mathrm{L}}{\diff t}
-        = & -(1 - \alpha(1 - \beta))(\lambda I_\mathrm{total} + \delta + f)S_\mathrm{L} \\
-          & + \alpha(1-\beta)(\lambda I_\mathrm{total} + \delta)S_0
-        - \gamma_\mathrm{L}S_\mathrm{L} + rI_\mathrm{L}                                 \\
-        \frac{\diff S_0}{\diff t}
-        = & -(1 - \alpha\beta)(\lambda I_\mathrm{total} + \delta)S_0
-        + (\lambda I_\mathrm{total} + \delta)\alpha\beta S_\mathrm{L}                   \\
-          & + \alpha\beta fS_\mathrm{L} + \gamma_\mathrm{L}S_\mathrm{L} + rI_0
-    \end{align*}
-\end{frame}
+% \begin{frame}
+%     \frametitle{Ordinary Differential Equations - Champagne et.\ al}
+%     \begin{align*}
+%         \frac{\diff I_\mathrm{L}}{\diff t}
+%         = & (1 - \alpha)(\lambda I_\mathrm{total} + \delta)(S_0 + S_\mathrm{L})
+%         + (\lambda I_\mathrm{total} + \delta)I_0                                        \\
+%           & + (1 - \alpha)fS_\mathrm{L} - \gamma_\mathrm{L}I_\mathrm{L}
+%         - rI_\mathrm{L}                                                                 \\
+%         \frac{\diff I_0}{\diff t}
+%         = & -(\lambda I_\mathrm{total} + \delta)I_0
+%         + \gamma_\mathrm{L}I_\mathrm{L} - rI_0                                          \\
+%         \frac{\diff S_\mathrm{L}}{\diff t}
+%         = & -(1 - \alpha(1 - \beta))(\lambda I_\mathrm{total} + \delta + f)S_\mathrm{L} \\
+%           & + \alpha(1-\beta)(\lambda I_\mathrm{total} + \delta)S_0
+%         - \gamma_\mathrm{L}S_\mathrm{L} + rI_\mathrm{L}                                 \\
+%         \frac{\diff S_0}{\diff t}
+%         = & -(1 - \alpha\beta)(\lambda I_\mathrm{total} + \delta)S_0
+%         + (\lambda I_\mathrm{total} + \delta)\alpha\beta S_\mathrm{L}                   \\
+%           & + \alpha\beta fS_\mathrm{L} + \gamma_\mathrm{L}S_\mathrm{L} + rI_0
+%     \end{align*}
+% \end{frame}
 
 % Even with improved techniques (tau leaping)
 \begin{frame}
@@ -213,19 +213,25 @@
     \begin{itemize}
         \item There would be an explicit form for the likelihood:
               $$
-                  \mathcal{L}(\bm{\theta}|\mathbf{Y}_\text{obs})
-                  := \Pr(\mathbf{Y}_\text{obs} | \bm{\theta})
+                  \mathcal{L}(\bm{\theta})
+                  := \Pr(
+                  \mathbf{Y}_{\bm{\theta}} = \mathbf{Y}_\text{obs}
+                  | \bm{\theta}
+                  )
               $$
-        \item <2-> $\hat{\bm{\theta}} = \argmax_{\bm{\theta}} \mathcal{L}(\bm{\theta}|\mathbf{Y}_\text{obs})$
-        \item <3-> $\Pr(\bm{\theta}|\mathbf{Y}_\text{obs}) \propto \Pr(\mathbf{Y}_\text{obs}| \bm\theta)\Pr(\bm{\theta})$
-        \item <4-> Off to the pub
+        \item $\hat{\bm{\theta}}
+                  = \argmax_{\bm{\theta}} \mathcal{L}(\bm{\theta})$
+        \item $\Pr(\bm{\theta}|\mathbf{Y}_\text{obs})
+                  \propto \mathcal{L}(\bm{\theta})\Pr(\bm{\theta})$
+        \item Off to the pub
     \end{itemize}
 \end{frame}
 
 \begin{frame}
     \frametitle{Or not...}
     \begin{itemize}
-        \item Explicit likelihoods often don't exist/are intractible \begin{itemize}
+        \item Explicit likelihoods often don't exist/are intractible
+              \begin{itemize}
                   \item Champagne model
                   \item Agent based models.
               \end{itemize}
@@ -386,49 +392,49 @@
     \end{figure}
 \end{frame}
 
-\begin{frame}
-    \frametitle{Equivalent GP definition}
-    \begin{definnn}[Gaussian Process]
-        A collection of random variables $\{f\,(\mathbf{x})\}_{\mathbf{x}\in\R^d}$
-        is a \emph{Gaussian process} if there is a function
-        $m:\mathcal{\mathbf{x}}\to\R$ and covariance kernel
-        $k:\mathcal{Y}\times\mathcal{Y}\to \R$
-        such that for all $\{\mathbf{x}_1, \mathbf{x}_2, \dots, \mathbf{x}_n\},$
-        $$\begin{bmatrix}
-                f\,(\mathbf{x}_1) \\ f\,(\mathbf{x}_2)\\ \vdots\\ f\,(\mathbf{x}_n)
-            \end{bmatrix} \sim
-            \MVN\left(\begin{bmatrix}
-                m(\mathbf{x}_1) \\ m(\mathbf{x}_2)\\ \vdots\\ m(\mathbf{x}_n)
-            \end{bmatrix},\, \mathbf{K}\right)$$
-        where $\mathbf{K}_{ij} := k(\mathbf{x}_i, \mathbf{x}_j).$
-    \end{definnn}
-\end{frame}
+% \begin{frame}
+%     \frametitle{Equivalent GP definition}
+%     \begin{definnn}[Gaussian Process]
+%         A collection of random variables $\{f\,(\mathbf{x})\}_{\mathbf{x}\in\R^d}$
+%         is a \emph{Gaussian process} if there is a function
+%         $m:\mathcal{\mathbf{x}}\to\R$ and covariance kernel
+%         $k:\mathcal{Y}\times\mathcal{Y}\to \R$
+%         such that for all $\{\mathbf{x}_1, \mathbf{x}_2, \dots, \mathbf{x}_n\},$
+%         $$\begin{bmatrix}
+%                 f\,(\mathbf{x}_1) \\ f\,(\mathbf{x}_2)\\ \vdots\\ f\,(\mathbf{x}_n)
+%             \end{bmatrix} \sim
+%             \MVN\left(\begin{bmatrix}
+%                 m(\mathbf{x}_1) \\ m(\mathbf{x}_2)\\ \vdots\\ m(\mathbf{x}_n)
+%             \end{bmatrix},\, \mathbf{K}\right)$$
+%         where $\mathbf{K}_{ij} := k(\mathbf{x}_i, \mathbf{x}_j).$
+%     \end{definnn}
+% \end{frame}
 
-\begin{frame}
-    \frametitle{$k$ Determines Smoothness}
-    \begin{figure}
-        \centering
-        \begin{subfigure}[t]{0.4\textwidth}
-            \centering
-            \includegraphics[width=\textwidth]{maternonehalf_kernel.pdf}
-        \end{subfigure}%
-        \begin{subfigure}[t]{0.4\textwidth}
-            \centering
-            \includegraphics[width=\textwidth]{maternthreehalves_kernel.pdf}
-        \end{subfigure}
-        \begin{subfigure}[t]{0.4\textwidth}
-            \centering
-            \includegraphics[width=\textwidth]{maternfivehalves_kernel.pdf}
-        \end{subfigure}%
-        \begin{subfigure}[t]{0.4\textwidth}
-            \centering
-            \includegraphics[width=\textwidth]{exponentiated_kernel.pdf}
-        \end{subfigure}%
-        \caption{
-            Mat\'ern 1/2, 3/2, 5/2, and squared exponential kernels.
-        }
-    \end{figure}
-\end{frame}
+% \begin{frame}
+%     \frametitle{$k$ Determines Smoothness}
+%     \begin{figure}
+%         \centering
+%         \begin{subfigure}[t]{0.4\textwidth}
+%             \centering
+%             \includegraphics[width=\textwidth]{maternonehalf_kernel.pdf}
+%         \end{subfigure}%
+%         \begin{subfigure}[t]{0.4\textwidth}
+%             \centering
+%             \includegraphics[width=\textwidth]{maternthreehalves_kernel.pdf}
+%         \end{subfigure}
+%         \begin{subfigure}[t]{0.4\textwidth}
+%             \centering
+%             \includegraphics[width=\textwidth]{maternfivehalves_kernel.pdf}
+%         \end{subfigure}%
+%         \begin{subfigure}[t]{0.4\textwidth}
+%             \centering
+%             \includegraphics[width=\textwidth]{exponentiated_kernel.pdf}
+%         \end{subfigure}%
+%         \caption{
+%             Mat\'ern 1/2, 3/2, 5/2, and squared exponential kernels.
+%         }
+%     \end{figure}
+% \end{frame}
 
 \begin{frame}
     \frametitle{Gaussian Process Continuity}
@@ -443,6 +449,7 @@
 \begin{frame}
     \frametitle{Common Covariance Kernels}
     \begin{itemize}
+        \item Choice of kernel determines smoothness
         \item Mat\'ern Kernel with hyperparameter $\nu:$
               $\lfloor{\nu}\rfloor$ times mean square differentiable.
         \item $\nu\to\infty:$ infinitely mean square differentiable squared
@@ -664,7 +671,7 @@
                   \overset{d}{\approx} \mathcal{D}(\bm{\theta}^\prime)$ for
               $\bm{\theta}$, $\bm{\theta}^\prime$ close.
         \item $\mathcal{D}(\bm{\theta})$ approximately distributed
-              $N(\cdot, \sigma^2_0$) with $\sigma^2_o$ independent of
+              $N(\cdot, \sigma^2_o$) with $\sigma^2_o$ independent of
               $\bm{\theta}.$
         \item $\E[\mathcal{D}(\bm{\theta})]$ can be well approximated by a
               Gaussian process.
@@ -705,15 +712,17 @@
 \begin{frame}
     \frametitle{Synthetic Likelihood}
 
-    The probability of drawing and accepting $\bm{\theta}$ under the ABC is
+    $\Pr$ drawing and accepting $\bm{\theta}$ using
+    `approximate' ABC is
     $$
         \Pr(\mathcal{D}_{\mathcal{GP}}(\bm{\theta}) < \varepsilon)
         \Pr(\bm{\theta})
     $$
-    and hence we consider $L(\bm\theta | \mathbf{Y}_\text{obs})
-        := \Pr(\mathcal{D}_{\mathcal{GP}}(\bm{\theta}) < \varepsilon)$ a synthetic
+    and hence we consider $\hat{L}(\bm\theta)
+        := \Pr(\mathcal{D}_{\mathcal{GP}}(\bm{\theta}) < \varepsilon)$
+    a synthetic
     likelihood - an approximation of the true likelihood
-    $\mathcal{L}(\bm\theta | \mathbf{Y}_\text{obs})$
+    $\mathcal{L}(\bm\theta)$
 \end{frame}
 
 \begin{frame}
@@ -727,7 +736,7 @@
                             \overset{d}{\approx} \ln \mathcal{D}(\bm{\theta}^\prime)$ for
                         $\bm{\theta}$, $\bm{\theta}^\prime$ close.
                   \item $\mathcal{D}(\bm{\theta})$ approximately distributed
-                        $LN(\cdot, \sigma^2_0$) with $\sigma^2_o$ independent of
+                        $LN(\cdot, \sigma^2_o$) with $\sigma^2_o$ independent of
                         $\bm{\theta}.$
                   \item $\E[\ln \mathcal{D}(\bm{\theta})]$ can be well approximated by a
                         Gaussian process.
@@ -737,8 +746,6 @@
                   \approx \Pr(d_\mathcal{GP}(\bm{\theta}_i) < \ln\varepsilon)
               $$
     \end{itemize}
-
-
 \end{frame}
 
 \begin{frame}
@@ -769,19 +776,22 @@
 \begin{frame}
     \frametitle{Bayesian Acquisition Functions}
     \begin{itemize}
-        \only<1>{
-        \item Quantify where we expect $\mathcal{D}(\bm{\theta})$ small and highly
-              unknown with Bayesian acquisition function $A,$ and choose
-              $\argmin_{\bm{\theta}}A(\bm\theta)$}
-              \only<2>{
-        \item \cite{gutmann_bayesian_2016} use lower confidence bound
-              $$A_\text{LCB}(\bm\theta) := \mu(\bm\theta) - \eta_t\sqrt{\mathrm{v}(\bm\theta)}$$ \begin{itemize}
-                  \item $\mu(\bm\theta),$
-                        $\mathrm{v}(\bm\theta)$ are posterior mean and variance of
-                        $D_\mathcal{GP}(\bm{\theta})$
+        \item $\mu(\bm{\theta}) := \E(D_\mathcal{GP}(\bm{\theta}))$ and
+              $\mathrm{v}(\bm{\theta})
+                  := \mathrm{Var}(D_\mathcal{GP}(\bm{\theta}))$
+        \item Bayesian acquisition functions $A(\bm{\theta}),$ quantify how
+              `desirable' it is to sample $\mathcal{D}(\bm{\theta})$ at
+              $\bm{\theta}.$
+        \item <2-> \cite{gutmann_bayesian_2016} minimise lower confidence bound
+              $$
+                  A_\text{LCB}(\bm\theta)
+                  := \mu(\bm\theta) - \eta_t\sqrt{\mathrm{v}(\bm\theta)},
+              $$
+              the lower value of a confidence interval (determined by $\eta_t$).
+              \begin{itemize}
                   \item $\eta_t$ a slowly increasing function in $t,$ the
                         number of previous samples
-              \end{itemize}}
+              \end{itemize}
               \only<3>{\item Expected information
               \begin{align*}
                   A_\text{EI}(\bm\theta)
@@ -798,7 +808,7 @@
 \end{frame}
 
 \begin{frame}
-    \frametitle{Lower Confidence Bound}
+    \frametitle{Lower Confidence Bound example}
     \begin{figure}
         \centering
         \begin{subfigure}[t]{0.4\textwidth}
@@ -956,10 +966,11 @@
     \frametitle{Discussion}
     \begin{itemize}
         \item Observation variance is considered constant across the GP (or log GP)\begin{itemize}
-                  \item Particularly a problem at the threshold
+                  \item Particularly a problem at bifurcation points
               \end{itemize}
-        \item Assumes that normal/log-normal distribution approximates $\mathcal{D}(\bm{\theta})$
-        \item Jumps where there is threshold/bifurcation behaviour\begin{itemize}
+        \item Assumes that normal/log-normal distribution approximates 
+        $\mathcal{D}(\bm{\theta})$
+        \item Jumps where there is bifurcation behaviour\begin{itemize}
                   \item Student $t-$Process?
               \end{itemize}
     \end{itemize}
