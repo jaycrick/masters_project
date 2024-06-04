@@ -18,6 +18,8 @@ import pandas as pd
 import numpy as np
 from typing import Any
 import matplotlib.pyplot as plt
+import multiprocessing as mp
+import pickle
 import random
 
 from scipy.stats import qmc
@@ -45,7 +47,7 @@ np.random.seed(590154)
 population = 1000
 initial_infecteds = 10
 epidemic_length = 1000
-number_of_events = 15000
+number_of_events = 30000
 
 pv_champ_alpha = 0.4  # prop of effective care
 pv_champ_beta = 0.4  # prop of radical cure
@@ -79,7 +81,9 @@ def champagne_stochastic(
     delta_=0,
     end_time=epidemic_length,
     num_events=number_of_events,
+    seed=12,
 ):
+    np.random.seed(seed)
     if (0 > (alpha_ or beta_)) or (1 < (alpha_ or beta_)):
         return "Alpha or Beta out of bounds"
     if 0 > (gamma_L or lambda_ or f or r):
@@ -263,8 +267,8 @@ def incidence(df, start, days):
     return incidence_week
 
 
-def champ_sum_stats(alpha_, beta_, gamma_L, lambda_, f, r):
-    champ_df_ = champagne_stochastic(alpha_, beta_, gamma_L, lambda_, f, r)
+def champ_sum_stats(alpha_, beta_, gamma_L, lambda_, f, r, seed=12301923):
+    champ_df_ = champagne_stochastic(alpha_, beta_, gamma_L, lambda_, f, r, seed=seed)
     fin_t = champ_df_.iloc[-1]["t"]
     first_month_inc = incidence(champ_df_, 0, 30)
     fin_t = champ_df_.iloc[-1]["t"]
@@ -283,18 +287,22 @@ observed_sum_stats = champ_sum_stats(
     pv_champ_r,
 )
 
+print(observed_sum_stats)
 
-def discrepency_fn(alpha_, beta_, gamma_L, lambda_, f, r, mean_of = 30):  # best is L1 norm
-    mean_obs = 0
-    for i in range(mean_of):
-        x = champ_sum_stats(alpha_, beta_, gamma_L, lambda_, f, r)
-        mean_obs += (
-            1
-            / mean_of
-            * np.log(np.linalg.norm((x - observed_sum_stats) / observed_sum_stats))
-        )
-    # return np.sum(np.abs((x - observed_sum_stats) / observed_sum_stats))
-    # return np.linalg.norm((x - observed_sum_stats) / observed_sum_stats)
+
+def single_discrepency(alpha_, beta_, gamma_L, lambda_, f, r, seed=12301923):
+    x = champ_sum_stats(alpha_, beta_, gamma_L, lambda_, f, r, seed=seed)
+    return np.log(np.linalg.norm((x - observed_sum_stats) / observed_sum_stats))
+
+
+def discrepency_fn(alpha_, beta_, gamma_L, lambda_, f, r, mean_of=30):
+    seed = int(np.random.uniform() * 1000000)
+    with mp.Pool(processes=mp.cpu_count()) as pool:
+        args = [
+            (alpha_, beta_, gamma_L, lambda_, f, r, seed * i) for i in range(mean_of)
+        ]
+        results = pool.starmap(single_discrepency, args)
+    mean_obs = np.mean(results)
     return mean_obs
 ```
 
@@ -575,7 +583,7 @@ observation_noise_variance_champ = tfp.util.TransformedVariable(
 length_scales_champ = tfp.util.TransformedVariable(
     bijector=tfb.Sigmoid(
         np.float64(0.0),
-        [1.0 / 4, 1.0 / 4, gamma_L_max / 4, lambda_max / 4, f_max / 4, r_max / 4],
+        [1.0 / 2, 1.0 / 2, gamma_L_max / 2, lambda_max / 2, f_max / 2, r_max / 2],
     ),
     initial_value=[1 / 8, 1 / 8, gamma_L_max / 8, lambda_max / 8, f_max / 8, r_max / 8],
     dtype=np.float64,
@@ -612,82 +620,43 @@ Adam_optim = tf.keras.optimizers.Adam(learning_rate=0.01)
 
 ```{python}
 # predictive log stuff
-# @tf.function(autograph=False, jit_compile=False)
-# def optimize():
-#     with tf.GradientTape() as tape:
-#         K = (
-#             champ_GP.kernel.matrix(index_vals, index_vals)
-#             + tf.eye(index_vals.shape[0], dtype=np.float64)
-#             * observation_noise_variance_champ
-#         )
-#         means = champ_GP.mean_fn(index_vals)
-#         K_inv = tf.linalg.inv(K)
-#         K_inv_y = K_inv @ tf.reshape(obs_vals - means, shape=[obs_vals.shape[0], 1])
-#         K_inv_diag = tf.linalg.diag_part(K_inv)
-#         log_var = tf.math.log(K_inv_diag)
-#         log_mu = tf.reshape(K_inv_y, shape=[-1]) ** 2
-#         loss = -tf.math.reduce_sum(log_var - log_mu)
-#     grads = tape.gradient(loss, champ_GP.trainable_variables)
-#     Adam_optim.apply_gradients(zip(grads, champ_GP.trainable_variables))
-#     return loss
-
-
-# num_iters = 10000
-
-# lls_ = np.zeros(num_iters, np.float64)
-# tolerance = 1e-6  # Set your desired tolerance level
-# previous_loss = float("inf")
-
-# for i in range(num_iters):
-#     loss = optimize()
-#     lls_[i] = loss
-
-#     # Check if change in loss is less than tolerance
-#     if abs(loss - previous_loss) < tolerance:
-#         print(f"Hyperparameter convergence reached at iteration {i+1}.")
-#         lls_ = lls_[range(i + 1)]
-#         break
-
-#     previous_loss = loss
-```
-
-### Maximum Likelihood Estimation
-
-```{python}
-# Now we optimize the model parameters.
-num_iters = 1000
-
-# Use `tf.function` to trace the loss for more efficient evaluation.
 @tf.function(autograph=False, jit_compile=False)
-def train_model():
+def optimize():
     with tf.GradientTape() as tape:
-        loss = -champ_GP.log_prob(obs_vals)
+        K = (
+            champ_GP.kernel.matrix(index_vals, index_vals)
+            + tf.eye(index_vals.shape[0], dtype=np.float64)
+            * observation_noise_variance_champ
+        )
+        means = champ_GP.mean_fn(index_vals)
+        K_inv = tf.linalg.inv(K)
+        K_inv_y = K_inv @ tf.reshape(obs_vals - means, shape=[obs_vals.shape[0], 1])
+        K_inv_diag = tf.linalg.diag_part(K_inv)
+        log_var = tf.math.log(K_inv_diag)
+        log_mu = tf.reshape(K_inv_y, shape=[-1]) ** 2
+        loss = -tf.math.reduce_sum(log_var - log_mu)
     grads = tape.gradient(loss, champ_GP.trainable_variables)
     Adam_optim.apply_gradients(zip(grads, champ_GP.trainable_variables))
     return loss
 
 
-# Store the likelihood values during training, so we can plot the progress
+num_iters = 10000
+
 lls_ = np.zeros(num_iters, np.float64)
+tolerance = 1e-6  # Set your desired tolerance level
+previous_loss = float("inf")
+
 for i in range(num_iters):
-    loss = train_model()
+    loss = optimize()
     lls_[i] = loss
 
-print("Trained parameters:")
-print("amplitude: {}".format(amplitude_champ._value().numpy()))
-print("length_scales: {}".format(length_scales_champ._value().numpy()))
-print(
-    "observation_noise_variance: {}".format(
-        observation_noise_variance_champ._value().numpy()
-    )
-)
+    # Check if change in loss is less than tolerance
+    if abs(loss - previous_loss) < tolerance:
+        print(f"Hyperparameter convergence reached at iteration {i+1}.")
+        lls_ = lls_[range(i + 1)]
+        break
 
-# Plot the loss evolution
-plt.figure(figsize=(12, 4))
-plt.plot(lls_)
-plt.xlabel("Training iteration")
-plt.ylabel("Log marginal likelihood")
-plt.show()
+    previous_loss = loss
 ```
 
 ```{python}
@@ -703,12 +672,12 @@ for var in champ_GP.trainable_variables:
                     tfb.Sigmoid(
                         np.float64(0.0),
                         [
-                            1.0 / 4,
-                            1.0 / 4,
-                            gamma_L_max / 4,
-                            lambda_max / 4,
-                            f_max / 4,
-                            r_max / 4,
+                            1.0 / 2,
+                            1.0 / 2,
+                            gamma_L_max / 2,
+                            lambda_max / 2,
+                            f_max / 2,
+                            r_max / 2,
                         ],
                     )
                     .forward(var)
@@ -723,7 +692,7 @@ for var in champ_GP.trainable_variables:
                 )
             )
 
-
+initial_losses_LOOCV = lls_
 ```
 
 ```{python}
@@ -740,6 +709,7 @@ plt.show()
 
 ```{python}
 plot_samp_no = 21
+plot_samp_times = 10
 plot_gp_no = 100
 gp_samp_no = 30
 ```
@@ -756,7 +726,7 @@ slice_samples_dict = {
             np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
         ),
         axis=1,
-    ), 5, axis = 0),
+    ), plot_samp_times,  axis = 0),
     "alpha_gp_samples": np.concatenate(
         (
             np.linspace(0, 1, plot_gp_no, dtype=np.float64).reshape(-1, 1),  # alpha
@@ -778,7 +748,7 @@ slice_samples_dict = {
             np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
         ),
         axis=1,
-    ), 5, axis = 0),
+    ), plot_samp_times,  axis = 0),
     "beta_gp_samples": np.concatenate(
         (
             np.repeat(pv_champ_alpha, plot_gp_no).reshape(-1, 1),  # alpha
@@ -800,7 +770,7 @@ slice_samples_dict = {
             np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
         ),
         axis=1,
-    ), 5, axis = 0),
+    ), plot_samp_times,  axis = 0),
     "gamma_L_gp_samples": np.concatenate(
         (
             np.repeat(pv_champ_alpha, plot_gp_no).reshape(-1, 1),  # alpha
@@ -822,7 +792,7 @@ slice_samples_dict = {
             np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
         ),
         axis=1,
-    ), 5, axis = 0),
+    ), plot_samp_times,  axis = 0),
     "lambda_gp_samples": np.concatenate(
         (
             np.repeat(pv_champ_alpha, plot_gp_no).reshape(-1, 1),  # alpha
@@ -844,7 +814,7 @@ slice_samples_dict = {
             np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
         ),
         axis=1,
-    ), 5, axis = 0),
+    ), plot_samp_times,  axis = 0),
     "f_gp_samples": np.concatenate(
         (
             np.repeat(pv_champ_alpha, plot_gp_no).reshape(-1, 1),  # alpha
@@ -866,7 +836,7 @@ slice_samples_dict = {
             np.linspace(0, r_max, plot_samp_no, dtype=np.float64).reshape(-1, 1), # r
         ),
         axis=1,
-    ), 5, axis = 0),
+    ), plot_samp_times,  axis = 0),
     "r_gp_samples": np.concatenate(
         (
             np.repeat(pv_champ_alpha, plot_gp_no).reshape(-1, 1),  # alpha
@@ -889,6 +859,7 @@ vars = ["alpha", "beta", "gamma_L", "lambda", "f", "r"]
 slice_indices_dfs_dict = {}
 slice_index_vals_dict = {}
 slice_discrepencies_dict = {}
+gp_samples_dict = {}
 
 for var in vars:
     val_df = pd.DataFrame(
@@ -896,14 +867,15 @@ for var in vars:
     )
     slice_indices_dfs_dict[var + "_slice_indices_df"] = val_df
     slice_index_vals_dict[var + "_slice_index_vals"] = val_df.values
-    discreps = val_df.apply(
-        lambda x: discrepency_fn(
-            x["alpha"], x["beta"], x["gamma_L"], x["lambda"], x["f"], x["r"], mean_of = 1
-        ),
-        axis=1,
-    )
-    slice_discrepencies_dict[var + "_slice_discrepencies"] = discreps
 
+    df_temp = val_df.assign(seed=range(val_df.shape[0]))
+    seed = int(np.random.uniform() * 1000000)
+    with mp.Pool(processes=mp.cpu_count()) as pool:
+        args = list(df_temp.itertuples(index=False, name=None))
+        results = pool.starmap(single_discrepency, args)
+
+    discreps = results
+    slice_discrepencies_dict[var + "_slice_discrepencies"] = discreps
 
     gp_samples_df = pd.DataFrame(
         slice_samples_dict[var + "_gp_samples"], columns=variables_names
@@ -922,11 +894,14 @@ for var in vars:
     )
     GP_samples = champ_GP_reg_plot.sample(gp_samp_no, seed=GP_seed)
 
+    gp_samples_dict[var + "initial_gp_samps"] = GP_samples
+
     plt.figure(figsize=(6, 3.5))
     plt.scatter(
         val_df[var].values,
         discreps,
-        label = "Simulation Discrepencies",
+        label="Simulation Discrepencies",
+        alpha=0.6,
     )
     for i in range(gp_samp_no):
         plt.plot(
@@ -938,7 +913,9 @@ for var in vars:
         )
     plt.plot(
         slice_indices_dfs_dict[var + "_gp_indices_df"][var].values,
-        champ_GP_reg_plot.mean_fn(slice_indices_dfs_dict[var + "_gp_indices_df"].values),
+        champ_GP_reg_plot.mean_fn(
+            slice_indices_dfs_dict[var + "_gp_indices_df"].values
+        ),
         c="black",
         alpha=1,
         label="Posterior Mean",
@@ -1399,9 +1376,11 @@ for t in range(501):
 
     print("The mean of the samples was {}".format(new_discrepency.round(3)))
 
-    slice_var = [next_alpha, next_beta, next_gamma_L, next_lambda, next_f, next_r][t % 6]
+    slice_var = [next_alpha, next_beta, next_gamma_L, next_lambda, next_f, next_r][
+        t % 6
+    ]
     for val in all_slices[t % 6]:
-        if np.random.uniform() < 1/5 + np.exp(1 - t/4):
+        if np.random.uniform() < 1 / 5 + np.exp(1 - t / 4):
             slice_var.assign(val)
 
             new_params = np.array(
@@ -1469,12 +1448,12 @@ for t in range(501):
                             tfb.Sigmoid(
                                 np.float64(0.0),
                                 [
-                                    1.0 / 4,
-                                    1.0 / 4,
-                                    gamma_L_max / 4,
-                                    lambda_max / 4,
-                                    f_max / 4,
-                                    r_max / 4,
+                                    1.0 / 2,
+                                    1.0 / 2,
+                                    gamma_L_max / 2,
+                                    lambda_max / 2,
+                                    f_max / 2,
+                                    r_max / 2,
                                 ],
                             )
                             .forward(train_var)
@@ -1501,6 +1480,7 @@ for t in range(501):
                 mean_fn=const_mean_fn(),
             )
             GP_samples = champ_GP_reg_plot.sample(gp_samp_no, seed=GP_seed)
+            gp_samples_dict[var + "_gp_samps" + str(t) + "iters"] = GP_samples
 
             plt.figure(figsize=(6, 3.5))
             plt.scatter(
@@ -1552,7 +1532,9 @@ for t in range(501):
 ```
 
 ```{python}
-epsilon = -1.5
+epsilon = -2
+
+likelihood_dict = {}
 for var in vars:
     champ_GP_reg = tfd.GaussianProcessRegressionModel(
         kernel=kernel_champ,
@@ -1567,9 +1549,10 @@ for var in vars:
     indices_for_lik = slice_indices_dfs_dict[var + "_gp_indices_df"].values
 
     mean = champ_GP_reg.mean_fn(indices_for_lik)
-    variance = champ_GP_reg.variance(index_points=indices_for_lik)
+    variance = 30**2 * observation_noise_variance_champ.numpy()
     post_std = np.sqrt(variance)
     cdf_vals = tfd.Normal(mean, post_std).log_cdf(epsilon)
+    likelihood_dict[var + "_synth_lik"] = cdf_vals
 
     plt.figure(figsize=(6, 3.5))
     plt.plot(
@@ -1584,11 +1567,7 @@ for var in vars:
         plt.title("Final Sythetic Likelihood for $\\" + var + "$ Slice")
     plt.ylabel("Synthetic likelihood")
     plt.savefig(
-        "champagne_GP_images/"
-        + var
-        + "_slice_"
-        + str(t)
-        + "_synth_likelihood.pdf"
+        "champagne_GP_images/" + var + "_slice_" + str(t) + "_synth_likelihood.pdf"
     )
     plt.show()
 ```
@@ -1604,4 +1583,23 @@ print(index_vals[-8,].round(3))
 print(index_vals[-4,].round(3))
 print(index_vals[-2,].round(3))
 print(index_vals[-1,].round(3))
+```
+
+```{python}
+objects_to_preserve = [
+    index_vals,
+    discreps,
+    champ_samp,
+    initial_losses_LOOCV,
+    slice_samples_dict,
+    slice_discrepencies_dict,
+    LHC_indices_df,
+    gp_samples_dict,
+    likelihood_dict,
+]
+
+with open("gp_objs.pkl", "wb") as fp:
+    pickle.dump(objects_to_preserve, fp)
+    print("dictionary saved successfully to file")
+
 ```
