@@ -45,22 +45,24 @@ for device in gpu_devices:
 np.random.seed(590154)
 
 population = 10000
-initial_infecteds = 10
-epidemic_length = 1000 # not used
-number_of_events = 300000
+initial_infecteds = 100
+epidemic_length = 1000  # not used
+number_of_events = 200000
 
-pv_champ_alpha = 0.4  # prop of effective care
-pv_champ_beta = 0.4  # prop of radical cure
+pv_champ_alpha = 0.95 * 0.13  # prop of effective care
+pv_champ_beta = 0.429  # prop of radical cure
 pv_champ_gamma_L = 1 / 383  # liver stage clearance rate
 pv_champ_delta = 0.05  # prop of imported cases
-pv_champ_lambda = 0.04  # transmission rate
-pv_champ_f = 1 / 72  # relapse frequency
+pv_champ_lambda = 0.01  # transmission rate
+pv_champ_f = 1 / 69  # relapse frequency
 pv_champ_r = 1 / 60  # blood stage clearance rate
 
-gamma_L_max = 1/30
-lambda_max = 0.1
-f_max = 1/14
-r_max = 1/14
+gamma_L_max = 1 / 30
+lambda_max = 0.05
+f_max = 1 / 20
+r_max = 1 / 15
+
+upper_bounds = np.array([1, 1, gamma_L_max, lambda_max, f_max, r_max])
 
 num_lhc_samples = 50
 initial_repeats = 1
@@ -150,6 +152,7 @@ def champagne_stochastic(
         t += delta_t
         silent_incidences = np.random.poisson(
             delta_t * alpha_ * beta_ * lambda_ * (I_L + I_0) * S_0 / N
+            + delta_t * alpha_ * (1 - beta_) * (f + lambda_ * (I_L + I_0) / N) * S_L
         )
 
         new_stages = np.random.choice(
@@ -243,7 +246,7 @@ champ_samp = champagne_stochastic(
     pv_champ_lambda,
     pv_champ_f,
     pv_champ_r,
-)  # .melt(id_vars='t')
+)
 ```
 
 ## Plotting outcome
@@ -253,7 +256,7 @@ champ_samp.drop("inc_counter", axis=1).plot(x="t", legend=True)
 plt.xlabel("Time")
 plt.ylabel("Value")
 plt.title("Champagne Stochastic Simulation")
-# plt.savefig("champagne_GP_images/champagne_simulation.pdf")
+plt.savefig("champagne_GP_images/champagne_simulation.pdf")
 plt.show()
 ```
 
@@ -269,13 +272,18 @@ def incidence(df, start, days):
 
 def champ_sum_stats(alpha_, beta_, gamma_L, lambda_, f, r, seed=12301923):
     champ_df_ = champagne_stochastic(alpha_, beta_, gamma_L, lambda_, f, r, seed=seed)
-    fin_t = champ_df_.iloc[-1]["t"]
     first_month_inc = incidence(champ_df_, 0, 30)
     fin_t = champ_df_.iloc[-1]["t"]
     fin_week_inc = incidence(champ_df_, fin_t - 7, 7)
+
+    first_month_ind = champ_df_[champ_df_["t"].le(30)].index[-1]
+    first_month_prev = (
+        champ_df_.iloc[first_month_ind]["I_0"]
+        + champ_df_.iloc[first_month_ind]["I_L"]
+    )
     fin_prev = champ_df_.iloc[-1]["I_0"] + champ_df_.iloc[-1]["I_L"]
 
-    return np.array([fin_prev, first_month_inc, fin_week_inc])
+    return np.array([fin_week_inc, fin_prev, first_month_inc, first_month_prev])
 
 
 observed_sum_stats = champ_sum_stats(
@@ -322,16 +330,6 @@ LHC_samples[:, 2] = gamma_L_max * LHC_samples[:, 2]
 LHC_samples[:, 3] = lambda_max * LHC_samples[:, 3]
 LHC_samples[:, 4] = f_max * LHC_samples[:, 4]
 LHC_samples[:, 5] = r_max * LHC_samples[:, 5]
-
-
-# LHC_samples[:, 2] = 1/50* LHC_samples[:, 2]
-# LHC_samples[:, 3] = 0.2 * LHC_samples[:, 3]
-# LHC_samples[:, 4] = 1/10 * LHC_samples[:, 4]
-# LHC_samples[:, 5] = 1/10 * LHC_samples[:, 5]
-# LHC_samples[:, 2] = -pv_champ_gamma_L * np.log(LHC_samples[:, 2])
-# LHC_samples[:, 3] = -pv_champ_lambda * np.log(LHC_samples[:, 3])
-# LHC_samples[:, 4] = -pv_champ_f * np.log(LHC_samples[:, 4])
-# LHC_samples[:, 5] = -pv_champ_r * np.log(LHC_samples[:, 5])
 
 LHC_samples = np.repeat(LHC_samples, initial_repeats, axis = 0)
 
@@ -1100,11 +1098,12 @@ def update_GP_LOO(champ_GP, index_vals, obs_vals, observation_noise_variance_cha
         log_mu = tf.reshape(K_inv_y, shape=[-1]) ** 2
         return -tf.math.reduce_sum(log_var - log_mu)
 
-
     @tf.function(autograph=False, jit_compile=False)
     def opt_GP():
         with tf.GradientTape() as tape:
-            loss = LOO_loss(champ_GP, index_vals, obs_vals, observation_noise_variance_champ)
+            loss = LOO_loss(
+                champ_GP, index_vals, obs_vals, observation_noise_variance_champ
+            )
         grads = tape.gradient(loss, champ_GP.trainable_variables)
         optimizer_slow.apply_gradients(zip(grads, champ_GP.trainable_variables))
         return loss
@@ -1218,8 +1217,8 @@ def update_var_EI(GP_reg, alpha, beta, gamma_L, lambda_, f, r, min_obs):
         std_t = GP_reg.stddev(index_points=next_guess)
         delt = min_obs - mean_t
         return -tf.squeeze(
-            delt * tfd.Normal(0, std_t).cdf(delt)
-            + std_t * tfd.Normal(0, std_t).prob(delt)
+            delt * tfd.Normal(0, np.float64(1)).cdf(delt / std_t)
+            + std_t * tfd.Normal(0, np.float64(1)).prob(delt / std_t)
         )
 
     optimizer_fast = tf.keras.optimizers.Adam(learning_rate=0.1)
@@ -1262,12 +1261,6 @@ def update_var_EI(GP_reg, alpha, beta, gamma_L, lambda_, f, r, min_obs):
     )
 
 
-# update_var_EI(
-#     champ_GP_reg, next_alpha, next_beta, next_gamma_L, next_lambda, next_f, next_r
-# )
-# EI = tfp_acq.GaussianProcessExpectedImprovement(champ_GP_reg, obs_vals)
-
-
 def new_eta_t(t, d, exploration_rate):
     # return np.log((t + 1) ** (d * 2 + 2) * np.pi**2 / (3 * exploration_rate))
     return np.sqrt(np.log((t + 1) ** (d * 2 + 2) * np.pi**2 / (3 * exploration_rate)))
@@ -1284,14 +1277,15 @@ def new_eta_t(t, d, exploration_rate):
 ```
 
 ```{python}
-num_slice_updates = 11
+num_slice_updates = 10
 
-all_slices = [np.linspace(0, 1, num_slice_updates, dtype=np.float64),  # alpha
-        np.linspace(0, 1, num_slice_updates, dtype=np.float64),  # beta
-        np.linspace(0, gamma_L_max, num_slice_updates, dtype=np.float64),  # gamma_L
-        np.linspace(0, lambda_max, num_slice_updates, dtype=np.float64),  # lambda
-        np.linspace(0, f_max, num_slice_updates, dtype=np.float64),  # f
-        np.linspace(0, r_max, num_slice_updates, dtype=np.float64),  # r
+all_slices = [
+    np.linspace(0, 1, num_slice_updates, dtype=np.float64),  # alpha
+    np.linspace(0, 1, num_slice_updates, dtype=np.float64),  # beta
+    np.linspace(0, gamma_L_max, num_slice_updates, dtype=np.float64),  # gamma_L
+    np.linspace(0, lambda_max, num_slice_updates, dtype=np.float64),  # lambda
+    np.linspace(0, f_max, num_slice_updates, dtype=np.float64),  # f
+    np.linspace(0, r_max, num_slice_updates, dtype=np.float64),  # r
 ]
 
 ```
@@ -1379,8 +1373,9 @@ for t in range(501):
     slice_var = [next_alpha, next_beta, next_gamma_L, next_lambda, next_f, next_r][
         t % 6
     ]
-    for val in all_slices[t % 6]:
-        if np.random.uniform() < 1 / 5 + np.exp(1 - t / 4):
+    if np.random.uniform() < 1 / 20 + np.exp(1 - t / 4):
+        for val in all_slices[t % 6]:
+
             slice_var.assign(val)
 
             new_params = np.array(
@@ -1574,7 +1569,7 @@ for var in vars:
 
 ```{python}
 # print(index_vals[-600,].round(3))
-print(index_vals[-400,].round(3))
+# print(index_vals[-400,].round(3))
 print(index_vals[-200,].round(3))
 print(index_vals[-80,].round(3))
 print(index_vals[-40,].round(3))
