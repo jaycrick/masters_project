@@ -1,4 +1,29 @@
-salloc -c 8 --mem 16GB --gres gpu:1 --partition
+## SETUP VIRTUAL ENVIRONMENT (ONLY HAS TO BE DONE ONCE THE FIRST TIME)
+module load python/3.12.0
+python3 -m venv /path/to/environment
+
+## Loading virtual environment 
+(if you have signed in and not loaded python3 yet run module load python/3.12.0)
+# To activate venv run
+source /path/to/environment/bin/activate
+
+## Install packages to your venv
+#Make sure that you are in your venv
+pip3 install package-name
+
+# To leave run deactivate
+
+# Before submitting slurm job. 
+module load python/3.12.0
+module load quarto 
+module load any-other-nonsense-you-need
+# Go to virtual environment
+source projects/master-tf/bin/activate
+
+SUBMIT JOB
+
+source projects/
+# bash install.sh
 
 create venv
 

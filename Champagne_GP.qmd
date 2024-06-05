@@ -44,14 +44,14 @@ for device in gpu_devices:
 ```{python}
 np.random.seed(590154)
 
-population = 1000
+population = 10000
 initial_infecteds = 10
-epidemic_length = 1000
-number_of_events = 30000
+epidemic_length = 1000 # not used
+number_of_events = 300000
 
 pv_champ_alpha = 0.4  # prop of effective care
 pv_champ_beta = 0.4  # prop of radical cure
-pv_champ_gamma_L = 1 / 223  # liver stage clearance rate
+pv_champ_gamma_L = 1 / 383  # liver stage clearance rate
 pv_champ_delta = 0.05  # prop of imported cases
 pv_champ_lambda = 0.04  # transmission rate
 pv_champ_f = 1 / 72  # relapse frequency
@@ -79,7 +79,7 @@ def champagne_stochastic(
     I_0=0,
     S_L=0,
     delta_=0,
-    end_time=epidemic_length,
+    # end_time=epidemic_length,
     num_events=number_of_events,
     seed=12,
 ):
@@ -253,7 +253,7 @@ champ_samp.drop("inc_counter", axis=1).plot(x="t", legend=True)
 plt.xlabel("Time")
 plt.ylabel("Value")
 plt.title("Champagne Stochastic Simulation")
-plt.savefig("champagne_GP_images/champagne_simulation.pdf")
+# plt.savefig("champagne_GP_images/champagne_simulation.pdf")
 plt.show()
 ```
 
@@ -1219,7 +1219,7 @@ def update_var_EI(GP_reg, alpha, beta, gamma_L, lambda_, f, r, min_obs):
         delt = min_obs - mean_t
         return -tf.squeeze(
             delt * tfd.Normal(0, std_t).cdf(delt)
-            + std_t * GP_reg.prob(delt, index_points=next_guess)
+            + std_t * tfd.Normal(0, std_t).prob(delt)
         )
 
     optimizer_fast = tf.keras.optimizers.Adam(learning_rate=0.1)
@@ -1532,7 +1532,7 @@ for t in range(501):
 ```
 
 ```{python}
-epsilon = -2
+epsilon = -5
 
 likelihood_dict = {}
 for var in vars:
