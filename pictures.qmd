@@ -1,0 +1,28 @@
+---
+title: "Inference on the Champagne Model using a Gaussian Process"
+format:
+    pdf: default
+jupyter: python3
+---
+
+```{python}
+import matplotlib.pyplot as plt
+import pickle
+
+```
+
+```{python}
+import pickle
+import os
+file_path = "gp_objs.pkl"
+
+# Load the objects from the pickle file
+with open(file_path, "rb") as fp:
+    objects_loaded = pickle.load(fp)
+
+# Unpack the objects into individual variables
+index_vals, discreps, champ_samp, initial_losses_LOOCV, slice_samples_dict, slice_discrepencies_dict, LHC_indices_df, gp_samples_dict, likelihood_dict = objects_loaded
+
+# Verify that the objects are loaded correctly
+print("Objects loaded successfully from file")
+```

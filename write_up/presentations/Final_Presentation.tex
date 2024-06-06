@@ -18,6 +18,7 @@
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
 
+\usepackage{soul}
 \usepackage{subcaption}
 \usepackage{tikz}
 % \usetikzlibrary{arrows.meta,backgrounds}
@@ -87,12 +88,12 @@
 % has a
 
 \begin{frame}
-    \frametitle{Malaria}
+    \frametitle{Introduction and Motivation}
     \begin{itemize}
         \item 600,000 deaths/year, 75\% children under 5
         \item Two main species \emph{P. vivax} and \emph{P. falciparum}
         \item \emph{P. falciparum} main cause of death, but
-              \emph{P. vivax} traditionally underestimated.
+              \emph{P. vivax} historically underestimated.
         \item Proportion of \emph{P. vivax} cases increased over last 50 years.
     \end{itemize}
 \end{frame}
@@ -359,14 +360,9 @@
 \begin{frame}
     \frametitle{Gaussian Process Setup}
 
-    A common assumption is that
-    $$\begin{bmatrix}
-            \E(\mathcal{D}(\bm{\theta}_1)) \\
-            \vdots                         \\
-            \E(\mathcal{D}(\bm{\theta}_n))
-        \end{bmatrix} \sim
-        \MVN\left(\mathbf{0},\, \mathbf{K}\right)$$
-    where $\mathbf{K}_{ij} = k(\bm{\theta}_i, \bm{\theta}_j)$ for some
+    Formally we can assume that
+    $$\mathrm{Cov}(\mathcal{D}(\bm{\theta}_i), \mathcal{D}(\bm{\theta}_j))
+        = k(\bm{\theta}_i, \bm{\theta}_j)$$ for some
     covariance kernel $k$ that decays to 0 as $\bm{\theta}_i$ is further away
     than $\bm{\theta}_j.$
 \end{frame}
@@ -498,44 +494,44 @@
     \end{itemize}
 \end{frame}
 
-\begin{frame}
-    \frametitle{Kernel Hyperparameters}
-    \begin{figure}[htbp]
-        \centering
-        \begin{subfigure}[b]{0.4\textwidth}
-            \centering
-            \includegraphics[width=\textwidth]{GP_ell_5_sigma2_5_tenths.pdf}
-            \subcaption{$\ell = 1/2 \quad \sigma^2_k = 1/2$}
-            \label{fig:half_half}
-        \end{subfigure}%
-        % \hfill%
-        \begin{subfigure}[b]{0.4\textwidth}
-            \centering
-            \includegraphics[width=\textwidth]{GP_ell_5_sigma2_20_tenths.pdf}
-            \subcaption{$\ell = 1/2 \quad \sigma^2_k = 2$}
-            \label{fig:half_two}
-        \end{subfigure}
-        \begin{subfigure}[b]{0.4\textwidth}
-            \centering
-            \includegraphics[width=\textwidth]{GP_ell_20_sigma2_5_tenths.pdf}
-            \subcaption{$\ell = 2 \quad \sigma^2_k = 1/2$}
-            \label{fig:two_half}
-        \end{subfigure}%
-        % \hfill%
-        \begin{subfigure}[b]{0.4\textwidth}
-            \centering
-            \includegraphics[width=\textwidth]{GP_ell_20_sigma2_20_tenths.pdf}
-            \subcaption{$\ell = 2 \quad \sigma^2_k = 2$}
-            \label{fig:two_two}
-        \end{subfigure}
-    \end{figure}
-\end{frame}
+% \begin{frame}
+%     \frametitle{Kernel Hyperparameters}
+%     \begin{figure}[htbp]
+%         \centering
+%         \begin{subfigure}[b]{0.4\textwidth}
+%             \centering
+%             \includegraphics[width=\textwidth]{GP_ell_5_sigma2_5_tenths.pdf}
+%             \subcaption{$\ell = 1/2 \quad \sigma^2_k = 1/2$}
+%             \label{fig:half_half}
+%         \end{subfigure}%
+%         % \hfill%
+%         \begin{subfigure}[b]{0.4\textwidth}
+%             \centering
+%             \includegraphics[width=\textwidth]{GP_ell_5_sigma2_20_tenths.pdf}
+%             \subcaption{$\ell = 1/2 \quad \sigma^2_k = 2$}
+%             \label{fig:half_two}
+%         \end{subfigure}
+%         \begin{subfigure}[b]{0.4\textwidth}
+%             \centering
+%             \includegraphics[width=\textwidth]{GP_ell_20_sigma2_5_tenths.pdf}
+%             \subcaption{$\ell = 2 \quad \sigma^2_k = 1/2$}
+%             \label{fig:two_half}
+%         \end{subfigure}%
+%         % \hfill%
+%         \begin{subfigure}[b]{0.4\textwidth}
+%             \centering
+%             \includegraphics[width=\textwidth]{GP_ell_20_sigma2_20_tenths.pdf}
+%             \subcaption{$\ell = 2 \quad \sigma^2_k = 2$}
+%             \label{fig:two_two}
+%         \end{subfigure}
+%     \end{figure}
+% \end{frame}
 
 \begin{frame}
     \frametitle{Discrepency Function Context}
     \begin{itemize}
-        \item Long term play: use a Gaussian process as a surrogate model for
-              $\mathbb{E}[\mathcal{D}(\bm{\theta})]$
+        \item Long term play: replace $\mathcal{D}(\bm{\theta})$ with a
+              Gaussian process surrogate model approximation.
         \item <2-> What if we have observations already?
     \end{itemize}
 
@@ -567,28 +563,28 @@
     $$
 \end{frame}
 
-\begin{frame}
-    \frametitle{Conditioning Gaussian Processes}
-    \begin{figure}
-        \centering
-        \begin{subfigure}[t]{0.4\textwidth}
-            \centering
-            \includegraphics[width=\textwidth]{flatish_GP_matern_5.0_tenths.pdf}
-        \end{subfigure}%
-        \begin{subfigure}[t]{0.4\textwidth}
-            \centering
-            \includegraphics[width=\textwidth]{flatish_GP_matern_15.0_tenths.pdf}
-        \end{subfigure}
-        \begin{subfigure}[t]{0.4\textwidth}
-            \centering
-            \includegraphics[width=\textwidth]{flatish_GP_matern_25.0_tenths.pdf}
-        \end{subfigure}%
-        \begin{subfigure}[t]{0.4\textwidth}
-            \centering
-            \includegraphics[width=\textwidth]{flatish_GP_ell_10_tenths.pdf}
-        \end{subfigure}%
-    \end{figure}
-\end{frame}
+% \begin{frame}
+%     \frametitle{Conditioning Gaussian Processes}
+%     \begin{figure}
+%         \centering
+%         \begin{subfigure}[t]{0.4\textwidth}
+%             \centering
+%             \includegraphics[width=\textwidth]{flatish_GP_matern_5.0_tenths.pdf}
+%         \end{subfigure}%
+%         \begin{subfigure}[t]{0.4\textwidth}
+%             \centering
+%             \includegraphics[width=\textwidth]{flatish_GP_matern_15.0_tenths.pdf}
+%         \end{subfigure}
+%         \begin{subfigure}[t]{0.4\textwidth}
+%             \centering
+%             \includegraphics[width=\textwidth]{flatish_GP_matern_25.0_tenths.pdf}
+%         \end{subfigure}%
+%         \begin{subfigure}[t]{0.4\textwidth}
+%             \centering
+%             \includegraphics[width=\textwidth]{flatish_GP_ell_10_tenths.pdf}
+%         \end{subfigure}%
+%     \end{figure}
+% \end{frame}
 
 % \begin{frame}
 %     \only<2>{\includegraphics[width=\textwidth]{flatish_GP_bare.pdf}}
@@ -665,26 +661,16 @@
 \end{frame}
 
 \begin{frame}
-    \frametitle{Key Assumptions}
-    \begin{itemize}
-        \item $\mathcal{D}(\bm{\theta})
-                  \overset{d}{\approx} \mathcal{D}(\bm{\theta}^\prime)$ for
-              $\bm{\theta}$, $\bm{\theta}^\prime$ close.
-        \item $\mathcal{D}(\bm{\theta})$ approximately distributed
-              $N(\cdot, \sigma^2_o$) with $\sigma^2_o$ independent of
-              $\bm{\theta}.$
-        \item $\E[\mathcal{D}(\bm{\theta})]$ can be well approximated by a
-              Gaussian process.
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
     \frametitle{Key Idea}
-
-    Approximate $\mathcal{D}(\bm{\theta})$ with
-    $\mathcal{D}_\mathcal{GP}(\bm{\theta}),$ a Gaussian process with
-    observation noise.
-
+    \begin{itemize}
+        \item If $\E[\mathcal{D}(\bm{\theta})]$ can be well approximated by a
+              Gaussian process and ...
+        \item <2-> $\mathcal{D}(\bm{\theta})$ approximately distributed
+              $N(\E[\mathcal{D}(\bm{\theta})], \sigma^2_o)$ then...
+        \item <3-> Approximate $\mathcal{D}(\bm{\theta})$ with
+              $\mathcal{D}_\mathcal{GP}(\bm{\theta}),$ a Gaussian process with
+              observation noise.
+    \end{itemize}
 \end{frame}
 
 \begin{frame}
@@ -701,7 +687,10 @@
     \frametitle{Approximate ABC...??}
     \begin{enumerate}
         \item Sample $\bm{\theta}_i$ from prior
-        \item Run model
+        \item \st{Run model}
+              Simulate
+              $\mathcal{D}_\mathcal{GP}(\bm{\theta}_i)
+                  \overset{d}{\approx}\mathcal{D}(\bm{\theta}_i) $
         \item Accept $\bm{\theta}_i$ if
               \underline{
                   $\mathcal{D}_\mathcal{GP}(\bm{\theta}_i) < \varepsilon.$
@@ -718,11 +707,13 @@
         \Pr(\mathcal{D}_{\mathcal{GP}}(\bm{\theta}) < \varepsilon)
         \Pr(\bm{\theta})
     $$
-    and hence we consider $\hat{L}(\bm\theta)
-        := \Pr(\mathcal{D}_{\mathcal{GP}}(\bm{\theta}) < \varepsilon)$
-    a synthetic
-    likelihood - an approximation of the true likelihood
-    $\mathcal{L}(\bm\theta)$
+    and hence
+    $$
+        \hat{L}(\bm\theta)
+        := \Pr(\mathcal{D}_{\mathcal{GP}}(\bm{\theta}) < \varepsilon)
+        \approx c\mathcal{L}(\bm\theta)
+    $$
+    for some $c.$
 \end{frame}
 
 \begin{frame}
@@ -730,20 +721,15 @@
     \begin{itemize}
         \item Alternatively we can model $\ln \mathcal{D}(\bm{\theta})$ as a
               Gaussian process $d_\mathcal{GP}(\bm{\theta}).$
-        \item <2-> Key assumptions become:
+        \item <2-> Key assumptions becomes:
               \begin{itemize}
-                  \item $\ln \mathcal{D}(\bm{\theta})
-                            \overset{d}{\approx} \ln \mathcal{D}(\bm{\theta}^\prime)$ for
-                        $\bm{\theta}$, $\bm{\theta}^\prime$ close.
                   \item $\mathcal{D}(\bm{\theta})$ approximately distributed
-                        $LN(\cdot, \sigma^2_o$) with $\sigma^2_o$ independent of
-                        $\bm{\theta}.$
-                  \item $\E[\ln \mathcal{D}(\bm{\theta})]$ can be well approximated by a
-                        Gaussian process.
+                        $LN(\cdot, \sigma^2_o).$
               \end{itemize}
         \item <3- >$$
-                  \Pr(\mathcal{D}(\bm{\theta}_i) < \varepsilon)
-                  \approx \Pr(d_\mathcal{GP}(\bm{\theta}_i) < \ln\varepsilon)
+        \hat{L}(\bm\theta)
+        := \Pr(d_\mathcal{GP}(\bm{\theta}_i) < \ln\varepsilon)
+        \approx \Pr(\mathcal{D}(\bm{\theta}_i) < \varepsilon)
               $$
     \end{itemize}
 \end{frame}
@@ -756,21 +742,21 @@
         \item Generating $\mathcal{D}(\bm{\theta})$ still costly...
         \item Therefore sample where:
               \begin{itemize}
-                  \item <2-> $\mathcal{D}(\bm{\theta})$ small.
+                  \item <2-> $\E[\mathcal{D}(\bm{\theta})]$ small,
                   \item <3-> $\mathcal{D}(\bm{\theta})$ highly unknown.
               \end{itemize}
     \end{itemize}
-    \only<4>{\begin{figure}
-            \centering
-            \begin{subfigure}[t]{0.4\textwidth}
-                \centering
-                \includegraphics[width=\textwidth]{cub_GP_1_iters.pdf}
-            \end{subfigure}%
-            \begin{subfigure}[t]{0.4\textwidth}
-                \centering
-                \includegraphics[width=\textwidth]{cub_GP_2_iters.pdf}
-            \end{subfigure}
-        \end{figure}}
+    % \only<4>{\begin{figure}
+    %         \centering
+    %         \begin{subfigure}[t]{0.4\textwidth}
+    %             \centering
+    %             \includegraphics[width=\textwidth]{cub_GP_1_iters.pdf}
+    %         \end{subfigure}%
+    %         \begin{subfigure}[t]{0.4\textwidth}
+    %             \centering
+    %             \includegraphics[width=\textwidth]{cub_GP_2_iters.pdf}
+    %         \end{subfigure}
+    %     \end{figure}}
 \end{frame}
 
 \begin{frame}
@@ -788,47 +774,47 @@
                   := \mu(\bm\theta) - \eta_t\sqrt{\mathrm{v}(\bm\theta)},
               $$
               the lower value of a confidence interval (determined by $\eta_t$).
-              \begin{itemize}
-                  \item $\eta_t$ a slowly increasing function in $t,$ the
-                        number of previous samples
-              \end{itemize}
-              \only<3>{\item Expected information
-              \begin{align*}
-                  A_\text{EI}(\bm\theta)
-                  := & \E[\min(\mu_\text{min} - \mathcal{D}_\mathcal{GP}(\bm\theta), 0)] % \\
-                  %   =  & (\mu_\text{min} - \mu(\bm\theta))
-                  %   \varPhi\left(\frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}\right) \\
-                  %      & + \sqrt{\mathrm{v}(\bm\theta)}
-                  %   \phi\left(\frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}\right)
-              \end{align*}\begin{itemize}
-                  \item $\mu_\text{min} := \min_{\bm{\theta}} \mu(\bm\theta)$
-                        %   \item $\varPhi, \phi$ CDF and PDF of standard normal
-              \end{itemize}}
+              %   \begin{itemize}
+              %       \item $\eta_t$ a slowly increasing function in $t,$ the
+              %             number of previous samples
+              %   \end{itemize}
+              %   \item <3-> Expected improvement
+              %   \begin{align*}
+              %       A_\text{EI}(\bm\theta)
+              %       := & \E[\max(\mu_\text{min} - \mathcal{D}_\mathcal{GP}(\bm\theta), 0)] % \\
+              %       %   =  & (\mu_\text{min} - \mu(\bm\theta))
+              %       %   \varPhi\left(\frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}\right) \\
+              %       %      & + \sqrt{\mathrm{v}(\bm\theta)}
+              %       %   \phi\left(\frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}\right)
+              %   \end{align*}\begin{itemize}
+              %       \item $\mu_\text{min} := \min_{\bm{\theta}} \mu(\bm\theta)$
+              %             %   \item $\varPhi, \phi$ CDF and PDF of standard normal
+              %   \end{itemize}
     \end{itemize}
 \end{frame}
 
-\begin{frame}
-    \frametitle{Lower Confidence Bound example}
-    \begin{figure}
-        \centering
-        \begin{subfigure}[t]{0.4\textwidth}
-            \centering
-            \includegraphics[width=\textwidth]{UCB_4_iters.pdf}
-        \end{subfigure}%
-        \begin{subfigure}[t]{0.4\textwidth}
-            \centering
-            \includegraphics[width=\textwidth]{UCB_5_iters.pdf}
-        \end{subfigure}
-        \begin{subfigure}[t]{0.4\textwidth}
-            \centering
-            \includegraphics[width=\textwidth]{UCB_6_iters.pdf}
-        \end{subfigure}%
-        \begin{subfigure}[t]{0.4\textwidth}
-            \centering
-            \includegraphics[width=\textwidth]{UCB_12_iters.pdf}
-        \end{subfigure}%
-    \end{figure}
-\end{frame}
+% \begin{frame}
+%     \frametitle{Lower Confidence Bound example}
+%     \begin{figure}
+%         \centering
+%         \begin{subfigure}[t]{0.4\textwidth}
+%             \centering
+%             \includegraphics[width=\textwidth]{UCB_4_iters.pdf}
+%         \end{subfigure}%
+%         \begin{subfigure}[t]{0.4\textwidth}
+%             \centering
+%             \includegraphics[width=\textwidth]{UCB_5_iters.pdf}
+%         \end{subfigure}
+%         \begin{subfigure}[t]{0.4\textwidth}
+%             \centering
+%             \includegraphics[width=\textwidth]{UCB_6_iters.pdf}
+%         \end{subfigure}%
+%         \begin{subfigure}[t]{0.4\textwidth}
+%             \centering
+%             \includegraphics[width=\textwidth]{UCB_12_iters.pdf}
+%         \end{subfigure}%
+%     \end{figure}
+% \end{frame}
 
 \begin{frame}
     \frametitle{Vivax Model - Champagne et.\ al}
@@ -849,7 +835,7 @@
             \draw[->] (SL) edge[in = 260, out = 100, sloped] node [above]
                 {$\gamma_\mathrm{L} + \alpha\beta(\lambda I_\mathrm{total} + \delta + f)$} (S0);
             \draw[->] (SL) edge[in = 170, out = 10, sloped] node [above]
-                {$\alpha( 1 -\beta)(\lambda I_\mathrm{total} + \delta + f)$} (IL);
+                {$(1 - \alpha)(\lambda I_\mathrm{total} + \delta + f)$} (IL);
             \draw[->] (IL) edge[in = -10, out = 190] node [midway, label=below:
             {$r$}] (r) {} (SL);
             \draw[->] (IL) edge[in = 260, out = 100, sloped] node [above]
@@ -890,7 +876,7 @@
         }
         \caption{
             Exact stochastic simulation using parameters reported in
-            \cite{champagne_using_2022}.
+            \cite{champagne_using_2022}. Population 10,000, initial infections 100.
         }
     \end{figure}
 \end{frame}
@@ -898,23 +884,22 @@
 \begin{frame}
     \frametitle{`Observed' Data}
     \begin{itemize}
-        \item `Observed' data from the model simulation 10 initial infections,
-              in a population of 1000 people using the parameters reported in
-              \cite{champagne_using_2022}.
-        \item $\mathbf{Y}_\text{obs} := \{w_\text{obs}, p_\text{obs}, m_\text{obs}\}$
+        \item $\mathbf{Y}_\text{obs} := \{\iota_\text{obs}, \pi_\text{obs}, i_\text{obs}, p_{obs}\}$
               \begin{itemize}
-                  \item $w_\text{obs}:$ weekly incidence around (stochastic) equilibrium
-                  \item $p_\text{obs}:$ prevalence around (stochastic) equilibrium
-                  \item $m_\text{obs}:$ incidence in the first month of the epidemic
+                  \item $\iota_\text{obs}:$ weekly incidence around steady state equilibrium
+                  \item $\pi_\text{obs}:$ prevalence around steady state equilibrium
+                  \item $i_\text{obs}:$ incidence in the first month of the epidemic
+                  \item $p_{obs}:$ prevalence after one month of simulation
               \end{itemize}
-        \item <3-> $
+        \item <2-> $
                   \mathcal{D}(\alpha, \beta, \gamma_L, \lambda, f, r)$ is the
               $L_2$ norm of the relative differences
               $$
                   \sqrt{
-                      \left(\frac{p - p_\text{obs}}{p_\text{obs}}\right)^2
-                      + \left(\frac{m - m_\text{obs}}{m_\text{obs}}\right)^2
-                      + \left(\frac{w - w_\text{obs}}{w_\text{obs}}\right)^2
+                      \left(\frac{\iota - \iota_\text{obs}}{\iota_\text{obs}}\right)^2
+                      + \left(\frac{\pi - \pi_\text{obs}}{\pi_\text{obs}}\right)^2
+                      + \left(\frac{i - i_\text{obs}}{i_\text{obs}}\right)^2
+                      + \left(\frac{p - p_\text{obs}}{p_\text{obs}}\right)^2
                   }
               $$
     \end{itemize}
@@ -923,15 +908,6 @@
 \begin{frame}
     \frametitle{GP choices}
     \begin{itemize}
-        \item $\mathcal{D}(\alpha, \beta, \gamma_L, \lambda, f, r)$ is the
-              $L_2$ norm of the relative differences
-              $$
-                  \sqrt{
-                      \left(\frac{p - p_\text{obs}}{p_\text{obs}}\right)^2
-                      + \left(\frac{m - m_\text{obs}}{m_\text{obs}}\right)^2
-                      + \left(\frac{w - w_\text{obs}}{w_\text{obs}}\right)^2
-                  }
-              $$
         \item $\mathcal{GP}$ choices
               \begin{itemize}
                   \item Modelled $\ln\mathcal{D}$ as a Gaussian process
@@ -965,14 +941,27 @@
 \begin{frame}
     \frametitle{Discussion}
     \begin{itemize}
-        \item Observation variance is considered constant across the GP (or log GP)\begin{itemize}
-                  \item Particularly a problem at bifurcation points
-              \end{itemize}
-        \item Assumes that normal/log-normal distribution approximates 
-        $\mathcal{D}(\bm{\theta})$
-        \item Jumps where there is bifurcation behaviour\begin{itemize}
-                  \item Student $t-$Process?
-              \end{itemize}
+        \item Bifurcation points effect:
+              \begin{enumerate}
+                  \item observation variance,
+                  \item distribution of observations,
+                  \item behaviour of the discrepency mean.
+              \end{enumerate}
+        \item Possible extensions:
+              \begin{enumerate}
+                  \item <2-> model $s^2(\bm{\theta})$,
+                  \item <3-> choose a different distribution and moment match,
+                  \item <4-> use a Student's $t-$process.
+              \end{enumerate}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Conclusion}
+    \begin{itemize}
+        \item Calibrating model parameters is important for scenario testing etc
+        \item Successfully calibrated model parameters
+        \item Could be used with more complicated models, even your model...
     \end{itemize}
 \end{frame}
 
@@ -981,6 +970,8 @@
     \begin{itemize}
         \item Eamon Conway
         \item Jennifer Flegg
+        \item Ivo Mueller
+        \item Mueller lab and unimelb MMB group
     \end{itemize}
 \end{frame}
 

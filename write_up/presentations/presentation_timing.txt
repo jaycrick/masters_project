@@ -1,0 +1,6 @@
+Intro to model up to GP 8.5m
+Kernels 6m
+GP regression 3m
+Synth lik and BOLFI 
+Methods + results 5m
+Discussion 5m

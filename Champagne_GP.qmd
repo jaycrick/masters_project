@@ -66,6 +66,7 @@ upper_bounds = np.array([1, 1, gamma_L_max, lambda_max, f_max, r_max])
 
 num_lhc_samples = 50
 initial_repeats = 1
+dis_mean_n = 30
 ```
 
 ```{python}
@@ -303,7 +304,7 @@ def single_discrepency(alpha_, beta_, gamma_L, lambda_, f, r, seed=12301923):
     return np.log(np.linalg.norm((x - observed_sum_stats) / observed_sum_stats))
 
 
-def discrepency_fn(alpha_, beta_, gamma_L, lambda_, f, r, mean_of=30):
+def discrepency_fn(alpha_, beta_, gamma_L, lambda_, f, r, mean_of=dis_mean_n):
     seed = int(np.random.uniform() * 1000000)
     with mp.Pool(processes=mp.cpu_count()) as pool:
         args = [
@@ -341,14 +342,21 @@ print(LHC_indices_df.head())
 ## Generate Discrepencies
 
 ```{python}
-random_discrepencies = LHC_indices_df.apply(
-    lambda x: discrepency_fn(
-        x["alpha"], x["beta"], x["gamma_L"], x["lambda"], x["f"], x["r"]
-    ),
-    axis=1,
-)
 
-print(random_discrepencies.head())
+LHC_samples_reps = np.repeat(LHC_samples, dis_mean_n, axis=0)
+
+with mp.Pool(processes=mp.cpu_count()) as pool:
+    args = [
+        (a, b, c, d, e, f, int(g * np.random.uniform()))
+        for (a, b, c, d, e, f), g in zip(
+            list(map(tuple, LHC_samples_reps)), range(LHC_samples_reps.shape[0])
+        )
+    ]
+    results = pool.starmap(single_discrepency, args)
+
+random_discrepencies = np.mean(np.array(results).reshape(-1, dis_mean_n), axis=1)
+
+print(random_discrepencies)
 ```
 
 ## Differing Methods to Iterate Function
@@ -545,6 +553,7 @@ class lin_mean_fn(tf.Module):
             + self.amp_r_lin * (x[..., 5])
         )
 ```
+
 ```{python}
 class const_mean_fn(tf.Module):
     def __init__(self):
@@ -560,7 +569,7 @@ class const_mean_fn(tf.Module):
 
 ```{python}
 index_vals = LHC_indices_df.values
-obs_vals = random_discrepencies.values
+obs_vals = random_discrepencies
 
 amplitude_champ = tfp.util.TransformedVariable(
     bijector=constrain_positive,
@@ -898,7 +907,7 @@ for var in vars:
     plt.scatter(
         val_df[var].values,
         discreps,
-        label="Simulation Discrepencies",
+        label="Untrained Discrepencies",
         alpha=0.6,
     )
     for i in range(gp_samp_no):
@@ -1277,15 +1286,17 @@ def new_eta_t(t, d, exploration_rate):
 ```
 
 ```{python}
-num_slice_updates = 10
+num_slice_updates = 15
 
 all_slices = [
-    np.linspace(0, 1, num_slice_updates, dtype=np.float64),  # alpha
-    np.linspace(0, 1, num_slice_updates, dtype=np.float64),  # beta
-    np.linspace(0, gamma_L_max, num_slice_updates, dtype=np.float64),  # gamma_L
-    np.linspace(0, lambda_max, num_slice_updates, dtype=np.float64),  # lambda
-    np.linspace(0, f_max, num_slice_updates, dtype=np.float64),  # f
-    np.linspace(0, r_max, num_slice_updates, dtype=np.float64),  # r
+    np.linspace(0, 1, num_slice_updates + 2, dtype=np.float64)[1:-1],  # alpha
+    np.linspace(0, 1, num_slice_updates + 2, dtype=np.float64)[1:-1],  # beta
+    np.linspace(0, gamma_L_max, num_slice_updates + 2, dtype=np.float64)[
+        1:-1
+    ],  # gamma_L
+    np.linspace(0, lambda_max, num_slice_updates + 2, dtype=np.float64)[1:-1],  # lambda
+    np.linspace(0, f_max, num_slice_updates + 2, dtype=np.float64)[1:-1],  # f
+    np.linspace(0, r_max, num_slice_updates + 2, dtype=np.float64)[1:-1],  # r
 ]
 
 ```
@@ -1308,7 +1319,7 @@ for t in range(501):
         0,
     ]
     optimizer_slow = tf.keras.optimizers.Adam()
-    eta_t.assign(new_eta_t(t, d, exploration_rate))
+    # eta_t.assign(new_eta_t(t, d, exploration_rate))
     min_obs.assign(min(champ_GP_reg.mean_fn(index_vals)))
     print("Iteration " + str(t))
     # print(eta_t)
@@ -1344,7 +1355,7 @@ for t in range(501):
         min_obs,
     )
 
-    new_params = np.array(
+    bayes_params = np.array(
         [
             next_alpha.numpy(),
             next_beta.numpy(),
@@ -1354,31 +1365,49 @@ for t in range(501):
             next_r.numpy(),
         ]
     ).reshape(1, -1)
-    print("The next parameters to simulate from are {}".format(new_params.round(3)))
+    print("The next parameters to simulate from are {}".format(bayes_params.round(3)))
 
-    new_discrepency = discrepency_fn(
-        next_alpha.numpy(),
-        next_beta.numpy(),
-        next_gamma_L.numpy(),
-        next_lambda.numpy(),
-        next_f.numpy(),
-        next_r.numpy(),
-    )
+    if t < 6:
+        new_params = np.repeat(
+            np.array(
+                [
+                    [
+                        next_alpha.numpy(),
+                        next_beta.numpy(),
+                        next_gamma_L.numpy(),
+                        next_lambda.numpy(),
+                        next_f.numpy(),
+                        next_r.numpy(),
+                    ]
+                ]
+            ),
+            num_slice_updates,
+            axis=0,
+        )
+        new_params[:, t % 6] = all_slices[t % 6]
+    else:
+        new_params = np.repeat(
+            np.array(
+                [
+                    [
+                        next_alpha.numpy(),
+                        next_beta.numpy(),
+                        next_gamma_L.numpy(),
+                        next_lambda.numpy(),
+                        next_f.numpy(),
+                        next_r.numpy(),
+                    ]
+                ]
+            ),
+            5,
+            axis=0,
+        )
+        new_params[:, t % 6] = np.random.uniform(0, upper_bounds[t % 6], 5)
 
-    index_vals = np.append(index_vals, new_params, axis=0)
-    obs_vals = np.append(obs_vals, new_discrepency)
-
-    print("The mean of the samples was {}".format(new_discrepency.round(3)))
-
-    slice_var = [next_alpha, next_beta, next_gamma_L, next_lambda, next_f, next_r][
-        t % 6
-    ]
-    if np.random.uniform() < 1 / 20 + np.exp(1 - t / 4):
-        for val in all_slices[t % 6]:
-
-            slice_var.assign(val)
-
-            new_params = np.array(
+    new_params = np.append(
+        new_params,
+        np.array(
+            [
                 [
                     next_alpha.numpy(),
                     next_beta.numpy(),
@@ -1387,19 +1416,27 @@ for t in range(501):
                     next_f.numpy(),
                     next_r.numpy(),
                 ]
-            ).reshape(1, -1)
+            ]
+        ),
+        axis=0,
+    )
 
-            new_discrepency = discrepency_fn(
-                next_alpha.numpy(),
-                next_beta.numpy(),
-                next_gamma_L.numpy(),
-                next_lambda.numpy(),
-                next_f.numpy(),
-                next_r.numpy(),
+    new_params_reps = np.repeat(new_params, dis_mean_n, axis=0)
+    index_vals = np.append(index_vals, new_params, axis=0)
+
+    with mp.Pool(processes=mp.cpu_count()) as pool:
+        args = [
+            (a, b, c, d, e, f, int(g * np.random.uniform()))
+            for (a, b, c, d, e, f), g in zip(
+                list(map(tuple, new_params_reps)), range(new_params_reps.shape[0])
             )
+        ]
+        results = pool.starmap(single_discrepency, args)
 
-            index_vals = np.append(index_vals, new_params, axis=0)
-            obs_vals = np.append(obs_vals, new_discrepency)
+    new_discrepencies = np.mean(np.array(results).reshape(-1, dis_mean_n), axis=1)
+
+    print("The mean of the samples was {}".format(new_discrepencies[-1].round(3)))
+    obs_vals = np.append(obs_vals, new_discrepencies)
 
     ######################################################################
 
@@ -1481,7 +1518,8 @@ for t in range(501):
             plt.scatter(
                 slice_indices_dfs_dict[var + "_slice_indices_df"][var].values,
                 slice_discrepencies_dict[var + "_slice_discrepencies"],
-                label="Simulation Discrepencies",
+                label="Untrained Discrepencies",
+                alpha=0.6,
             )
             for i in range(gp_samp_no):
                 plt.plot(
@@ -1527,7 +1565,7 @@ for t in range(501):
 ```
 
 ```{python}
-epsilon = -5
+epsilon = -10
 
 likelihood_dict = {}
 for var in vars:
@@ -1544,19 +1582,19 @@ for var in vars:
     indices_for_lik = slice_indices_dfs_dict[var + "_gp_indices_df"].values
 
     mean = champ_GP_reg.mean_fn(indices_for_lik)
-    variance = 30**2 * observation_noise_variance_champ.numpy()
+    variance = dis_mean_n**2 * observation_noise_variance_champ.numpy()
     post_std = np.sqrt(variance)
-    cdf_vals = tfd.Normal(mean, post_std).log_cdf(epsilon)
-    likelihood_dict[var + "_synth_lik"] = cdf_vals
+    log_cdf_vals = tfd.Normal(mean, post_std).log_cdf(epsilon)
+    likelihood_dict[var + "_synth_log_lik"] = log_cdf_vals
 
     plt.figure(figsize=(6, 3.5))
     plt.plot(
         slice_indices_dfs_dict[var + "_gp_indices_df"][var].values,
-        np.exp(cdf_vals),
+        np.exp(log_cdf_vals),
     )
     if var in ["f", "r"]:
         plt.xlabel("$" + var + "$ index points")
-        plt.title("Final Sythetic Likelihood for $" + var + "$ Slice")
+        plt.title("Final Synthetic Likelihood for $" + var + "$ Slice")
     else:
         plt.xlabel("$\\" + var + "$ index points")
         plt.title("Final Sythetic Likelihood for $\\" + var + "$ Slice")
@@ -1569,7 +1607,7 @@ for var in vars:
 
 ```{python}
 # print(index_vals[-600,].round(3))
-# print(index_vals[-400,].round(3))
+print(index_vals[-400,].round(3))
 print(index_vals[-200,].round(3))
 print(index_vals[-80,].round(3))
 print(index_vals[-40,].round(3))
