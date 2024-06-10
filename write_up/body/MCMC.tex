@@ -1,10 +1,17 @@
-\chapter{Bayesian Parameter Estimation}
+\chapter{Parameter Inference}
 
 TODO: \begin{enumerate}
     \item make all single digit numbers words
 \end{enumerate}
 
-In classical statistics, $\mathbf\Theta$ is fixed, and the data $Y$ is generated from a distribution depending on $\mathbf\Theta$. Frequentist estimators such as the maximum likelihood estimator, or least squares estimator as previously seen are point estimates. In contrast, inference under a Bayesian framework assumes that $\mathbf\Theta$ is also a random variable. This means although inference may be done on the same model, the Bayesian statistician will more often than not end up with a probability distribution describing $\mathbf\Theta$ given $Y$.
+In classical statistics, $\mathbf\Theta$ is fixed, and the data $Y$ is 
+generated from a distribution depending on $\mathbf\Theta$. Frequentist 
+estimators such as the maximum likelihood estimator, or least squares estimator 
+as previously seen are point estimates. In contrast, inference under a Bayesian 
+framework assumes that $\mathbf\Theta$ is also a random variable. This means 
+although inference may be done on the same model, the Bayesian statistician 
+will more often than not end up with a probability distribution describing 
+$\mathbf\Theta$ given $Y$.
 
 \color{red}
 \section{Monte Carlo Integration}
@@ -35,7 +42,13 @@ For example in finding samples from the distribution below, we generate 100 rand
 
 %$\foreach \x in {1,...,10}{\pgfmathparse{rnd}\pgfmathresult, }$
 
-There is no need for the distribution to be uniform over the rectangle, and to decrease the number of rejections we can generate points uniformly under a function $h(x)$ that more closely resembles our target distribution as long as $f(x)\leq h(x)$ for all $x$. If $h(x) = Mg(x)$ where $g(x)$ is a probability distribution function with known method of sampling, we can use this to generate via $Y\sim g$ and $U|Y\sim \mathrm{Unif}(0, Mg(x))$ then we reject all pairs where $U|Y>f(Y).$
+There is no need for the distribution to be uniform over the rectangle, and to 
+decrease the number of rejections we can generate points uniformly under a 
+function $h(x)$ that more closely resembles our target distribution as long as 
+$f(x)\leq h(x)$ for all $x$. If $h(x) = Mg(x)$ where $g(x)$ is a probability 
+distribution function with known method of sampling, we can use this to 
+generate via $Y\sim g$ and $U|Y\sim \mathrm{Unif}(0, Mg(x))$ then we reject 
+all pairs where $U|Y>f(Y).$
 
 So in the end we do\texttt{\\
     1. Generate $X\sim g$\\

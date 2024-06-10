@@ -31,17 +31,21 @@
 \definecolor{ruby}{RGB}{192, 47, 29}
 
 \newtheorem{definition}{Definition}[chapter]
-\newtheorem{theorem}{Theorem}[chapter]
-\newtheorem{example}{Example}[chapter]
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{example}[definition]{Example}
 
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
+\newcommand{\btheta}{\bm{\theta}}
 \DeclareMathOperator{\cov}{cov}
 \DeclareMathOperator{\E}{\mathbb{E}}
 \DeclareMathOperator{\Exp}{Exp}
 \DeclareMathOperator{\MVN}{MVN}
 \newcommand{\LABC}{\mathcal{L}_\text{ABC}}
+\newcommand{\LS}{\mathrm{LSE}}
+\newcommand{\MLE}{\mathrm{MLE}}
 \newcommand{\N}{\mathcal{N}}
+\newcommand{\obs}{\mathrm{obs}}
 \DeclareMathOperator{\p}{\mathbb{P}}
 \DeclareMathOperator{\Pois}{Pois}
 \newcommand{\R}{\mathbb{R}}
@@ -107,12 +111,12 @@ with an application to an existing \emph{Plasmodium vivax} malaria model}\\
 \part{Literature Review}
 \include{body/compartmental_models}
 \include{body/malaria_and_modelling}
-% \include{body/MCMC}
+\include{body/inference}
+\include{body/MCMC}
 % \include{body/abc_methods}
 \include{body/gaussian_processes}
 
 \part{Calibrating Parameters for a \emph{P. vivax} Model}
-% \include{body/inference}
 \include{body/methods}
 \include{body/results_discussion}
 % \include{body/future_suggestions}
