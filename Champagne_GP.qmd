@@ -1399,10 +1399,10 @@ for t in range(501):
                     ]
                 ]
             ),
-            5,
+            4,
             axis=0,
         )
-        new_params[:, t % 6] = np.random.uniform(0, upper_bounds[t % 6], 5)
+        new_params[:, t % 6] = np.random.uniform(0, upper_bounds[t % 6], 4)
 
     new_params = np.append(
         new_params,
@@ -1582,6 +1582,7 @@ for var in vars:
     indices_for_lik = slice_indices_dfs_dict[var + "_gp_indices_df"].values
 
     mean = champ_GP_reg.mean_fn(indices_for_lik)
+    likelihood_dict[var + "_slice_means"] = mean
     variance = dis_mean_n**2 * observation_noise_variance_champ.numpy()
     post_std = np.sqrt(variance)
     log_cdf_vals = tfd.Normal(mean, post_std).log_cdf(epsilon)
@@ -1597,7 +1598,7 @@ for var in vars:
         plt.title("Final Synthetic Likelihood for $" + var + "$ Slice")
     else:
         plt.xlabel("$\\" + var + "$ index points")
-        plt.title("Final Sythetic Likelihood for $\\" + var + "$ Slice")
+        plt.title("Final Synthetic Likelihood for $\\" + var + "$ Slice")
     plt.ylabel("Synthetic likelihood")
     plt.savefig(
         "champagne_GP_images/" + var + "_slice_" + str(t) + "_synth_likelihood.pdf"

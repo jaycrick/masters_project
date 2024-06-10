@@ -817,6 +817,23 @@
 % \end{frame}
 
 \begin{frame}
+    \frametitle{Procedure}
+
+    \begin{enumerate}
+        \item \textbf{Initialisation}: Sample $\mathcal{D}(\bm{\theta})$ at 
+        random $\bm{\theta}$, and train $\mathcal{D}_\mathcal{GP}$ on these 
+        points.
+        \item <2-> Determine which $\bm{\theta}$ to sample $\mathcal{\bm{\theta}}$ 
+        from next using a Bayesian Acquisition function and train 
+        $\mathcal{D}_\mathcal{GP}$ on the new data.
+        \item <2-> Repeat 2.
+        \item <3-> Use $\mathcal{D}_\mathcal{GP}$ to find $\hat{L}(\bm{\theta}).$
+        \item <4-> Use $\hat{L}(\bm{\theta})$ to calibrate parameters
+    \end{enumerate}
+
+\end{frame}
+
+\begin{frame}
     \frametitle{Vivax Model - Champagne et.\ al}
     \begin{figure}[htbp]
         \centering
@@ -918,23 +935,26 @@
     \end{itemize}
 \end{frame}
 
+
 \begin{frame}
-    \frametitle{How did it go?}
-    \only<2>{\includegraphics[width=\textwidth]{
+    \frametitle{Estimating rate of infection $\lambda = 0.01$}
+    \only<1>{\includegraphics[width=\textwidth]{
             ../../champagne_GP_images/initial_lambda_slice_log_discrep.pdf}}
-    \only<3>{\includegraphics[width=\textwidth]{
+    \only<2>{\includegraphics[width=\textwidth]{
             ../../champagne_GP_images/lambda_slice_50_bolfi_updates_log_discrep.pdf}}
+    \only<3>{\includegraphics[width=\textwidth]{
+            ../../champagne_GP_images/lambda_slice_450_bolfi_updates_log_discrep.pdf}}
     \only<4>{\includegraphics[width=\textwidth]{
-            ../../champagne_GP_images/lambda_slice_500_bolfi_updates_log_discrep.pdf}}
-    \only<5>{\includegraphics[width=\textwidth]{
             ../../champagne_GP_images/lambda_slice_500_synth_likelihood.pdf}}
-    \only<6>{\includegraphics[width=\textwidth]{
+\end{frame}
+
+\begin{frame}
+    \frametitle{Estimating rate of blood stage clearance $r = 0.017$}
+    \only<1>{\includegraphics[width=\textwidth]{
             ../../champagne_GP_images/initial_r_slice_log_discrep.pdf}}
-    \only<7>{\includegraphics[width=\textwidth]{
-            ../../champagne_GP_images/r_slice_50_bolfi_updates_log_discrep.pdf}}
-    \only<8>{\includegraphics[width=\textwidth]{
-            ../../champagne_GP_images/r_slice_500_bolfi_updates_log_discrep.pdf}}
-    \only<9>{\includegraphics[width=\textwidth]{
+    \only<2>{\includegraphics[width=\textwidth]{
+            ../../champagne_GP_images/r_slice_450_bolfi_updates_log_discrep.pdf}}
+    \only<3>{\includegraphics[width=\textwidth]{
             ../../champagne_GP_images/r_slice_500_synth_likelihood.pdf}}
 \end{frame}
 
