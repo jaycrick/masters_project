@@ -165,7 +165,16 @@ Finally, the system of ODEs that describe the $SEIR$ model is \begin{align}
 \begin{figure}[htbp]
     \centering
     \includegraphics{ODE_plots.pdf}
-    \caption{Solutions to the ordinary differential equations describing the models depicted in Figure \ref{fig:simple_models}. The initial infectious population was $I_0 = 10,$ with $S_0 = 990.$ In the $SEIR$ model, $E_0 = R_0 = 0.$ For all models $\beta = 0.4.$ For the $SIS$ and $SI$ model with demography $\gamma = 1/4.$ For the $SI$ model with demography $\mu = 0.012,$ and $\nu = 0.0012.$ For the $SEIR$ model, $\gamma = 1/90,$ and $\sigma = 1/2.$}\label{fig:ODE_outputs}
+    \caption{
+        Solutions to the ordinary differential equations describing the models 
+        depicted in Figure \ref{fig:simple_models}. The initial infectious 
+        population was $I_0 = 10,$ with $S_0 = 990.$ In the $SEIR$ model, 
+        $E_0 = R_0 = 0.$ For all models $\beta = 0.4.$ For the $SIS$ and $SI$
+         model with demography $\gamma = 1/4.$ For the $SI$ model with 
+         demography $\mu = 0.012,$ and $\nu = 0.0012.$ For the $SEIR$ model, 
+         $\gamma = 1/90,$ and $\sigma = 1/2.$
+    }
+         \label{fig:ODE_outputs}
 \end{figure}
 
 After specifying the initial for each compartment the ordinary differential equations have a deterministic output, such as in \ref{fig:ODE_outputs}.
@@ -336,7 +345,8 @@ All of this leads naturally to a common method of simulating the stochastic mode
 $\tau$-leaping exploits the local Poisson point process like behaviour of epidemiological models. Consider the SIS model, when $S_t = I_t = 10000.$ Events happen at a very high rate, meaning the $\Delta t$ found in each step of the Doob-Gillespie algorithm will be very small, but the rates also change a negligible amount after each event (compare $\gamma\times 10000$ to $\gamma\times 10001$ or $\gamma\times 9999$). Therefore we can approximate the number of events in a short time period $\tau$ as a Poisson point process with the total intensity $\lambda = \sum_i \lambda_i$ at time $t,$ with the probability of any one event having the same probability as above of $\frac{\lambda_i}{\lambda}.$ Therefore we have the following algorithm.
 
 \begin{algorithm}
-    \caption{$\tau$-Leaping Algorithm}\label{alg:tau_leaping}
+    \caption{$\tau$-Leaping Algorithm}
+    \label{alg:tau_leaping}
     \begin{algorithmic}[1]
         \State Initialise time $t \gets 0$ and initial state of the model $\mathbf{C}(0) := \{C_1(0), C_2(0), \dots, C_n(0)\}$
         \While{termination condition not met}

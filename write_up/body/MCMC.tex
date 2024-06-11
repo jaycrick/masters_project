@@ -1,63 +1,24 @@
 \chapter{Parameter Inference}
 
-TODO: \begin{enumerate}
-    \item make all single digit numbers words
-\end{enumerate}
-
-In classical statistics, $\mathbf\Theta$ is fixed, and the data $Y$ is 
-generated from a distribution depending on $\mathbf\Theta$. Frequentist 
-estimators such as the maximum likelihood estimator, or least squares estimator 
-as previously seen are point estimates. In contrast, inference under a Bayesian 
-framework assumes that $\mathbf\Theta$ is also a random variable. This means 
-although inference may be done on the same model, the Bayesian statistician 
-will more often than not end up with a probability distribution describing 
-$\mathbf\Theta$ given $Y$.
-
 \color{red}
 \section{Monte Carlo Integration}
 
-Let us assume we have a random variable $X\sim p,$ and we want to integrate $I = \int_{\mathcal{X}} f(x)p(x)\diff x$ with relation to some known density $p$ and function $f$. We can numerically approximate $I$ by taking $n$ i.i.d. samples $\{x_1, x_2, \dots, x_n\}$ from the distribution specified by $p$, and approximating $I$ by $I_n:=\frac{1}{N}\sum_{i = 1}^nf(x_i).$ By the strong law of large numbers, under specific conditions (for example $\sigma_f := \mathrm{Var}(f(X))<\infty$ is sufficient) we have that $I_n \to I$ almost surely as $n\to\infty$. Furthermore by the central limit theorem we know that $\sqrt{n}(I_n - I) \sim N(0, \sigma_f)$ as $n\to\infty.$ Intuitively, Monte Carlo integration works efficiently because the support set we numerically integrate over are likely to be points of higher probability density that integrating numerically over a set of uniformly distributed points.
+Let us assume we have a random variable $X\sim p,$ and we want to integrate 
+$I = \int_{\mathcal{X}} f(x)p(x)\diff x$ with relation to some known density 
+$p$ and function $f$. We can numerically approximate $I$ by taking 
+$n$ i.i.d. samples $\{x_1, x_2, \dots, x_n\}$ from the distribution specified 
+by $p$, and approximating $I$ by $I_n:=\frac{1}{N}\sum_{i = 1}^nf(x_i).$ By 
+the strong law of large numbers, under specific conditions 
+(for example $\sigma_f := \mathrm{Var}(f(X))<\infty$ is sufficient) 
+we have that $I_n \to I$ almost surely as $n\to\infty$. Furthermore by the 
+central limit theorem we know that $\sqrt{n}(I_n - I) \sim N(0, \sigma_f)$ 
+as $n\to\infty.$ Intuitively, Monte Carlo integration works efficiently 
+because the support set we numerically integrate over are likely to be 
+points of higher probability density that integrating numerically over a 
+set of uniformly distributed points.
 
 \color{black}
 \section{Accept-Reject sampling methods}
-
-Accept-Reject methodology fundamentally relies on the theorem that $X\sim f $ is equivalent to simulating $(X,U) \sim \mathrm{Unif}\{(x, u)|0<u<f(x)\}.$ (Theorem 2.15 pg 47 Casella Roberts). In the case where a direct sampling method doesn't exist, we can use this theorem to our advantage. For example, if $a \leq X \leq b$ almost surely, then we can sample the pairs $X^*\sim \mathrm{Unif}(a, b),$ and then $U^*\sim\mathrm{Unif}(0, M),$ where $M\geq \sup_{a<x<b} f(x).$ To then get out samples to follow the distribution of $(X, U)$ we then reject all samples $(x_i, u_i)$ where $u_i>f(x_i).$ The distribution of $X$ can then be described as follows
-
-\begin{align*}
-    \Pr(X \leq x) =\, & \Pr(X^* \leq x|U^*\leq f(X^*))                              \\
-    =\,               & \frac{\Pr(X^* \leq x, U^*\leq f(X^*))}{\Pr(U^*\leq f(X^*))} \\
-    =\,               & \frac{\int_a^xf(y)\diff y/((b - a)*M)}{1/((b - a)*M)}       \\
-    =\,               & \int_a^xf(y)\diff y                                         \\
-    =\,               & F(x)
-\end{align*}
-
-For example in finding samples from the distribution below, we generate 100 random pairs $(X^*, U^*)$
-
-%\begin{tikzpicture}
-%\begin{axis}[axis lines = left]
-%\addplot[color=red, domain = 0:1]{5*x*(x - 1)^2*(x + 2)};
-%% \addplot[blue] coordinates{(\pgfmathparse{rnd}\pgfmathresult, \pgfmathparse{rnd}\pgfmathresult)};
-%\end{axis}
-%\end{tikzpicture}
-
-%$\foreach \x in {1,...,10}{\pgfmathparse{rnd}\pgfmathresult, }$
-
-There is no need for the distribution to be uniform over the rectangle, and to 
-decrease the number of rejections we can generate points uniformly under a 
-function $h(x)$ that more closely resembles our target distribution as long as 
-$f(x)\leq h(x)$ for all $x$. If $h(x) = Mg(x)$ where $g(x)$ is a probability 
-distribution function with known method of sampling, we can use this to 
-generate via $Y\sim g$ and $U|Y\sim \mathrm{Unif}(0, Mg(x))$ then we reject 
-all pairs where $U|Y>f(Y).$
-
-So in the end we do\texttt{\\
-    1. Generate $X\sim g$\\
-    2. Accept if $U\leq f(X)/Mg(X)$, otherwise repeat 1.}
-
-If $f$ is computationally expensive, but bounded below by $g_l$, we can \texttt{\\
-    1. Generate $X\sim g$\\
-    2. Accept if $U\leq g_l(X)/Mg(X)$\\
-    3. Accept if $U\leq f(X)/Mg(X)$, otherwise repeat 1.}
 
 \section{Essentials for MCMC}\label{Markov_chains}
 
@@ -67,14 +28,11 @@ If $f$ is computationally expensive, but bounded below by $g_l$, we can \texttt{
 \end{definition}
 
 \begin{definition}[Transition Kernel]
-    A \emph{transition kernel} is a function $K$ defined on $\mathcal{X}\times\mathcal{B}(\mathcal{X})$ such that\begin{enumerate}
+    A \emph{transition kernel} is a function $K$ defined on 
+    $\mathcal{X}\times\mathcal{B}(\mathcal{X})$ such that \begin{enumerate}
         \item $\forall x\in\mathcal{X},\,\,K(x,\cdot)$ is a probability measure;
         \item $\forall A\in\mathcal{B}(\mathcal{X}),\,\, K(\cdot, A)$ is measureable.
     \end{enumerate} (MCSM 6.2)
-\end{definition}
-
-\begin{definition}[Markov Chain]
-    Given a transition kernel $K$, a sequence of $X_0, X_1, \dots, X_n, \dots$ of random variables is a \emph{Markov chain} denoted by $(X_n)$ if for any $t$, $$P(X_{k+1}\in A|X_0, X_1, \dots, X_k) = P(X_{k+1}\in A|X_0, \dots, X_k)$$ (MCMS 6.4)
 \end{definition}
 
 \begin{definition}[$\varphi$-irreducible]

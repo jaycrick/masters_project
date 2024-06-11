@@ -10,9 +10,9 @@ or anything else we are trying to model,
 we then need to estimate what the `true' underlying parameters are.
 To do this we calibrate the model against real world data such as case counts,
 and prevalence surveys. Under frequentist assumptions, there is a `true' set of
-parameters that if used in our model, simulated the observed data. Under a Bayesian 
+parameters that if used in our model, simulated the observed data. Under a Bayesian
 assumption, the parameters are considered to be random, and
-This chapter explores statistical inference techniques to recover the 
+This chapter explores statistical inference techniques to recover the
 parameters, under both the frequentist and Bayesian frameworks.
 
 \section{Frequentist Parameter Estimation}
@@ -137,10 +137,10 @@ explicitly calculate the probability of the data given the parameters.
         ).
     $$
     In the continuous case, if $\mathbf{f}(\btheta) + \bm{\varepsilon}$
-    has joint density $g,$
+    has joint density $p,$
     $$
         \mathcal{L}(\btheta)
-        := g(\mathbf{y}^\obs | \btheta).
+        := p(\mathbf{y}^\obs | \btheta).
     $$
 \end{definition}
 
@@ -222,23 +222,207 @@ the $y_i^\obs$s were has been generated with normal error.
 \subsection*{Frequentist Parameter Estimates in Compartmental Models}
 
 Various approaches are possible to parameterise compartmental models.
-Often the ODE model is fit to the data directly (if there is only one datapoint)
-to fit to, or parameters are estimates by least squares. For example see
-\cite{gani_transmission_2001} who use both these methods.
-including fitting the ODEs to by using the least squares estimates of
-a common approach is to find the least squares 
-estimate of the parameters by considering $\mathbf{f}(\btheta).$
-This is commonly done because explicitly solving the likelihood for 
-the stochastic compartmental model is infeasible. An alternative approach
+If the stochastic compartmental model is simple enough, and the number of
+people in the model is small enough, then the likelihood
+for the stochastic model could be calculated directly. However this is hardly
+ever the case, and approximations are usually made.
+For a model with a single parameter to fit, the ODE model is
+fit to that data point. For example \cite{champagne_using_2022} fit one
+unknown model parameter to incidence data.
+Alternatively, if there are multiple observations to fit the model to
+parameters can be estimated by finding the least squares estimates fit to
+the ODE model.
+\cite{gani_transmission_2001} fit part of their modified $SEIR$ smallpox model
+for using least square estimates.
+Another alternative approach
 is to assume that the observed data follow a particular distribution
-determined by the ODE solution. For example, for the SIS model described
-in \ref{fig:SIS_model} it is plausible to assume that
-daily incidence (case counts) are distributed $\Pois(\beta \frac{I_t}{N}S_t).$ 
-Then $\beta$ could be estimated using a maximum likelihood estimate given the 
-case counts.
-Alternatively if case counts are overdispered, a negative binomial likelihood
-could be used.
+determined by the ODE solution. For example, it is plausible to assume that
+daily incidence (case counts) could be distributed according to a Poisson
+distribution, with a mean number of cases $\beta \frac{I_t}{N}S_t,$ where $I_t$
+and $S_t$ are solutions of the ODEs at time $t$.
+Other data such as samples from the population to estimate
+prevalence (proportion of those infectious) could be
+distributed $\mathrm{Binom}(n, \frac{I_t}{N}).$
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics{MLE_SSE_SEIR.pdf}
+    \caption{
+        An $SEIR$ model fit to some observed prevalence data taken every two
+        weeks over a 14 week period, genetated as $I_t/N$ from the $SEIR$
+        simulation in Figure \ref{fig:doob_outputs}.
+        All parameters were considered known except for $\beta$.
+        The least squares estimate (LSE) $\beta^\LS = 0.3516$
+        for $\beta$
+        was found by solving the model ODEs and numerically minimising the
+        square differences between observed prevalences and the ODE prevalences
+        (as proportions). Similarly the maximum likelihood estimate
+        $\hat{\beta} = 0.3493$ for $\beta$
+        was found by assuming the prevalence (times 1000) was binomially
+        distributed from 1000 samples with the probability of success being
+        equal to $\frac{I_t}{N}.$
+    }
+    \label{fig:MLE_SSE}
+\end{figure}
+
+We demonstrate estimation of one unknown parameter $\beta$ from an $SEIR$ model,
+using prevalence data in Figure
+\ref{fig:MLE_SSE}. Both $\beta^\LS$ and $\hat{\beta}$ are very close, but do
+not fit the data well suggesting fitting the ODEs to a stochastic model
+simulation may be a poor choice. This is because at the beginning of an
+epidemic the behaviour is very stochastic. Therefore trying to fit an ODE model
+to it's stochastic analogue is not necessarily a good idea. The ODEs are more
+likely to well approximate the stochastic model when the number of people in
+each compartment is high.
+
+\section{Bayesian Parameter Estimation}
+
+In frequentist statistical inference, $\btheta$ is considered to be
+fixed, with the observed data $\mathbf{y}^\obs$ assumed to be
+generated from a distribution depending on $\btheta.$ Although it is possible
+to quantify the uncertainty in parameter estimates through confidence intervals,
+frequentist estimates naturally lend themselves to point estimates.
+In contrast, inference under a Bayesian
+framework assumes that $\btheta$ is also a random variable according to some
+pre-known prior distribution. `Evidence' from the observed data then updates
+belief about
+$\btheta,$ resulting in a posterior distribution of $\btheta,$ described by
+Bayes' theorem, namely
+$$
+    \Pr(\btheta|\mathbf{y}) \propto \Pr(\mathbf{y}^\obs|\btheta)\Pr(\btheta).
+$$
+
+Bayesian parameter estimation is still dependent on the likelihood function
+$\mathcal{L}$ as expressed in the Bayes' theorem.
+With samples from the posterior distribution, we are
+able to run our models to capture uncertainty in predicting future scenarios.
+For instance, a government may be interested in the number of additional
+hospital beds that need to be available to cope with an outbreak of a disease.
+If a disease model can be used to approximate outbreaks of the disease,
+we can use previous instances of the disease to calibrate our model parameters.
+Samples from the posterior parameter distribution, allow
+the model to be run multiple times with the varying sets of parameters,
+and provide a range of predicted outcomes for the disease. This allows for
+confidence in how much investment may be required in the health system.
+Similarly, samples from the posterior parameter distribution allow for scenario
+modelling such as introducing a new vaccine.
+
+\subsection*{Rejection Sampling}
+
+If we have known ways to sample from the posterior parameter distribution,
+then we can use these. However if we have an equation for the probability
+distribution, but no way of sampling directly we can sample using rejection
+sampling. To sample $X$ through rejection sampling,
+we need an explicit way of calculating
+$g(x)$ (where $g$ is proportional to the density of $X$), a constant $M$ and
+a distribution $p$ such that $Mp(x) \geq g(x)$ with a sampling method
+available.
+
+\begin{algorithm}
+    \caption{Rejection Sampler}
+    \label{alg:rej_samp}
+    \begin{algorithmic}[1]
+        \State Sample $X^\ast \sim p$
+        \State Sample $U \sim \mathrm{Unif}(0, 1)$
+        \If{$U \leq \frac{g(X^\ast)}{M p(X^\ast)}$}
+        \State \Return $X^\ast$ as a sample from the distribution of $X$
+        \Else
+        \State Repeat
+        \EndIf
+    \end{algorithmic}
+\end{algorithm}
+
+Under this methodology, the distribution function of $X$ is
+
+\begin{align*}
+    \Pr(X = x)
+    \propto & \Pr(X^\ast = x , U \leq \frac{g(X^\ast)}{M p(X^\ast)})
+    \tag*{where the probabilities may be interpreted as densities}                   \\
+    =       & \Pr(U \leq \frac{g(X^\ast)}{M p(X^\ast)} | X^\ast = x) \Pr(X^\ast = x) \\
+    =       & \frac{g(x)}{M p(x)} p(x)
+    =       & \frac{g(x)}{M}
+\end{align*}
+
+as required.
 
 \begin{figure}
-    \missingfigure{MLE Poisson SIS model}
+    \centering
+    \includegraphics{accept_reject.pdf}
+    \caption{
+        Samples of $X$ from the unnormalised density $g(x) = (x - 1)^2$ with
+        $x\in(0,2)$ using the rejection sampler. $X^\ast\sim\mathrm{Unif}(0,2)$
+        and $M = 1.$
+        Green dots are samples from
+        from $X.$
+        Of 500 samples of $X^\ast$, 157 were accepted as samples of $X$.
+    }
+    \label{fig:accept_reject}
 \end{figure}
+
+\begin{example}
+    Let $g(x) = (x - 1)^2$ be an unnormalised density function for
+    $x \in (0,2).$ $g(x) \leq 1,$ the density of a $\mathrm{Unif}(0,2)$ random
+    variable. Therefore to generate samples from $g$ we sample uniformly from
+    $X^\ast \sim \mathrm{Unif}(0, 2),$ and then accept the sample if a new
+    $U \sim \mathrm{Unif}(0, 1)$ is less than $(X^\ast - 2)^2.$ This is
+    demonstrated in \ref{fig:accept_reject}
+\end{example}
+
+\subsection*{Monte-Carlo Markov Chain Methods}
+
+Often it is not possible to sample directly from the posterior distribution
+$\Pr(\btheta|\mathbf{y})$ using a rejection sampler, as there is no
+explicit form proportional to the true density.
+Therefore a common way of sampling from the posterior distribution is
+to construct a Markov chain that has the same stationary distribution as the
+posterior parameter distribution, and take samples from the chain as samples
+from the posterior.
+
+\begin{definition}[(Discrete Time) Markov Chain]
+    A sequence of random variables
+    $X_0, X_1, \dots$
+    is a (discrete time) \emph{Markov chain} $\{X_k\}_{k\in\mathbb{N}}$ if for
+    all
+    $k\in\mathbb{N}$,
+    $$
+        \Pr(X_{k+1}\in A|X_0, X_1, \dots, X_k) = \Pr(X_{k+1}\in A|X_0, \dots, X_k)
+    $$
+\end{definition}
+
+We will restrict our focus to time homogeneous Markov chains, that is, where
+$\{X_k, X_{k+1}, \dots, X_{k + n}\}$ has the same distribution as
+$\{X_{k^\prime}, X_{k^\prime+1}, \dots, X_{k^\prime + n}\}$ for all
+$k, k^\prime, n \in \mathbb{N},$ given $X_k = x = X_{k^\prime}$. In other words,
+as long as one knows the value at some point in the chain, how far along the
+chain someone is has no impact on the distribution along the chain.
+
+\subsection*{Metropolis Hastings}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics{coin_MH_R.pdf}
+    \caption{30,000 samples from the posterior distribution of $p$ using the Metropolis Hastings algorithm. It was assumed that $p\sim \mathrm{U}(0,1)$ and $H \sim \mathrm{Binom}(10, p),$ given $H = 6.$ A uniform and normal proposal distributions were compared.}
+    \label{fig:coin_R}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics{SIS_gamma_pred.pdf}
+    \caption{
+        I created this ages ago but I think it's estimating
+        $\gamma$ from an SIS model so I'll figure it out and I think it is 
+        using metropolis hastings
+    }
+    \label{fig:SIS_MH_R}
+\end{figure}
+
+\subsection*{Gibbs Sampling}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics{SIS_gibbs.pdf}
+    \caption{Using Gibbs on beta and gamma given an `$R_0$' observation}
+    \label{fig:gibbs_R}
+\end{figure}
+
+\subsection*{ABC}

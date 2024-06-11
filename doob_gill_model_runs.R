@@ -13,7 +13,7 @@ gamma_SI_demog <- 1 / 90
 omega <- 1 / 2
 mu <- 0.012 # gamma_SI_demog - gamma_SI_demog^2/beta + 0.001
 # Aus birth rate 0.00004
-nu <- (beta * (mu - gamma_SI_demog) + gamma_SI_demog^2) / 
+nu <- (beta * (mu - gamma_SI_demog) + gamma_SI_demog^2) /
   (beta - gamma_SI_demog)
 pop_size <- 1000 # population of Whitehorse 25000
 init_inf <- 10
@@ -227,7 +227,7 @@ plots_stochastic_all <- ggplot(
   ylab("Number of people") +
   scale_x_continuous(expand = expansion(0)) +
   scale_y_continuous(
-    expand = expansion(c(0, 0.01)), 
+    expand = expansion(c(0, 0.01)),
     breaks = c(0, 250, 500, 750, 1000, 1250)
   ) +
   scale_color_manual(values = cust_pal) +
@@ -236,25 +236,31 @@ plots_stochastic_all
 
 ggsave(
   plot = plot_stochastic_SIS,
-  "../../Apps/Overleaf/M_Scimat_Thesis/images/doob_SIS.pdf",
+  "write_up/images/doob_SIS.pdf",
   width = 3,
   height = 3
 )
 ggsave(
   plot = plot_stochastic_SI_demog,
-  "../../Apps/Overleaf/M_Scimat_Thesis/images/doob_SI_demog.pdf",
+  "write_up/images/doob_SI_demog.pdf",
   width = 3,
   height = 3
 )
 ggsave(
   plot = plot_stochastic_SEIR,
-  "../../Apps/Overleaf/M_Scimat_Thesis/images/doob_SEIR.pdf",
+  "write_up/images/doob_SEIR.pdf",
   width = 3,
   height = 3
 )
 ggsave(
   plot = plots_stochastic_all,
-  here("../../Apps/Overleaf/M_Scimat_Thesis/images/doob_plots.pdf"),
+  here("write_up/images/doob_plots.pdf"),
   width = 5.5,
   height = 3
+)
+
+save(
+  long_outputs_SI_demog, long_outputs_SIS, long_outputs_SEIR,
+  sim_SI_demog, sim_SIS, sim_SEIR,
+  file = "stochastic_runs.RData"
 )
