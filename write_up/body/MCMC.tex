@@ -52,7 +52,8 @@ set of uniformly distributed points.
 \end{definition}
 
 \begin{definition}[Ergodic]
-    For a positive Harris recurrent chain $(X_n)$, with invariant distribution $\pi$, an atom $\alpha$ is \emph{ergodic} if
+    For a positive Harris recurrent chain $(X_n)$, with invariant distribution 
+    $\pi$, an atom $\alpha$ is \emph{ergodic} if
     $$\lim_{n\to\infty}|K^n(\alpha, \alpha) - \pi(\alpha)| = 0$$ (MCSM 6.47)
 \end{definition}
 
@@ -101,7 +102,19 @@ Consider two different (symmetric) proposal distributions $q(p_i|p_{i - 1})$: \b
     \label{fig:coin_R}
 \end{figure}
 
-For another example we can consider a simple SIS epidemiological model, with $$\frac{\diff S}{\diff t} = \gamma I - \beta SI \quad \frac{\diff I}{\diff t} = \beta SI -  \gamma I,$$ and a population of 25,000. Previous pandemics can be used to fix $\beta = 0.5.$ At day 0, it is assumed that there is 1 infected person. Given 1184 new cases on day 30, and $\gamma\sim \mathrm{Gamma}(2, 6)$ we can use the Metropolis Hastings algorithm to sample from the posterior distribution of $\gamma.$  This will depend on the choice of likelihood.\textcolor{red}{Expand this explanation} See figure \ref{fig:SIS_MH_R}
+For another example we can consider a simple SIS epidemiological model, 
+with 
+$$
+\frac{\diff S}{\diff t} 
+= \gamma I - \beta SI \quad \frac{\diff I}{\diff t}
+ = \beta SI -  \gamma I,
+$$
+and a population of 25,000. Previous pandemics can be used to fix 
+$\beta = 0.5.$ At day 0, it is assumed that there is 1 infected person. 
+Given 1184 new cases on day 30, and $\gamma\sim \mathrm{Gamma}(2, 6)$ we can 
+use the Metropolis Hastings algorithm to sample from the posterior 
+distribution of $\gamma.$  This will depend on the choice of likelihood.
+\textcolor{red}{Expand this explanation} See figure \ref{fig:SIS_MH_R}
 
 \begin{figure}[htbp]
     \centering
