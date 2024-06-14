@@ -181,7 +181,7 @@ Although most of the procedure we used closely follows the paper by
 \cite{gutmann_bayesian_2016}, there are a few key ways in which we modified the
 manuscript's method. In particular, we felt the choice of squared exponential
 kernel was not a good assumption, since it implicitly assumes a high degree of
-smoothness in the target discrepency function. This is unlikely to be met if
+smoothness in the target discrepancy function. This is unlikely to be met if
 the model has any bifurcation points. Under the squared exponential function,
 if the true function has any sharp declines, or general non-smoothness
 , the length scale is forced to be set very small. Therefore,
@@ -212,7 +212,7 @@ parameter space, whereas \cite{gutmann_bayesian_2016} do not.
 
 They use a quadratic mean structure on unbounded parameters.
 This could be problematic in situations 
-where the discrepency has multiple local minima. When we tried it,
+where the discrepancy has multiple local minima. When we tried it,
 the quadratic mean function poorly it resulted in
 in the acquisition function trying to sample extremely high parameter values.
 Therefore we bounded our parameters, making out parameter space compact. 
@@ -220,6 +220,6 @@ Therefore we bounded our parameters, making out parameter space compact.
 \section{Further Work}
 
 Moment matching could be used to avoid assuming that the distribution of 
-the discrepency $\mathcal{D}(\bm{\theta})$ or $\ln\mathcal{D}(\bm{\theta})$ 
+the discrepancy $\mathcal{D}(\bm{\theta})$ or $\ln\mathcal{D}(\bm{\theta})$ 
 is normal for fixed $\mathcal{D}(\bm{\theta}).$ The sample variance could
 be explicitly modelled using 

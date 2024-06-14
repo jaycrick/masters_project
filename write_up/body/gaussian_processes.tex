@@ -1,26 +1,25 @@
 \chapter{Gaussian Processes}
 
-\begin{itemize}
-    \item Prove all pos-sem is cov
-    \item prove exponential quad kern is pos semi-def
-\end{itemize}
-
 \section{Motivation and Definitions}
 
-If we knew the distribution of $D(\bm{\theta})$
-exactly, then in order to do approximate
-Bayesian computation, running the model becomes superfluous to
-obtain a `sample' from $D(\bm{\theta})$. Instead a sample $D(\bm{\theta})$ 
-could be drawn directly from it's distribution. It is highly improbable that
-the distribution of $D(\bm{\theta})$ is known in practice, and so
-this chapter describes a method of approximating the distribution. 
-Furthermore, since $\Pr(D(\bm{\theta}) < \varepsilon)$
-is approximately
-proportional to the true likelihood, sampling from the approximation of 
-$D(\bm{\theta})$ can be used to for more efficient approximation of 
-the likelihood. The approximation considered is achieved by modelling
-$D(\bm\theta)$ 
+If we knew the distribution of $\D(\btheta)$ for all $\btheta,$ then the need 
+to sample from the model in Algorithm
+\ref{alg:abc} becomes redundant, since we can sample directly from
+$\D(\btheta).$ Moreover, the probability of drawing and accepting a sample
+from the becomes $\Pr(\btheta)\Pr(\D(\btheta) < \epsilon | \btheta).$ Comparing
+this to Bayes' theorem, we can consider $\Pr(\D(\btheta) < \epsilon | \btheta)$
+an approximation of $\L(\btheta)$ (up to some proportionality constant).
+We do not know the distribution of $\D(\btheta),$ but we can construct 
+an approximation. The approximation considered is achieved by modelling
+$\D(\btheta)$ 
 as a realisation of a Gaussian process.
+
+The key insight that motivates our use of Gaussian processes is the 
+assumption that for $\btheta$ and $\btheta^\prime$ that are close to each other,
+the distribution of $\D(\btheta)$ will be similar to the distribution of 
+$\D(\btheta^\prime).$ Therefore sampling from $\D(\btheta)$ gives information
+about the distribution of $\D(\btheta^\prime)$ for $\btheta,$ 
+$\btheta^\prime$ close.
 
 \begin{definition}[Gaussian Process]\label{def:gp}
     A collection of random variables $\{f(x)\}_{x\in\mathcal{X}}$
@@ -752,33 +751,33 @@ $$
 $$
 
 
-$$\mu(\bm\theta) - \eta_t\sqrt{\mathrm{v}(\bm\theta)}$$
+$$\mu(\btheta) - \eta_t\sqrt{\mathrm{v}(\btheta)}$$
 with $\eta_t:= \sqrt{2\ln(\frac{t^{2d + 2}\pi^2}{3\varepsilon})},$ and
 $\varepsilon \in (0, 1)$ that can be chosen
-(with a lower epsilon resulting in more exploration), $\mu(\bm\theta)$ and
-$\mathrm{v}(\bm\theta)$ are the posterior mean and variance.
+(with a lower epsilon resulting in more exploration), $\mu(\btheta)$ and
+$\mathrm{v}(\btheta)$ are the posterior mean and variance.
 $\varepsilon = 0.1$ was used.
 
 
 Similarly we can also define 
 
 \begin{itemize}
-    \item BOLFI paper uses $$\mu(\bm\theta) - \eta_t\sqrt{\mathrm{v}(\bm\theta)}$$ \begin{itemize}
+    \item BOLFI paper uses $$\mu(\btheta) - \eta_t\sqrt{\mathrm{v}(\btheta)}$$ \begin{itemize}
               \item $\eta_t:= \sqrt{c + 2\ln(t^{d/2 + 2})},$ and $c$ can be chosen
-              \item $\mu(\bm\theta)$ and $\mathrm{v}(\bm\theta)$ are the posterior mean and variance
+              \item $\mu(\btheta)$ and $\mathrm{v}(\btheta)$ are the posterior mean and variance
           \end{itemize}
 
     \item Could use expected information
           $$
-              (\mu_\text{min} - \mu(\bm\theta)) \varPhi \left(
-              \frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}
+              (\mu_\text{min} - \mu(\btheta)) \varPhi \left(
+              \frac{\mu_\text{min} - \mu(\btheta)}{\sqrt{\mathrm{v}(\btheta)}}
               \right)
-              + \sqrt{\mathrm{v}(\bm\theta)}\phi\left(
-              \frac{\mu_\text{min} - \mu(\bm\theta)}{\sqrt{\mathrm{v}(\bm\theta)}}
+              + \sqrt{\mathrm{v}(\btheta)}\phi\left(
+              \frac{\mu_\text{min} - \mu(\btheta)}{\sqrt{\mathrm{v}(\btheta)}}
               \right)
           $$
           \begin{itemize}
-              \item $\mu_\text{min} := \min_{\bm{\theta}} \mu(\bm\theta)$
+              \item $\mu_\text{min} := \min_{\bm{\theta}} \mu(\btheta)$
               \item $\varPhi, \phi$ CDF and PDF of standard normal
           \end{itemize}
 \end{itemize}

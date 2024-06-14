@@ -140,7 +140,7 @@ explicitly calculate the probability of the data given the parameters.
 
 The dependence on $\by^\obs$ is suppressed, but can be
 explicitly written as $\mathcal{L}(\btheta|\by^\obs).$ In the continuous
-(and mixture of discrete and continuous) case, 
+(and mixture of discrete and continuous) case,
 we interpret
 $
     \Pr(
@@ -853,8 +853,94 @@ So far, under a Bayesian framework, parameter estimation has still been
 dependent on the likelihood function
 $\mathcal{L}(\btheta) := \Pr(\by^\obs|\btheta)$ through Bayes' theorem.
 In many cases, such as stochastic disease models and agent based models, the
-likelihood has no explicit form, or is intractable to calculate. 
-In this case we can still
-sample $\by(\btheta),$ with likelihood $\Pr(\by^\obs | \btheta)$ by definition.
+likelihood has no explicit form, or is intractable to calculate.
+The only option here is to run the model given $\btheta,$
+and sample $\by(\btheta)$ directly.
 
-Therefore
+\begin{algorithm}[htbp]
+    \caption{Naive Bayesian Sampler}
+    \label{alg:naive_samp}
+    \begin{algorithmic}[1]
+        \State Sample $\btheta^\ast \sim \Pr(\btheta)$
+        \State Run model and compute $\by(\btheta^\ast)$
+        \If{$\by(\btheta^\ast) = \by^\obs$}
+        \State \Return $\btheta^\ast$ as a sample from $\Pr(\btheta|\by^\obs.)$
+        \EndIf
+    \end{algorithmic}
+\end{algorithm}
+
+A naive method of using such model runs to sample from
+$\Pr(\btheta|\by^\obs)$ is to sample
+$\btheta^\ast$ from $\Pr(\btheta),$ and run the model to obtain
+$\by(\btheta^\ast).$ For each iteration,
+$\by(\btheta^\ast)$ will exactly equal $\by^\obs$
+with probability $\Pr(\by^\obs|\btheta^\ast)\Pr(\btheta^\ast)
+    \propto \Pr(\btheta^\ast|\by^\obs),$
+and hence if $\by(\btheta) = \by^\obs$ we can accept $\btheta$ as a sample
+from our posterior parameter distribution. This is outlined in
+Algorithm \ref{alg:naive_samp}. When
+$\by^\obs|\btheta^\ast$ does not have a countable number of non-zero
+probability outputs,
+$\btheta^\ast = \by^\obs$ can be exactly zero, and even in the
+countable case, for
+higher dimensional $\by(\btheta),$ the probability of returning exactly
+$\by^\obs$ vanishes. Therefore we draw inspiration from the continuous
+interpretation of the likelihood
+$\mathcal{L}(\btheta) := \Pr(\by(\btheta) \in \diff \by^\obs|\btheta).$
+Since
+
+\begin{equation}\label{eq:dens_ball}
+    \Pr(\by(\btheta) \in \diff \by^\obs|\btheta)
+    := \lim_{\epsilon \to 0}
+    \frac{\Pr(\by(\btheta) \in B^D_\epsilon(\by^\obs))}{\varepsilon},
+\end{equation}
+
+where $B^D_\epsilon(\by^\obs)$ is a ball of size $\epsilon$ around $\by^\obs,$
+with respect to some (unknown) metric $D$ induced by the (unknown)
+probability distribution of $\by(\btheta).$ Therefore $\mathcal{L}(\btheta)$ is
+approximately proportional
+to $\Pr(\by(\btheta) \in B^D_\epsilon(\by^\obs) | \btheta),$
+(as a function of $\btheta$).
+
+Hence we construct a new approximate sampling algorithm where rather than
+rejecting the sample for $\by(\btheta) \neq \by^\obs,$ we accept
+$\by(\btheta)$ if it falls within a ball of size $\epsilon$ around $\by^\obs.$
+Equivalently we accept samples if $D(\by(\btheta), \by^\obs) < \epsilon.$
+
+Since the distribution of $\by(\btheta)$ is unknown, and since the metric
+required for equation \ref{eq:dens_ball} to hold depends on $\btheta,$ we do
+not explicitly derive $D(\by(\btheta), \by^\obs),$ are are forced to
+approximate it with $\tilde{D}(\by(\btheta), \by^\obs)$. The most common choice
+of $\tilde{D}$ is the $L^p$ norm of $\by(\btheta) - \by^\obs$
+$$
+    \tilde{D}(\by(\btheta), \by^\obs)
+    =||\by(\btheta) - \by^\obs||_p
+    = \left(\sum_{i = 1}^d
+    \left|y_i(\btheta)
+    - y_i^\obs\right|^p\right)^{1/p},
+$$
+for $p\geq 1.$ For $p=1$ or $2$ this is the Manhattan or Euclidean distance 
+between the two vectors. When the observations in $\by^\obs$ are on different
+scales, or $\by^\obs$ are highly correlated between model runs, care needs to 
+be taken to rescale $\by^\obs$ and $\by(\btheta)$ by a covariance matrix to 
+remove correlation, or by rescaling using the relative differences instead of
+$||\by(\btheta) - \by^\obs||_p.$
+
+\begin{algorithm}[htbp]
+    \caption{Approximate Bayesian Compuation Sampler}
+    \label{alg:abc}
+    \begin{algorithmic}[1]
+        \State Sample $\btheta^\ast \sim \Pr(\btheta)$
+        \State Run model and compute $\mathcal{D}(\btheta^\ast)$
+        \If{$\mathcal{D}(\btheta^\ast) < \epsilon$}
+        \State \Return $\btheta^\ast$ as a sample from $\Pr(\btheta|\by^\obs.)$
+        \EndIf
+    \end{algorithmic}
+\end{algorithm}
+
+Since $\by^\obs$ is fixed, we consider $\tilde{D}(\by(\btheta), \by^\obs)$ as a
+function of $\btheta,$ and
+we can equivalently write $\mathcal{D}(\btheta) := \tilde{D}(\by(\btheta), \by^\obs).$
+We call $\mathcal{D}(\btheta)$ the discrepancy function where in a
+non-deterministic model, $\mathcal{D}(\btheta)$ is be random.
+. The full procedure is outlined in Algorithm \ref{alg:abc}.
