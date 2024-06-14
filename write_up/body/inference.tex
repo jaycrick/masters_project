@@ -21,20 +21,20 @@ Assume the model is parametrised by a set of parameters
 $\btheta \in \mathbf{\Theta}$ which
 we are trying to estimate by considering some observed data
 $\by^\obs = (y_1^\obs, \dots, y_n^\obs).$
-Consider $\mathbf{f}(\btheta) = (f_1(\btheta), \dots, f_n(\btheta))$
+Consider $\by(\btheta) = (y_1(\btheta), \dots, y_n(\btheta))$
 some model simulation of
 $\by^\obs.$ Often the observed data has some underlying index set
 $x_1, \dots, x_n,$ where $x_i$ might be something like time. In this case
 we can also consider the observed data to be
 $\{(x_1, y_1^\obs), \dots, (x_n, y_n^\obs)\},$ and the
 model simulated data to be
-$\{(x_1, f_1(\btheta)), \dots, (x_n, f_n(\btheta))\}.$
+$\{(x_1, y_1(\btheta)), \dots, (x_n, y_n(\btheta))\}.$
 
 \subsection*{Least Squares Estimator}
 
 It is common that models are not random, but instead model the mean behaviour
-of a system. In this case, $\mathbf{f}(\btheta)$ is not random. Therefore
-we can assume that $y^\obs_i = f_i(\btheta) + \varepsilon_i,$
+of a system. In this case, $\by(\btheta)$ is not random. Therefore
+we can assume that $y^\obs_i = y_i(\btheta) + \varepsilon_i,$
 where $\varepsilon_i$ is a random variable with some (possibly unknown)
 distribution, and zero mean.
 
@@ -47,7 +47,7 @@ estimating $\btheta^{\LS}$ is to take the least squares estimate.
     $$
         \btheta^{\LS}
         := \argmin_{\btheta\in\mathbf{\Theta}}
-        \sum_{i = 1}^n (f_i(\btheta)- y_i^\obs)^2.
+        \sum_{i = 1}^n (y_i(\btheta)- y_i^\obs)^2.
     $$
 \end{definition}
 
@@ -56,15 +56,15 @@ estimating $\btheta^{\LS}$ is to take the least squares estimate.
     $\{(x_1, y_1^\obs), (x_2, y_2^\obs), (x_3, y_3^\obs)\}
         = \{(1, 2), (2, 4), (3, 4)\},$
     which we assume were generated from the model
-    $f_i(\btheta) + \varepsilon_i,$ where
-    $f_i(\btheta) = \theta_0 + \theta_1x_i,$ and
+    $y_i(\btheta) + \varepsilon_i,$ where
+    $y_i(\btheta) = \theta_0 + \theta_1x_i,$ and
     $\E(\varepsilon_i) = 0.$ We derive the least squares estimate of our
     parameters $\btheta = (\theta_0, \theta_1)$ by
 
     \begin{align*}
         \btheta^{\LS}
         = & \, \argmin_{\btheta}
-        [\sum_{i = 1}^3 (f_i(\btheta) - y_i^\obs)^2]           \\
+        [\sum_{i = 1}^3 (y_i(\btheta) - y_i^\obs)^2]           \\
         = & \, \argmin_{\btheta}
         [\sum_{i = 1}^3 (\theta_0 + \theta_1x_i - y_i^\obs)^2] \\
         = & \, \argmin_{\btheta}
@@ -99,11 +99,11 @@ estimating $\btheta^{\LS}$ is to take the least squares estimate.
     \includegraphics[width=\textwidth]{LS_example.pdf}
     \caption{
         Two linear models of the form
-        $f_i(\btheta) = \theta_0 + \theta_1x_i$ fit given the set
+        $y_i(\btheta) = \theta_0 + \theta_1x_i$ fit given the set
         of observations $\{(1, 2), (2, 4), (3, 4)\}$ using the method of
         least squares and maximum likelihood under
         the assumption that the data are independent realisations by a Poisson
-        distribution with $\Pois(f_i(\btheta)).$ The least squares estimates
+        distribution with $\Pois(y_i(\btheta)).$ The least squares estimates
         were $\theta^\LS_0 = 4/3$ and $\theta^\LS_1 = 1.$ The maximum likelihood
         estimates were $\hat{\theta}_0 \approx 1.329$ and
         $\hat{\theta}_1 \approx 0.751.$
@@ -123,31 +123,41 @@ explicitly calculate the probability of the data given the parameters.
     $$
         \mathcal{L}(\btheta)
         := \Pr(
-        \mathbf{f}(\btheta) + \bm{\varepsilon} = \by^\obs
+        \by(\btheta) + \bm{\varepsilon} = \by^\obs
         | \btheta
         ).
     $$
-    Particularly, if $f_i(\btheta) + \varepsilon_i$ are independent
+    Particularly, if $y_i(\btheta) + \varepsilon_i$ are independent
     $$
         \mathcal{L}(\btheta)
         = \prod_{i = 1}^n
         \Pr(
-        f_i(\btheta) + \varepsilon_i = y_i^\obs
+        y_i(\btheta) + \varepsilon_i = y_i^\obs
         | \btheta
         ).
     $$
-    In the continuous case, if $\mathbf{f}(\btheta) + \bm{\varepsilon}$
-    has joint density $p,$
-    $$
-        \mathcal{L}(\btheta)
-        := p(\by^\obs | \btheta).
-    $$
 \end{definition}
 
-Note that the dependence on $\by^\obs$ is suppressed, but can be
-explicitly written as $\mathcal{L}(\btheta|\by^\obs)$
+The dependence on $\by^\obs$ is suppressed, but can be
+explicitly written as $\mathcal{L}(\btheta|\by^\obs).$ In the continuous
+(and mixture of discrete and continuous) case, 
+we interpret
+$
+    \Pr(
+    \by(\btheta) + \bm{\varepsilon} = \by^\obs
+    | \btheta
+    )
+$
+as the density
+$
+    \Pr(
+    \by(\btheta) + \bm{\varepsilon} \in \diff\by^\obs
+    | \btheta
+    )
+$ with respect to an underlying probability measure.
+
 A natural estimate for $\btheta$ is the one that maximises the likelihood
-function, as it coincides with the value of $\btheta$ maximises the
+function $\mathcal{L}$, as it coincides with the value of $\btheta$ maximises the
 probability of the data. Such an estimate is called the maximum likelihood
 estimate.
 
@@ -167,14 +177,14 @@ $\argmax_{\btheta\in\mathbf{\Theta}} \mathcal{L}(\btheta)
 \begin{example}
     Using the same observed data set as Example \ref{ex:LSE}, we assume that
     $y_i^\obs$ were generated independently from
-    $f_i(\btheta) + \varepsilon_i \sim \Pois(f_i(\btheta)),$ where
-    $f_i(\btheta) = \theta_0 + \theta_1x_i$ as previously defined. Therefore
+    $y_i(\btheta) + \varepsilon_i \sim \Pois(y_i(\btheta)),$ where
+    $y_i(\btheta) = \theta_0 + \theta_1x_i$ as previously defined. Therefore
     the maximimum likelihood estimate of $\btheta$ is
     \begin{align*}
         \hat{\btheta}
         = & \, \argmax \ell(\btheta)                                  \\
         = & \, \argmax_{\btheta\in\mathbf{\Theta}}\sum_{i = 1}^{3}
-        y_i^\obs\ln(f_i(\btheta)) -y_i^\obs(\btheta) - \ln(y_i^\obs!) \\
+        y_i^\obs\ln(y_i(\btheta)) -y_i^\obs(\btheta) - \ln(y_i^\obs!) \\
         = & \, \argmax_{\btheta\in\mathbf{\Theta}}\sum_{i = 1}^{3}
         y_i^\obs\ln(\theta_0 + \theta_1x_i)
         - \theta_0 - \theta_1x_i
@@ -195,7 +205,7 @@ it coincides with the maximum likelihood estimate under the assumption that
 the $y_i^\obs$s were has been generated with normal error.
 
 \begin{theorem}
-    If $f_i(\btheta) + \epsilon_i \sim N(f_i(\btheta), \sigma^2),$ then
+    If $y_i(\btheta) + \epsilon_i \sim N(y_i(\btheta), \sigma^2),$ then
     $$
         \hat{\btheta} = \btheta^\LS
     $$
@@ -208,13 +218,13 @@ the $y_i^\obs$s were has been generated with normal error.
         = & \, \argmax_{\btheta\in\mathbf{\Theta}}
         \sum_{i = 1}^n
         \ln(\frac{1}{\sqrt{2\pi}\sigma})
-        -\frac{(f_i(\btheta)- y_i^\obs)^2}{\sigma^2}            \\
+        -\frac{(y_i(\btheta)- y_i^\obs)^2}{\sigma^2}            \\
         = & \argmax_{\btheta\in\mathbf{\Theta}} \sum_{i = 1}^n
-        - \frac{(f_i(\btheta)- y_i^\obs)^2 }{\sigma^2}          \\
+        - \frac{(y_i(\btheta)- y_i^\obs)^2 }{\sigma^2}          \\
         = & \argmax_{\btheta\in\mathbf{\Theta}} \sum_{i = 1}^n
-        - (f_i(\btheta)- y_i^\obs)^2                            \\
+        - (y_i(\btheta)- y_i^\obs)^2                            \\
         = & \argmin_{\btheta\in\mathbf{\Theta}} \sum_{i = 1}^n
-        (f_i(\btheta)- y_i^\obs)^2                              \\
+        (y_i(\btheta)- y_i^\obs)^2                              \\
         = & \btheta^\LS.
     \end{align*}
 \end{proof}
@@ -289,11 +299,11 @@ belief about
 $\btheta,$ resulting in a posterior distribution of $\btheta,$ described by
 Bayes' theorem, namely
 $$
-    \Pr(\btheta|\by) \propto \Pr(\by^\obs|\btheta)\Pr(\btheta).
+    \Pr(\btheta|\by^\obs) \propto \Pr(\by^\obs|\btheta)\Pr(\btheta).
 $$
 
 Bayesian parameter estimation is still dependent on the likelihood function
-$\mathcal{L}$ as expressed in the Bayes' theorem.
+$\mathcal{L}(\btheta) := \Pr(\by^\obs|\btheta).$
 With samples from the posterior distribution, we are
 able to run our models to capture uncertainty in predicting future scenarios.
 For instance, a government may be interested in the number of additional
@@ -368,20 +378,21 @@ as required.
     demonstrated in \ref{fig:accept_reject}
 \end{example}
 
-\subsection*{Monte-Carlo Markov Chain Methods}
+\subsection*{Markov Chain Monte Carlo Methods}
 
 Often it is not possible to sample directly from the posterior distribution
 $\Pr(\btheta|\by^\obs)$ using a rejection sampler, as there is no
 explicit form proportional to the true density.
-Therefore a common way of sampling from the posterior distribution is
-to construct a Markov chain that has the same stationary distribution as the
-posterior parameter distribution, and take samples from the chain as samples
-from the posterior.
+Therefore a common way of sampling from a distribution $p(x)$ is
+to construct a Markov chain with stationary distribution $p(x).$
+Hence, eventually each new state the
+chain moves to will be a be a (not necessarily independent) sample from $p(x),$
+or in our case $\Pr(\btheta|\by^\obs).$
 
 \begin{definition}[(Discrete-Time) Markov Chain]
     A sequence of random variables
     $X_0, X_1, \dots$
-    is a (discrete-time) \emph{Markov chain} $\{X_k\}_{k\in\mathbb{N}}$ if for
+    is a (discrete-time) \emph{Markov chain} $\{X_i\}_{i\in\mathbb{N}}$ if for
     all
     $k\in\mathbb{N}$,
     $$
@@ -412,19 +423,19 @@ discrete state space $\mathcal{X} = \{1, 2\}.$
     \caption{
         A simple time homogeneous Markov chain, with two states.
         It is characterised by the transition kernel
-        $k(1, 1) = \Pr(X_{i + 1} = 1 | X_i = 1) = 0.7,$
-        $k(1, 2) = \Pr(X_{i + 1} = 2 | X_i = 1) = 0.3,$
-        $k(2, 1) = \Pr(X_{i + 1} = 1 | X_i = 2) = 0.4,$ and
-        $k(2, 2) = \Pr(X_{i + 1} = 2 | X_i = 2) = 0.6.$ The stationary
+        $K(1, 1) = \Pr(X_{i + 1} = 1 | X_i = 1) = 0.7,$
+        $K(1, 2) = \Pr(X_{i + 1} = 2 | X_i = 1) = 0.3,$
+        $K(2, 1) = \Pr(X_{i + 1} = 1 | X_i = 2) = 0.4,$ and
+        $K(2, 2) = \Pr(X_{i + 1} = 2 | X_i = 2) = 0.6.$ The stationary
         distribution is $\pi(1) = 4/7$ and $\pi(2) = 3/7.$
     }
     \label{fig:MC}
 \end{figure}
 
-Markov chains are characterised by a transition kernel $k$ with
-$$k(x_i, x_{i + 1}) := \Pr(X_{i + 1} = x_{i + 1} | X_i = x_{i + 1}),$$
+Markov chains are characterised by a transition kernel $K$ with
+$$K(x_i, x_{i + 1}) := \Pr(X_{i + 1} = x_{i + 1} | X_i = x_{i + 1}),$$
 where this probability is interpreted as a density for continuous random
-variables. $k(1, 1)$ would therefore be the probability of going from state 1
+variables. $K(1, 1)$ would therefore be the probability of going from state 1
 to state 2.
 
 We will restrict our focus to Markov chains where
@@ -435,13 +446,15 @@ observed to be $x$.
 \begin{definition}[Time Homogeneous]
     A Markov chain is \emph{time homogeneous} if
     $$
-        \{X_k, X_{k+1}, \dots, X_{k + n}\}
-        \overset{d}{=} \{X_{k^\prime}, X_{k^\prime+1}, \dots, X_{k^\prime + n}\}
+        \{X_i, X_{i+1}, \dots, X_{i + n}\}
+        \overset{d}{=} \{X_{i^\prime}, X_{i^\prime+1}, \dots, X_{i^\prime + n}\}
     $$
-    for all $k, k^\prime, n \in \mathbb{N},$ given $X_k = x = X_{k^\prime}.$
+    for all $i, i^\prime, n \in \mathbb{N},$ given $X_i = x = X_{i^\prime}.$
 \end{definition}
 
-The Markov chain in Figure \ref{fig:MC}
+The Markov chain in Figure \ref{fig:MC} is time homogeneous. It doesn't
+matter how long it took to get into a state, the Markov chain will behave the
+same from that point forward.
 
 \begin{definition}[Stationary Distribution]
     A Markov chain has \emph{stationary distribution} $\pi$ if for $X_i \sim \pi,$
@@ -452,15 +465,33 @@ The Markov chain in Figure \ref{fig:MC}
     Given the Markov chain in Figure \ref{fig:MC}, the stationary distribution
     can be calculated by solving the simultaneous equations
     \begin{align*}
-        k(1, 1) \times \pi(1)
-        + k(2, 1) \times \pi(2) = 0.7 \times \pi(1)
+        K(1, 1) \times \pi(1)
+        + K(2, 1) \times \pi(2) = 0.7 \times \pi(1)
         + 0.4 \times \pi(2) = & \, \pi(1) \\
         \pi(1) + \pi(2) =     & \, 1.
     \end{align*}
     Therefore $\pi(1) = 4/7$ and $\pi(2) = 3/7.$
 \end{example}
 
-\subsection*{Metropolis-Hastings}
+As stated earlier, to sample from a distribution $p(x),$ we construct a Markov
+chain with this stationary distribution. A sufficient condition to know that
+we have achieved this is if our chain satisfies the the detailed balance
+condition.
+
+\begin{theorem}[Detailed balance condition]
+    A Markov chain has stationary distribution $p(x),$ which it converges to
+    independent of initialisation, if for all $x, x^\prime,$
+    $$p(x)K(x, x^\prime) = p(x^\prime)K(x^\prime, x).$$
+\end{theorem}
+
+\begin{proof}
+    More formally this requires the notions of recurrent, nonnull,
+    irreducible and aperiodic which we do not discuss here. For a full
+    discussion and proof
+    see \cite[chapter 6]{robert_monte_2010}.
+\end{proof}
+
+\subsubsection*{Metropolis-Hastings}
 
 The Metropolis-Hastings algorithm is one way of constructing a Markov
 chain with stationary distribution equal to the target distribution $g.$
@@ -471,7 +502,8 @@ $X^\prime \sim N(x, 1),$ a normal random variable with mean
 around the previous sample. Then similar to rejection sampling, then $X^\prime$
 is accepted as the next state in the distribution with some probability
 $\alpha$, chosen in such a way that if
-$X_i \sim g,$ then $X_{i + 1}\sim g.$
+$X_i \sim g,$ then $X_{i + 1}\sim g.$ Formally this is set out in
+Algorithm \ref{alg:MH}.
 
 \begin{algorithm}[htbp]
     \caption{Metropolis-Hastings Sampler}
@@ -512,25 +544,37 @@ which case the algorithm is simply called a Metropolis sampler.
 \end{theorem}
 
 \begin{proof}
-    We show that the distribution satisfies the detail balance equation.
-    \textcolor{red}{Something about detailed balance equation}
+    We show that the detailed balance condition
+    $$
+        g(x)q(x^\prime | x)\alpha(x, x^\prime)
+        =g(x^\prime)q(x | x^\prime)\alpha(x^\prime, x)
+    $$
+    where $\alpha(x, x^\prime) = \min\left(
+        \frac{
+                g(x^\prime) q(x|x^\prime)
+            }{
+                g(x) q(x^\prime|x)
+            },
+        1
+        \right)$
+    is satisfied. Without loss of generality let
+    $g(x^\prime) q(x|x^\prime) < g(x) q(x^\prime|x),$ so
+    $\alpha(x, x^\prime) = \frac{
+            g(x^\prime) q(x|x^\prime)
+        }{
+            g(x) q(x^\prime|x)
+        },$ and $\alpha(x^\prime, x) = 1.$
+    \begin{align*}
+        g(x)q(x^\prime | x)\alpha(x, x^\prime)
+        = & g(x)q(x^\prime | x) \times \frac{
+            g(x^\prime) q(x|x^\prime)
+        }{
+            g(x) q(x^\prime|x)
+        }                                                \\
+        = & g(x^\prime) q(x|x^\prime)                    \\
+        = & g(x^\prime) q(x|x^\prime)\alpha(x^\prime, x)
+    \end{align*}
 \end{proof}
-
-Usually the derived chain $\{x_{B + iT}\}_{i \in \mathbb{N}}$ is constructed
-from the output. The
-first $B$ samples are discarded as `burn in' samples.
-Since $X_i$ and $X_{i + 1}$ may also be highly correlated (in samples where
-the proposed $X^\prime$ is rejected, $X_i = X_{i + 1}$), the chain is
-`thinned,' by taking every $T$th sample. This derived chain is considered a
-random sample from the target distribution $g$
-
-In practice, diagnostics such as trace plots and autocorrelation plots are used
-to determine $B$ and $T$ are used (see
-\cite[chapter 11]{gelman_bayesian_2014}).
-
-The choice of proposal distribution will effect the correlation between
-adjacent values in the chain, but won't change the final distribution, as seen
-in the example below and Figure \ref{fig:coin_R}.
 
 \begin{figure}[htbp]
     \centering
@@ -546,7 +590,10 @@ in the example below and Figure \ref{fig:coin_R}.
     \label{fig:coin_R}
 \end{figure}
 
-\begin{example}[Coin toss]
+Interestingly, the proof does not depend choice of proposal distribution,
+This can be seen in Example \ref{ex:coin_toss} and Figure \ref{fig:coin_R}.
+
+\begin{example}[Coin toss]\label{ex:coin_toss}
     Let the probability of tossing a heads on a weighted coin be
     $\Pr(X = 1) = p.$ Assume that $p\sim \mathrm{Unif}(0,1).$
     We observe $y^\obs = 6$ heads from 10 tosses of the coin.
@@ -588,6 +635,20 @@ in the example below and Figure \ref{fig:coin_R}.
     that are good at estimating the true distribution.
 \end{example}
 
+Since the chain converges to the stationary distribution over time, and is
+highly correlated,
+a derived chain $\{x_{B + iT}\}_{i \in \mathbb{N}}$ is constructed
+from the output. The
+first $B$ samples are discarded as `burn in' samples to reduce the impact
+of the initialisation point. The chain is `thinned' by taking every $T$th sample,
+Since $X_i$ and $X_{i + 1}$ may also be highly correlated (in samples where
+the proposed $X^\prime$ is rejected, $X_i = X_{i + 1}$).
+This derived chain is considered a
+random sample from the target distribution $g.$
+In practice, diagnostics such as trace plots and autocorrelation plots are used
+to determine $B$ and $T$ are used (see
+\cite[chapter 11]{gelman_bayesian_2014}).
+
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{SIS_beta_pred.pdf}
@@ -608,58 +669,192 @@ in the example below and Figure \ref{fig:coin_R}.
     \label{fig:SIS_MH_R}
 \end{figure}
 
-For disease models, given a prior for the parameter(s) $\btheta,$
+For disease models, given a prior distribution for the parameter(s) $\btheta,$
 Metropolis-Hastings can be used to produce samples from
 $\Pr(\btheta | y^\obs) \propto \mathcal{L}(\btheta)\Pr(\btheta),$ where
-$\mathcal{L}(\btheta)\Pr(\btheta)$ can be calculated but not directly
+$\mathcal{L}(\btheta)\Pr(\btheta)$ can be calculated to a proportionality
+constant but not directly
 sampled from. For example given an $SIS$ model with unknown
 $\beta \sim \mathrm{Gamma}(2, 6)$ and daily case counts $y^\obs,$ we can
 estimate sample from $\btheta | y^\obs$ as in Figure \ref{fig:SIS_MH_R}.
 
-\subsection*{Gibbs Sampling}
-
-Some models, may have a parameter such that it is possible
-to sample from $\theta_1 | \theta_2, \by^\obs$, and
-$\theta_2 | \theta_1, \by^\obs$ but not the joint distribution of
-$(\theta_1, \theta_2)| \by^\obs.$
-In this case we can use a Gibbs sampler.
+\subsubsection*{Gibbs Sampling}
 
 \begin{algorithm}[htbp]
-    \caption{Gibbs Sampler (of Posterior Distribution)}
+    \caption{Gibbs Sampler}
     \label{alg:gibbs}
     \begin{algorithmic}[1]
         \State Initialise
-        $\btheta_0 = (\theta_{0,1}, \theta_{0,2}, \dots, \theta_{0,d})$
+        $\btheta^{(0)} = (\theta_1^{(0)}, \theta_2^{(0)}, \dots, \theta_d^{(0)})$
         \For{$i = 1$ to $N$}
         \State Sample
-        $\theta_{i, 1}
+        $\theta_1^{(i)}
             \sim \Pr(
             \theta_1
-            | \theta_{i-1, 2}, \theta_{i-1, 3}, \dots, \theta_{i-1, d}, \by
+            | \theta_2^{(i-1)}, \theta_3^{(i-1)}, \dots, \theta_d^{(i-1)}
             )$
         \State Sample
-        $\theta_{i, 2}
+        $\theta_2^{(i)}
             \sim \Pr(
-                \theta_2
-                | \theta_{i, 1}, \theta_{i - 1, 3}, \dots, \theta_{i-1, d}, \by)$
+            \theta_2
+            | \theta_1^{(i)}, \theta_3^{(i-1)}, \dots, \theta_d^{(i-1)})$
         \State $\vdots$
         \State Sample
-        $\theta_{i, d}
+        $\theta_d^{(i)}
             \sim \Pr(
-                \theta_d
-                | \theta_{i, 1}, \theta_{i, 2}, \dots, \theta_{i, d-1}, \by)$
-        \State Save $(\theta_{i, 1}, \theta_{i, 2}, \dots, \theta_{i, d})$ 
-        as $\btheta_i$
+            \theta_d
+            | \theta_1^{(i)}, \theta_2^{(i)}, \dots, \theta_{d-1}^{(i)})$
+        \State Save $(\theta_1^{(i)}, \theta_2^{(i)}, \dots, \theta_d^{(i)})$
+        as $\btheta^{(i)}$
         \EndFor
-        \State \Return $\{\btheta_0, \btheta_1, \dots, \btheta_N\}$
+        \State \Return $\{\btheta^{(0)}, \btheta^{(1)}, \dots, \btheta^{(N)}\}$
     \end{algorithmic}
 \end{algorithm}
+
+Some models, may have a parameters such that it is possible
+to sample from $\theta_1 | \theta_2, \by^\obs$, and
+$\theta_2 | \theta_1, \by^\obs$ but not the joint distribution of
+$(\theta_1, \theta_2)| \by^\obs.$ A (multidimensional) Markov chain can be
+constructed by iteratively updating the parameters. Such a method is called
+a Gibbs sampler, described in
+Algorithm \ref{alg:gibbs}. The distribution of the Markov chain
+sampler will eventually converge to the
+$\Pr(\theta_1, \theta_2 | \by^\obs),$ and for the same reasons as for
+the Metropolis-Hastings
+sampler, after thinning and discarding burn in, we consider the resulting
+chain a sequence of independent samples from our target distribution.
+
+\begin{theorem}[Gibbs Sampler]
+    The Markov chain generated by Algorithm \ref{alg:gibbs}
+    converges to the distribution of $\Pr(\btheta|\by^\obs).$
+\end{theorem}
+
+\begin{proof}
+    We prove that the Gibbs Sampler satifies the detail balance
+    equation for two unknown parameters.
+    The transition kernel of the Markov chain is
+    $$
+        q(\btheta^{(i)}|\btheta^{(i-1)})
+        := \Pr(\theta^{(i)}_1 | \theta^{(i-1)}_2, \by)
+        \Pr(\theta^{(i)}_2 | \theta^{(i)}_1, \by).
+    $$
+
+    To prove the detailed balance condition is satisfied, we need to show that
+    $$
+        \Pr(\btheta^{(i-1)}| \by)q(\btheta^{(i)}|\btheta^{(i-1)})
+        = \Pr(\btheta^{(i)}| \by)q(\btheta^{(i - 1)}|\btheta^{(i)}).
+    $$
+
+    \begin{align*}
+        \Pr(\btheta^{(t-1)}| \by)q(\btheta^{(i)}|\btheta^{(i-1)})
+        = & \, \Pr(\theta_1^{(i-1)}, \theta_2^{(i-1)}| \by) \times
+        \Pr(\theta^{(i)}_1 | \theta^{(i-1)}_2, \by) \times
+        \Pr(\theta^{(i)}_2 | \theta^{(i)}_1, \by)                        \\
+        = & \, \Pr(\theta_1^{(i-1)}| \theta_2^{(i-1)}, \by) \times
+        \Pr(\theta_2^{(i-1)}| \by) \times
+        \Pr(\theta^{(i)}_1 | \theta^{(i-1)}_2, \by) \times
+        \Pr(\theta^{(i)}_2 | \theta^{(i)}_1, \by)                        \\
+        = & \, \Pr(\theta_1^{(i-1)}| \theta_2^{(i-1)}, \by) \times
+        \Pr(\theta^{(i)}_1, \theta^{(i-1)}_2 | \by) \times
+        \Pr(\theta^{(i)}_2 | \theta^{(i)}_1, \by)                        \\
+        = & \, \Pr(\theta^{(i)}_2 | \theta^{(i)}_1, \by) \times
+        \Pr(\theta^{(i)}_1, \theta^{(i-1)}_2 | \by) \times
+        \Pr(\theta_1^{(i-1)}| \theta_2^{(i-1)}, \by)                     \\
+        = & \, \Pr(\theta^{(i)}_2 | \theta^{(i)}_1, \by) \times
+        \Pr(\theta^{(i)}_1 | \by)  \times
+        \Pr(\theta^{(i-1)}_2 | \theta^{(i)}_1, \by) \times
+        \Pr(\theta_1^{(i-1)}| \theta_2^{(i-1)}, \by)                     \\
+        = & \, \Pr(\theta^{(i)}_1, \theta^{(i)}_2| \by) \times
+        \Pr(\theta^{(i-1)}_2 | \theta^{(i)}_1, \by) \times
+        \Pr(\theta_1^{(i-1)}| \theta_2^{(i-1)}, \by)                     \\
+        = & \, \Pr(\btheta^{(t)}| \by) q(\btheta^{(i -1)}|\btheta^{(i)})
+    \end{align*}
+    as required, so the posterior pdf $\Pr(\btheta|\by)$ is the unique
+    stationary pdf associated with the generated Markov chain.
+\end{proof}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics{SIS_gibbs.pdf}
-    \caption{Using Gibbs on beta and gamma given an `$R_0$' observation}
+    \caption{
+        2000 posterior samples from $\Pr(\beta, \gamma | \by^\obs),$ where
+        $\beta|\gamma, \by^\obs
+            \sim \mathrm{Gamma}(9, 4/\gamma + 4 + 8\gamma)$ and
+        $\gamma|\beta, \by^\obs
+            \sim \mathrm{InvGamma}(12, 12\beta).$ The samples were
+        obtained using a Gibbs sampler.
+        The red points are the first 15 samples using the Gibbs sampler.
+    }
     \label{fig:gibbs_R}
 \end{figure}
 
-\subsection*{ABC}
+\begin{example}
+    Consider the $SIS$ model described by equations \ref{eq:SIS_1}
+    and \ref{eq:SIS_2}. Early in an epidemic, the average number of new
+    cases generated from a single infectious individual is known as $R_0.$
+    This can be shown to be $\frac{\beta}{\gamma}$ for the $SIS$ model.
+    Let $\by^\obs = \{1, 1, 3, 1\}$ be the number of people infected by four
+    different individuals at the start of the epidemic. We assume that the
+    number of infections are generated from a Poisson distribution with mean
+    $\frac{\beta}{\gamma}.$ Therefore the likelihood
+    $$
+        \mathcal{L}(\beta, \gamma):= \Pr(\by^\obs | \beta, \gamma)
+        = \frac{
+            \left(\frac{\beta}{\gamma}\right)^{1 + 1 + 3 + 1}
+            \exp( -\frac{4\beta}{\gamma})
+        }{
+            1!\times 1! \times 3! \times 1!
+        }
+        \propto\left(\frac{\beta}{\gamma}\right)^{6}\exp( -\frac{4\beta}{\gamma})
+    $$
+    Let us assume that from similar previous epidemics we assume that
+    $\beta | \gamma \sim \mathrm{Gamma}(3, 4 + 8\gamma),$ and
+    $\gamma | \beta \sim \mathrm{InvGamma}(6, 8\beta).$ Therefore
+    \begin{align*}
+        \Pr(\beta|\gamma, \by^\obs)
+        \propto & \Pr(\by^\obs|\gamma, \beta)\Pr(\beta|\gamma)      \\
+        \propto &
+        \left(\frac{\beta}{\gamma}\right)^{6}
+        \exp( -\frac{4\beta}{\gamma})
+        \times \beta^{3 - 1}\exp(-(4 + 8\gamma)\beta)               \\
+        \propto & \beta^{9 - 1}\exp(-(4/\gamma + 4 + 8\gamma)\beta)
+    \end{align*}
+    and so
+    $\beta|\gamma, \by^\obs
+        \sim \mathrm{Gamma}(9, 4/\gamma + 4 + 8\gamma).$
+    Similarly
+    \begin{align*}
+        \Pr(\gamma|\beta, \by^\obs)
+        \propto & \Pr(\by^\obs|\gamma, \beta)\Pr(\gamma|\beta)         \\
+        \propto &
+        \left(\frac{\beta}{\gamma}\right)^{6}
+        \exp( -\frac{4\beta}{\gamma})
+        \times \gamma^{- 6 - 1}\exp\left(-\frac{8\beta}{\gamma}\right) \\
+        \propto & \gamma^{- 12 - 1}
+        \exp\left(-\frac{12\beta}{\gamma}\right)
+    \end{align*}
+    and so
+    $\gamma|\beta, \by^\obs
+        \sim \mathrm{InvGamma}(12, 12\beta).$
+    Now we have explicit forms for the conditional probabilities,
+    we generate samples using the Gibbs sampler in Algorithm \ref{alg:gibbs}.
+    Samples from the distribution can be seen in Figure \ref{fig:gibbs_R}
+\end{example}
+
+The Gibbs sampler and Metropolis-Hastings sampler are often combined, by
+using a Metropolis-Hastings sampler for each step of the conditional sampling.
+This is useful when the conditional distributions
+$\Pr(\theta_1 | \theta_2, \by^\obs)$ can be calculated up to a proportionality
+constant, but not directly sampled from.
+
+\subsection*{Approximate Bayesian Computation}
+
+So far, under a Bayesian framework, parameter estimation has still been
+dependent on the likelihood function
+$\mathcal{L}(\btheta) := \Pr(\by^\obs|\btheta)$ through Bayes' theorem.
+In many cases, such as stochastic disease models and agent based models, the
+likelihood has no explicit form, or is intractable to calculate. 
+In this case we can still
+sample $\by(\btheta),$ with likelihood $\Pr(\by^\obs | \btheta)$ by definition.
+
+Therefore
