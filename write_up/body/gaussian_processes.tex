@@ -1,25 +1,35 @@
-\chapter{Gaussian Processes}
+\chapter{Gaussian Processes and Synthetic Likelihoods}
 
-\section{Motivation and Definitions}
-
-If we knew the distribution of $\D(\btheta)$ for all $\btheta,$ then the need 
+If the distribution of $\D(\btheta)$ was known for all $\btheta,$ then the need
 to sample from the model in Algorithm
-\ref{alg:abc} becomes redundant, since we can sample directly from
-$\D(\btheta).$ Moreover, the probability of drawing and accepting a sample
-from the becomes $\Pr(\btheta)\Pr(\D(\btheta) < \epsilon | \btheta).$ Comparing
-this to Bayes' theorem, we can consider $\Pr(\D(\btheta) < \epsilon | \btheta)$
-an approximation of $\L(\btheta)$ (up to some proportionality constant).
-We do not know the distribution of $\D(\btheta),$ but we can construct 
-an approximation. The approximation considered is achieved by modelling
-$\D(\btheta)$ 
-as a realisation of a Gaussian process.
+\ref{alg:abc} would be redundant, since $\D(\btheta)$ could be sampled from
+directly. Moreover, the probability of drawing and accepting a sample
+using this algorithm becomes
+$\Pr(\btheta)\Pr(\D(\btheta) < \epsilon | \btheta).$ Comparing
+this to Bayes' theorem, we can see that $\Pr(\D(\btheta) < \epsilon | \btheta)$
+plays the role of the likelihood. Therefore
+$L(\btheta) := \Pr(\D(\btheta) < \epsilon | \btheta)$
+is an approximation of $\L(\btheta)$ (up to some proportionality constant).
+In reality, we do not know the distribution of $\D(\btheta),$ for all
+$\btheta,$ but we consider methods to construct
+an approximation $\hat{L}$ of $L$ which we call the synthetic likelihood.
+The approximation considered is achieved by modelling
+$\D(\btheta)$ using a surrogate model which we introduce this chapter.
 
-The key insight that motivates our use of Gaussian processes is the 
-assumption that for $\btheta$ and $\btheta^\prime$ that are close to each other,
-the distribution of $\D(\btheta)$ will be similar to the distribution of 
+\section{Gaussian Processes}
+
+For $\btheta$ and $\btheta^\prime$ that are close to each other,
+the distribution of $\D(\btheta)$ will be similar to the distribution of
 $\D(\btheta^\prime).$ Therefore sampling from $\D(\btheta)$ gives information
-about the distribution of $\D(\btheta^\prime)$ for $\btheta,$ 
-$\btheta^\prime$ close.
+about the distribution of $\D(\btheta^\prime)$ for $\btheta,$
+$\btheta^\prime$ close. A reasonable assumption could be that
+$\E(\D(\btheta_1)), \E(\D(\btheta_2)), \dots, \E(\D(\btheta_n))$ are
+multivariate
+normally distributed with $\cov(E(\D(\btheta_1)), E(\D(\btheta_2)))$ large for
+$\btheta_1, \btheta_2$ close, and small for $\btheta_1, \btheta_2$ far apart,
+so that $\cov(E(\D(\btheta_1)), E(\D(\btheta_2)))$ is a function of $\btheta_1$
+and $\btheta_2.$
+Formally, we treat $\E(\D(\beta))$ as a realisation of a Gaussian process.
 
 \begin{definition}[Gaussian Process]\label{def:gp}
     A collection of random variables $\{f(x)\}_{x\in\mathcal{X}}$
@@ -28,9 +38,9 @@ $\btheta^\prime$ close.
     distributed. That is, there is a function $m:\mathcal{X}\to\R$ and
     symmetric kernel $k:\mathcal{X}\times\mathcal{X}\to \R$ such that for all
     finite sets
-    $\mathbf{x} :=\{x_1, x_2, \dots, x_n\} \subset \mathcal{J},$ with
-    $f(\mathbf{x}) := [f(x_1), f(x_2), \dots, f(x_n)]^T$
-    $$f(\mathbf{x}) \sim
+    $\bx :=\{x_1, x_2, \dots, x_n\} \subset \mathcal{J},$ with
+    $f(\bx) := [f(x_1), f(x_2), \dots, f(x_n)]^T$
+    $$f(\bx) \sim
         \MVN\left(\begin{bmatrix}
             m(x_1) \\ m(x_2)\\ \vdots\\ m(x_n)
         \end{bmatrix},\, \mathbf{K} = \begin{bmatrix}
@@ -41,104 +51,58 @@ $\btheta^\prime$ close.
         \end{bmatrix}\right).$$
 \end{definition}
 
-\begin{definition}[Mean and Covariance Function]\label{def:mean_kernel}
-    The the \emph{mean function} and \emph{covariance kernel} are
+\begin{definition}[Mean Function and Covariance Kernel]\label{def:mean_kernel}
+    The \emph{mean function} and \emph{covariance kernel} are
     $$m(x_i) := \E\left[f(x_i)\right]$$ and
     $$k(x_{i}, x_{i^\prime}) := \cov\left(f(x_i), f(x_{i^\prime})\right).$$
 \end{definition}
 
 Although Gaussian processes are simultaneously realised over the whole space
-$\mathcal{X}$ (for example $\R^d$) and are hence collections of 
+$\mathcal{X}$ (for example $\R^d$) and are hence collections of
 (uncountably infinite)
 random variables, the choice of covariance function
-$\mathrm{corr}(x, x^\prime) \to 1$ as $||x - x^\prime||\to 0$
+$\corr(x, x^\prime) \to 1$ as $||x - x^\prime||\to 0$
 induces continuity in $x$ almost
-surely. Therefore they can be thought of as realisations of continuous 
-functions.
-\textcolor{red}{(Should I prove this?)}
+surely. The most famous example of a Gaussian process is Brownian motion.
 
-Some common examples of Gaussian processes include \begin{enumerate}
-    \item Brownian motion on $\R$:
-          $$m\equiv 0, \quad \text{and}\quad k(s, t) = \min(s, t)$$
-    \item Ornstein Uhlenbeck process with parameters $\theta$ and $\sigma$:
-          $$
-              m\equiv 0, \quad \text{and}
-              \quad k(s, t)
-              = \frac{\sigma^2_k}{2\theta} \left(
-              e^{-\theta|t - s|} - e^{-\theta(t + s)}
-              \right)
-          $$
-\end{enumerate}
-
-% \begin{definition}[Brownian Motion]
-%     $B(t):\R^+ \to \R$ is a \emph{Brownian motion} on $\R$ if\begin{enumerate}
-%         \item $B(0) = 0$ almost surely
-%         \item $B(t_0), B(t_1) - B(t_0), \dots, B(t_n - t_{n-1})$ are
-%               independent for all $t_0<t_1<t_2<\dots<t_n$
-%         \item $B(t + s) - B(t)\sim N(0, s)$ for $s, t \geq 0$
-%         \item $B(t)$ is continuous almost surely for $t>0.$
-%     \end{enumerate}
-% \end{definition}
-
-Properties such as the smoothness and undulation of the
-realised functions are also determined by the
-covariance kernel $k,$ and associated hyperparameters. Before exploring
-different kernel options, we begin by
-\textcolor{red}{defining a valid kernel function, and} formalising `smoothness.'
-
-\color{red}
-
-\begin{definition}[Positive Semi-Definite Matrix]\label{def:pos_def_mat}
-    An $n\times n$ matrix $\mathbf{A}$ is \emph{positive semi-definite} if
-    $\mathbf{v}^T\mathbf{A}\mathbf{v} \geq 0$ for all $\mathbf{v}\in\R^n.$
+\begin{definition}[Brownian Motion]
+    $B(t):\R^+ \to \R$ is a \emph{Brownian motion} on $\R$ if\begin{enumerate}
+        \item $B(0) = 0$ almost surely
+        \item $B(t_0), B(t_1) - B(t_0), \dots, B(t_n - t_{n-1})$ are
+              independent for all $t_0<t_1<t_2<\dots<t_n$
+        \item $B(t + s) - B(t)\sim N(0, s)$ for $s, t \geq 0$
+        \item $B(t)$ is continuous almost surely for $t>0.$
+    \end{enumerate}
 \end{definition}
 
-\begin{theorem}[Sufficient Condition for Positive Semi-Definite]
-    A symmetric matrix $\mathbf{A}$ is positive semi-definite, if (and only if)
-    it's eigenvalues are non-negative.
-\end{theorem}
-\begin{proof}
-    % https://en.wikipedia.org/wiki/Definite_matrix#Eigenvalues
-\end{proof}
+Brownian motion has zero mean, covariance kernel $k(s, t) = \min(s, t),$ which
+implies that $\corr(B_s, B_t) = \frac{\min(s, t)}{\sqrt{st}}.$ This is close to
+$1$ as $s$ is close to $t,$ however as $|s-t|\to\infty,$
+$\corr(B_s, B_t) \to 0.$
 
-\begin{definition}[Positive Semi-Definite Kernel]\label{def:pos_def_ker}
-    A kernel $k:\mathcal{X}\times\mathcal{X}\to\R$ is
-    \emph{positive semi-definite} if the matrix
-    $$\mathbf{K} = \begin{bmatrix}
-            k(x_1, x_1) & k(x_1, x_2) & \dots  & k(x_1, x_n) \\
-            k(x_2, x_1) & \ddots      &        & \vdots      \\
-            \vdots      &             & \ddots & \vdots      \\
-            k(x_n, x_1) & \cdots      & \cdots & k(x_n, x_n)
-        \end{bmatrix}$$
-    is positive semi-definite for any collection of $x_i\in\mathcal{X}$
-\end{definition}
-
-\begin{theorem}
-    All symmetric positive semi-definite matrices are covariance matrices for
-    some set of random variables
-\end{theorem}
-\begin{proof}
-    % https://www.fepress.org/wp-content/uploads/2014/06/ch7-iff-covariance_correlation_matrix.pdf
-\end{proof}
-
-\color{black}
+Gaussian processes can be considered as giving a probability distribution to
+functions $f\in\mathcal{F},$ where $\mathcal{F}$ is a class of functions.
+The properties of the class of functions
+$\mathcal{F}$ depend on the covariance kernel $k.$ Different $k$ result
+in very different functions. One such property to consider is the smoothness of
+the functions, which we describe by mean square differentiability.
 
 \begin{definition}[Mean Square Continuous]
-    A function $f:\R^d\to\R$ is \emph{mean square continuous} at $\mathbf{x}$
-    in the $i$th direction at if
-    $\E(|f(\mathbf{x} + h\mathbf{e}_i) - f(\mathbf{x})|^2)\to 0$ as $|h|\to 0,$
+    A function $f:\R^d\to\R$ is \emph{mean square continuous} at $\bx$
+    in the $i$th direction at $\bx$ if
+    $\E(|f(\bx + h\mathbf{e}_i) - f(\bx)|^2)\to 0$ as $|h|\to 0,$
     where $\mathbf{e}_i$ is the unit vector with a 1 in the $i$th coordinate.
 \end{definition}
 
 \begin{definition}[Mean Square Differentiable]
     A function $f:\R^d\to\R$ is \emph{mean square differentiable} at
-    $\mathbf{x}$ in the $i$th direction with derivative
-    $\frac{\partial f(\mathbf{x})}{\partial x_i}$ if
+    $\bx$ in the $i$th direction with derivative
+    $\frac{\partial f(\bx)}{\partial x_i}$ if
     $$
         \E\left[
             \left|
-            \frac{f(\mathbf{x} + h\mathbf{e}_i) - f(\mathbf{x})}{h}
-            - \frac{\partial f(\mathbf{x})}{\partial x_i}
+            \frac{f(\bx + h\mathbf{e}_i) - f(\bx)}{h}
+            - \frac{\partial f(\bx)}{\partial x_i}
             \right|^2
             \right]\to 0
     $$ as $|h|\to 0,$ where $\mathbf{e}_i$ is the unit vector in the direction
@@ -155,70 +119,35 @@ differentiability and continuity in the non-random function case.
 \begin{proof}
     $(B_{t + h} - B_t)^2 \sim (\sqrt{|h|}Z)^2$ where $Z\sim N(0,1).$ Therefore
     $(B_{t + h} - B_t)^2 \sim |h|\chi_1^2 \to 0$ almost surely as $|h|\to 0,$
-    and hence $\E[(B_{t + h} - B_t)^2= 0]$. Since
+    hence $\E[(B_{t + h} - B_t)^2] = 0,$ and so Brownian motion is
+    mean square continuous. Since
     $\frac{B_{t + h} - B_t}{h} \sim N(0, 1/|h|),$ $\frac{B_{t + h} - B_t}{h}$
     does not converge to any valid probability distribution as $|h| \to 0,$ as
-    the variance approaches $+\infty.$
+    the variance approaches $+\infty,$ and so Brownian motion is not
+    mean square differentiable.
 \end{proof}
 
-Some common
+\subsection*{Kernels}
 
-\color{red}
+\subsubsection*{Mat\'{e}rn Kernel Family}
 
-\begin{theorem}[Positive Semi-Definiteness of RBF]\label{thm:rbf_pos_def}
-    The radial basis function
-    ${\sigma^2_k}\exp(-\frac{(x - x^\prime)^2}{2\gamma^2})$ is a positive
-    semi-definite kernel.
-\end{theorem}
-
-\begin{theorem}[Bochner's Theorem]
-    Let $k$ be a stationary kernel function such that
-    $k(x, x^\prime) = f(d)$. A function $k:\R^d\to\mathbb{C}$ is the covariance
-    function of a weakly
-    stationary mean square continuous complex-valued random process of $\R^d$
-    if and only if it can be represented as
-    $$k(\mathbf{\tau}) = \int_{\R^d} \exp(2\pi i \mathbf{s}\cdot\mathbf{\tau})$$
-\end{theorem}
-
-\parencite[82]{rasmussen_gaussian_2008}
-
-\color{black}
-
-\section{Families of Kernel Function}
-
-The two most common families of kernel functions are the squared exponential
+Since we are motivated to consider $\E(\D(\btheta))$ as a realisation of a
+Gaussian process, we consider some common choices of kernel function and their
+effect on the Gaussian process realisations. The two most common families of
+kernel functions are the squared exponential
 and Mat\'ern families.
+The Mat\'ern kernel explicitly allows for adjustment of function
+smoothness through a hyperparameter $\nu.$
 
-\subsection*{Mat\'{e}rn Family}
-
-The Mat\'ern exponential kernel is of the form
-$$k_\nu(x, x^\prime)
-    = \sigma^2_k \frac{2^{1 - \nu}}{\Gamma(\nu)}
-    \left(\frac{\sqrt{2\nu}||x - x^\prime||}{\ell}\right)^\nu
-    K_\nu\left(-\frac{\sqrt{2\nu}||x - x^\prime||}{\ell}\right)$$
-where $K_\nu$ is a modified Bessel function
-(defined in \cite[374]{abramowitz_handbook_2013}). The general form is not very
-insightful, however for $\nu = 1/2, 3/2$ and $5/2,$ (the most common values 
-used) the kernel
-can be written as:
-$$
-    k_{1/2}(x, x^\prime)
-    = \sigma^2_k\exp\left(-\frac{||x - x^\prime||}{\ell}\right)
-$$
-$$
-    k_{3/2}(x, x^\prime)
-    = \sigma^2_k
-    \left(1 + \frac{\sqrt{3}||x - x^\prime||}{\ell}\right)
-    \exp\left(-\frac{\sqrt{3}||x - x^\prime||}{\ell}\right)
-$$
-$$
-    k_{5/2}(x, x^\prime)
-    = \sigma^2_k
-    \left(
-    1 + \frac{\sqrt{5}||x - x^\prime||}{\ell} + \frac{5||x - x^\prime||}{3\ell^2}
-    \right)
-    \exp\left(-\frac{||x - x^\prime||^2}{2*\ell^2}\right)
-$$
+\begin{definition}[Mat\`ern Kernel]
+    $$k_\nu(x, x^\prime)
+        = \sigma^2_k \frac{2^{1 - \nu}}{\Gamma(\nu)}
+        \left(\frac{\sqrt{2\nu}||x - x^\prime||}{\ell}\right)^\nu
+        K_\nu\left(-\frac{\sqrt{2\nu}||x - x^\prime||}{\ell}\right)$$
+    where $K_\nu$ is a modified Bessel function
+    (defined in \cite[374]{abramowitz_handbook_2013}). $\nu, \ell,$ and
+    $\sigma_k$ are hyperparameters.
+\end{definition}
 
 \begin{figure}[htbp]
     \centering
@@ -249,37 +178,75 @@ $$
         \label{fig:squared_exp}
     \end{subfigure}%
     \caption{
-        Ten sample realisations from 4 different kernels with hyperparameters
-        $\ell = 1,$ and $\sigma^2_o = 1.$ One realisation is bolded. Samples
-        for each kernel were generated from the same seed.
+        Ten sample realisations from 4 different kernels, with one bolded.
+        Samples
+        for each kernel were generated from the same seed and the
+        hyperparameters $\ell,$ and $\sigma_k$ were set to 1.
     }
     \label{fig:kernels}
 \end{figure}
+
+Realisations from zero mean Gaussian processes with this kernel are
+$\lfloor\nu\rfloor$ times mean square differentiable
+\parencite{rasmussen_gaussian_2008}.
+The most common values for $\nu$ are $1/2, 3/2$ and $5/2,$ which result in
+functions that are 0, 1, and 2 times mean square differentiable. In these cases
+the kernel can be slightly simplified to:
+$$
+    k_{1/2}(x, x^\prime)
+    = \sigma^2_k\exp\left(-\frac{||x - x^\prime||}{\ell}\right),
+$$
+$$
+    k_{3/2}(x, x^\prime)
+    = \sigma^2_k
+    \left(1 + \frac{\sqrt{3}||x - x^\prime||}{\ell}\right)
+    \exp\left(-\frac{\sqrt{3}||x - x^\prime||}{\ell}\right),
+$$
+and
+$$
+    k_{5/2}(x, x^\prime)
+    = \sigma^2_k
+    \left(
+    1 + \frac{\sqrt{5}||x - x^\prime||}{\ell} + \frac{5||x - x^\prime||}{3\ell^2}
+    \right)
+    \exp\left(-\frac{||x - x^\prime||^2}{2*\ell^2}\right).
+$$
+The increasing smoothness of these kernels can be see in Figures
+\ref{fig:mat_one_half}, \ref{fig:mat_three_halves},
+and \ref{fig:mat_five_halves}.
 
 Zero mean Gaussian processes with a Mat\'ern kernel are $n$ times mean square
 differentiable, for all $n < \nu.$ As seen in Figure \ref{fig:kernels}, this
 means that this kernel allows for flexibility in how smooth realised functions
 are.
-As $\nu\to\infty,$ with appropriate
-rescaling, the limit of the Mat\'ern kernel is the squared exponential
-kernel.\cite[85]{rasmussen_gaussian_2008}
-\textcolor{red}{Proof in CHAPTER 4 SKOROKHOD STOCHASTIC I?}
 
-\subsection*{Squared Exponential Kernel}
+\subsubsection*{Squared Exponential Kernel}
 
-The squared exponential kernel has the form
-$$
-    k(x, x^\prime)
-    = \sigma^2_k\exp\left(-\frac{||x - x^\prime||^2}{2\ell^2}\right)
-$$
+As $\nu\to\infty,$ the Mat\'ern kernel converges to a kernel which we call
+the squared exponential
+kernel \parencite[85]{rasmussen_gaussian_2008}.
 
-As the limit of Mat\'ern kernels, the squared exponential kernel is infinitely
-mean square differentiable. Despite this being the `default' kernel in much of
-the literature, infinite differentiability is a very strong condition on
-functions which are very smooth, which can be seen in Figure
-\ref{fig:squared_exp}
+\begin{definition}[Squared Exponential Kernel]
+    $$
+        k(x, x^\prime)
+        = \sigma^2_k\exp\left(-\frac{||x - x^\prime||^2}{2\ell^2}\right)
+    $$
+\end{definition}
 
-\subsection*{Length and Amplitude Hyperparameters}
+By construction, the squared exponential kernel is infinitely
+mean square differentiable, which can visually be seen in \ref{fig:squared_exp}.
+The squared exponential kernel is considered
+the default kernel in much of the literature,
+
+Despite this being the `default' kernel in much of
+the literature (for example \cite{gutmann_bayesian_2016}), infinite
+differentiability is a very strong condition that may not be appropriate in
+all circumstances.
+
+% Both the Mat\'ern and squared exponential kernels depend only on 
+% $||x - x^\prime||,$ (they are stationary kernels).
+
+\subsubsection*{Length and Amplitude Hyperparameters}
 
 \begin{figure}[htbp]
     \centering
@@ -317,7 +284,7 @@ functions which are very smooth, which can be seen in Figure
     \label{fig:length_amp}
 \end{figure}
 
-In both the Mat\'ern and squared quadratic kernels
+Both the Mat\'ern and squared quadratic kernels
 (as well as most other common kernels choices), there are two
 hyperparameters $\ell$ and $\sigma^2_k$ which are referred to as length and
 amplitude hyperparameters. $\ell$ determines how close two points need
@@ -329,45 +296,70 @@ matrix. In other words, larger $\sigma^2_k$ increase the size but not rate of
 fluctuations. This can be seen comparing Figure \ref{fig:half_half} to Figure
 \ref{fig:half_two}.
 
-\chapter{Gaussian Process Regression}
+Other kernels exist and are used in the literature. Here we briefly discuss when
+$k(x, x^\prime)$ is a valid kernel. We need the formal notions of symmetry and
+positive semi-definite.
 
-Given the set of observations $f(\mathbf{x}_*)$ for the set of indices
-$\mathbf{x}_*,$ it is
-often desirable to infer information about the function values at
-unobserved values. By choosing a Gaussian process with fixed kernel and
-hyperparameters, we
-can condition the process on the observed data, limiting the family of
-possible functions that we assume truly describe the model.
-Under the assumption that the function is a realisation of a Gaussian
-process predicting unseen function values reduces to elementary linear algebra.
-This is because a conditional multivariate normal distribution
-is still multivariate normal, and so the distribution of unobserved points will
-be multivariate normal.
+\begin{definition}[Symmetric]\label{def:sym_mat}
+    A (square) matrix $\mathbf{A}$ is \emph{symmetric} if $A = A^T$
+\end{definition}
 
-Consider
-$$
-    \begin{bmatrix}
-        f(\mathbf{x}) \\
-        f(\mathbf{x}_*)
-    \end{bmatrix} \sim \mathcal{N}\left(
-    \begin{bmatrix}
-            m(\mathbf{x}) \\
-            m(\mathbf{x}_*)
-        \end{bmatrix}, \begin{bmatrix}
-            K       & K_{*}  \\
-            K_{*}^T & K_{**}
-        \end{bmatrix}
-    \right)
-$$
+\begin{definition}[Positive Semi-Definite]\label{def:pos_def_mat}
+    An $n\times n$ matrix $\mathbf{A}$ is \emph{positive semi-definite} if
+    $\mathbf{v}^T\mathbf{A}\mathbf{v} \geq 0$ for all $\mathbf{v}\in\R^n.$
+\end{definition}
+
+\begin{theorem}
+    Any kernel $k$ is admissible if the gram matrix
+    $$\mathbf{K} = \begin{bmatrix}
+            k(x_1, x_1) & k(x_1, x_2) & \dots  & k(x_1, x_n) \\
+            k(x_2, x_1) & \ddots      &        & \vdots      \\
+            \vdots      &             & \ddots & \vdots      \\
+            k(x_n, x_1) & \cdots      & \cdots & k(x_n, x_n)
+        \end{bmatrix}$$ associated with $k$ is symmetric and positive
+    semi-definite for all choices of $(x_1, \dots, x_n),$ for finite $n$
+
+\end{theorem}
+\begin{theorem}
+    The Mat\'ern kernel and squared exponential kernels are admissible.
+\end{theorem}
+\begin{proof}
+    The proof of the above two theorems are beyond the scope of this thesis,
+    and involves analysis of spectral densities.
+    See \cite[chapter 4]{rasmussen_gaussian_2008} for more details.
+\end{proof}
+
+\section{Gaussian Process Regression}
+
+Given a realisation of a Gaussian process $f$, observed at the set of indices
+$\bx_*,$ we can make inferences on unobserved indices $\bx$ by considering the
+Gaussian process conditioned on $f(\bx_*).$
+Since $f$ is a realisation of a Gaussian
+process, the distribution of $f(\bx) | f(\bx_*)$ reduces to linear algebra
+and has a multivariate normal distribution.
 
 \begin{theorem}[Conditional Multivariate Normal Distribution is Multivariate Normal]
     \label{thm:cond_mvn}
-
-    With $f(\mathbf{x})$ and $f(\mathbf{x}_*),$ the conditional distribution is
+    If
     $$
-        f(\mathbf{x}) | f(\mathbf{x}_*)
-        \sim \mathcal{N}\left(
-        m(\mathbf{x}) + K_{*}K_{**}^{-1}(f(\mathbf{x}_*) - m(\mathbf{x}_*)), \,\,
+        \begin{bmatrix}
+            f(\bx) \\
+            f(\bx_*)
+        \end{bmatrix} \sim \MVN\left(
+        \begin{bmatrix}
+                m(\bx) \\
+                m(\bx_*)
+            \end{bmatrix}, \begin{bmatrix}
+                K       & K_{*}  \\
+                K_{*}^T & K_{**}
+            \end{bmatrix}
+        \right),
+    $$
+    then
+    $$
+        f(\bx) | f(\bx_*)
+        \sim \MVN\left(
+        m(\bx) + K_{*}K_{**}^{-1}(f(\bx_*) - m(\bx_*)), \,\,
         K - K_{*}K_{**}^{-1}K_{*}^T
         \right).
     $$
@@ -376,7 +368,7 @@ $$
     % https://statproofbook.github.io/P/mvn-cond.html
     Since marginal distribution of the multivariate normal distribution, is also
     multivariate normal,
-    $f(\mathbf{x}_*) \sim \mathcal{N}(m(\mathbf{x}_*), K).$
+    $f(\bx_*) \sim \MVN(m(\bx_*), K).$
     Let the inverse of $\begin{bmatrix}
             K       & K_{*}  \\
             K_{*}^T & K_{**}
@@ -397,96 +389,96 @@ $$
         \end{bmatrix}
     $$ by the inverse of a block matrix. Therefore
     \begin{align*}
-        p(f(\mathbf{x}) | f(\mathbf{x}_*))
-        =       & \frac{p(f(\mathbf{x}), f(\mathbf{x}_*))}{p(f(\mathbf{x}_*))} \\
+        p(f(\bx) | f(\bx_*))
+        =       & \frac{p(f(\bx), f(\bx_*))}{p(f(\bx_*))}              \\
         \propto & \frac{\exp \left[ -\frac{1}{2} \left(\begin{bmatrix}
-                                                               f(\mathbf{x}) \\
-                                                               f(\mathbf{x}_*)
+                                                               f(\bx) \\
+                                                               f(\bx_*)
                                                            \end{bmatrix} -
         \begin{bmatrix}
-                m(\mathbf{x}) \\
-                m(\mathbf{x}_*)
+                m(\bx) \\
+                m(\bx_*)
             \end{bmatrix}
         \right)^\mathrm{T} \begin{bmatrix}
                                K       & K_{*} \\
                                K_{*}^T & K
                            \end{bmatrix}^{-1} \left(
         \begin{bmatrix}
-                f(\mathbf{x}) \\
-                f(\mathbf{x}_*)
+                f(\bx) \\
+                f(\bx_*)
             \end{bmatrix}-
         \begin{bmatrix}
-                m(\mathbf{x}) \\
-                m(\mathbf{x}_*)
+                m(\bx) \\
+                m(\bx_*)
             \end{bmatrix}\right) \right]}
         {
         \exp \left[
         -\frac{1}{2}
-        (f(\mathbf{x}_*)-m(\mathbf{x}_*))^\mathrm{T}
+        (f(\bx_*)-m(\bx_*))^\mathrm{T}
         K_{**}^{-1}
-        (f(\mathbf{x}_*)-m(\mathbf{x}_*))
+        (f(\bx_*)-m(\bx_*))
         \right]
-        }                                                                      \\
+        }                                                              \\
         =       & \exp \left[ -\frac{1}{2} \left(\begin{bmatrix}
-                                                         f(\mathbf{x}) \\
-                                                         f(\mathbf{x}_*)
+                                                         f(\bx) \\
+                                                         f(\bx_*)
                                                      \end{bmatrix} -
         \begin{bmatrix}
-                m(\mathbf{x}) \\
-                m(\mathbf{x}_*)
+                m(\bx) \\
+                m(\bx_*)
             \end{bmatrix}
         \right)^\mathrm{T} \begin{bmatrix}
                                K       & K_{*}  \\
                                K_{*}^T & K_{**}
                            \end{bmatrix}^{-1} \left(
         \begin{bmatrix}
-                f(\mathbf{x}) \\
-                f(\mathbf{x}_*)
+                f(\bx) \\
+                f(\bx_*)
             \end{bmatrix} -
         \begin{bmatrix}
-                m(\mathbf{x}) \\
-                m(\mathbf{x}_*)
-            \end{bmatrix} \right)\right.                                           \\
+                m(\bx) \\
+                m(\bx_*)
+            \end{bmatrix} \right)\right.                                   \\
                 & \hphantom{\exp \left[\right.} \left.
-        + \frac{1}{2}(f(\mathbf{x}_*)-m(\mathbf{x}_*))^\mathrm{T}
+        + \frac{1}{2}(f(\bx_*)-m(\bx_*))^\mathrm{T}
         K_{**}^{-1}
-        (f(\mathbf{x}_*)-m(\mathbf{x}_*))\right]                               \\
+        (f(\bx_*)-m(\bx_*))\right]                                     \\
         =       & \exp \left[
         -\frac{1}{2} \left(
-        (f(\mathbf{x})-m(\mathbf{x}))^\mathrm{T}
+        (f(\bx)-m(\bx))^\mathrm{T}
         \tilde{K}
-        (f(\mathbf{x})-m(\mathbf{x}))\right.\right.                            \\
+        (f(\bx)-m(\bx))\right.\right.                                  \\
                 & \hphantom{\exp \left[
         -\frac{1}{2} \left( \right.\right.}
-        + 2 (f(\mathbf{x})-m(\mathbf{x}))^\mathrm{T}
+        + 2 (f(\bx)-m(\bx))^\mathrm{T}
         \tilde{K}_{*}
-        (f(\mathbf{x}_*)-m(\mathbf{x}_*))                                      \\
+        (f(\bx_*)-m(\bx_*))                                            \\
                 & \hphantom{\exp \left[
         -\frac{1}{2} \left( \right.\right.}
         \left.
-        + (f(\mathbf{x}_*)-m(\mathbf{x}_*))^\mathrm{T}
+        + (f(\bx_*)-m(\bx_*))^\mathrm{T}
         \tilde{K}_{**}
-        (f(\mathbf{x}_*)-m(\mathbf{x}_*))
+        (f(\bx_*)-m(\bx_*))
         \right)
         \\
                 & \hphantom{\exp \left[
         -\frac{1}{2} \left( \right.\right.}\left.
-        + \frac{1}{2} (f(\mathbf{x}_*)-m(\mathbf{x}_*))^\mathrm{T}
+        + \frac{1}{2} (f(\bx_*)-m(\bx_*))^\mathrm{T}
         K_{**}^{-1}
-        (f(\mathbf{x}_*)-m(\mathbf{x}_*))
-        \right]                                                                \\
+        (f(\bx_*)-m(\bx_*))
+        \right]                                                        \\
         \propto & \exp \left[
         -\frac{1}{2}
-        (f(\mathbf{x})-m(\mathbf{x}))^\mathrm{T}
+        (f(\bx)-m(\bx))^\mathrm{T}
         \tilde{K}
-        (f(\mathbf{x})-m(\mathbf{x}))\right.                                   \\
+        (f(\bx)-m(\bx))\right.                                         \\
                 & \hphantom{\exp \left[
         -\frac{1}{2} \left( \right.\right.}
         -\left.
-        (f(\mathbf{x})-m(\mathbf{x}))^\mathrm{T}
+        (f(\bx)-m(\bx))^\mathrm{T}
         \tilde{K}_{*}
-        (f(\mathbf{x}_*)-m(\mathbf{x}_*))
-        \right] \tag{by removing the terms independent of $f(\mathbf{x})$}.
+        (f(\bx_*)-m(\bx_*))
+        \right] \tag{by removing the terms independent of $f(\bx)$}.
     \end{align*}
     Since
     $$
@@ -495,16 +487,16 @@ $$
         -\frac{1}{2}\mathbf{z}^T\Sigma^{-1}\mathbf{z}
         + \mathbf{z}^T\mathbf{c}
         \right)
-        \implies \mathbf{z} \sim \mathcal{N}\left(\Sigma \mathbf{c}, \Sigma\right),
+        \implies \mathbf{z} \sim \MVN\left(\Sigma \mathbf{c}, \Sigma\right),
     $$
-    $f(\mathbf{x}) - m(\mathbf{x}) | f(\mathbf{x}_*)$ is
+    $f(\bx) - m(\bx) | f(\bx_*)$ is
     multivariate normal with mean
     \begin{align*}
-        - \tilde{K}^{-1}\tilde{K}_{*}(f(\mathbf{x}_*) - m(\mathbf{x}_*))
+        - \tilde{K}^{-1}\tilde{K}_{*}(f(\bx_*) - m(\bx_*))
         = & (K - K_{*} K_{**}^{-1} K_{*}^T)                              \\
           & \times(K - K_{*} K_{**}^{-1} K_{*}^T)^{-1} K_{*} K_{**}^{-1}
-        (f(\mathbf{x}_*) - m(\mathbf{x}_*))                              \\
-        = & K_{*} K_{**}^{-1}(f(\mathbf{x}_*) - m(\mathbf{x}_*))
+        (f(\bx_*) - m(\bx_*))                                            \\
+        = & K_{*} K_{**}^{-1}(f(\bx_*) - m(\bx_*))
     \end{align*}
     and covariance matrix
     $$
@@ -515,18 +507,13 @@ $$
     (see \cite[Table of Distributions]{noauthor_exponential_2024}).
     Finally, by the linearity of the multivariate normal mean,
     $$
-        f(\mathbf{x}) | f(\mathbf{x}_*)
-        \sim \mathcal{N}\left(
-        m(\mathbf{x}) + K_{*}K_{**}^{-1}(f(\mathbf{x}_*) - m(\mathbf{x}_*)), \,\,
+        f(\bx) | f(\bx_*)
+        \sim \MVN\left(
+        m(\bx) + K_{*}K_{**}^{-1}(f(\bx_*) - m(\bx_*)), \,\,
         K - K_{*}K_{**}^{-1}K_{*}^T
         \right).
     $$
 \end{proof}
-
-After observing the function at multiple indices, we update the
-predictive distribution of any unobserved points, and generate new paths. The
-more points that the Gaussian process is conditioned on, the more narrow the
-sample paths, as seen in Figure \ref{fig:no_var_cub_reg}
 
 \begin{figure}[htbp]
     \centering
@@ -559,29 +546,37 @@ sample paths, as seen in Figure \ref{fig:no_var_cub_reg}
     \label{fig:no_var_cub_reg}
 \end{figure}
 
-\section{Observation Variance}
+We can use this to fit a Gaussian process to set of indices $\bx_*$ with
+observations $f(\bx_*).$
+This can be used in an iterative process where $f(x)$
+may be expensive to compute and by treating $f$ as a Gaussian process 
+realisation, the function can be probabilistically interpolated for unobserved
+$f(x).$ The
+more points that the Gaussian process is conditioned on, the more certainty
+there is in the sample paths, seen in Figure \ref{fig:no_var_cub_reg}.
+
+\subsection*{Observation Variance}
 
 For most functions, model outputs, or processes desirable for
-approximating through Gaussian process regression, multiple
-observations (through model runs or an real life measurements) of the same point
-will result in different observations. This is in contrast to exact realisations
-as in Figure \ref{fig:no_var_cub_reg}. The simplest assumption is that the
+approximating through Gaussian process regression, it may not be possible to
+observe $f(\bx)$ directly, but observations may be noisy.
+The simplest assumption is that the
 observations are of the form
 $$
-    f_o(\mathbf{x}_*) = f(\mathbf{x}_*) + \bm{\varepsilon}
+    f_o(\bx_*) = f(\bx_*) + \bm{\varepsilon}
 $$
-where $\bm{\varepsilon} \sim \mathcal{N}(\mathbf{0}, \sigma^2_o I).$
+where $\bm{\varepsilon} \sim \MVN(\mathbf{0}, \sigma^2_o I).$
 Under these assumptions,
-$\mathrm{Cov}(f_o(\mathbf{x}_*), f_o(\mathbf{x}_*)) = K_{**} + \sigma^2_o I,$
-where $K_{**} = \mathrm{Cov}(f(\mathbf{x}_*), f(\mathbf{x}_*))$
-matrix of $f(\mathbf{x}_*)$ without noise. Therefore the conditional
+$\mathrm{Cov}(f_o(\bx_*), f_o(\bx_*)) = K_{**} + \sigma^2_o I,$
+where $K_{**} = \mathrm{Cov}(f(\bx_*), f(\bx_*))$
+matrix of $f(\bx_*)$ without noise. Therefore the conditional
 distribution of our unobserved function outputs given noisy observations
 $$
-    f(\mathbf{x}) | f_o(\mathbf{x}_*)
-    \sim \mathcal{N}\left(
-    m(\mathbf{x}) + K_{*}
+    f(\bx) | f_o(\bx_*)
+    \sim \MVN\left(
+    m(\bx) + K_{*}
     (K_{**} + \sigma^2_o I)^{-1}
-    (f(\mathbf{x}_*) - m(\mathbf{x}_*)), \,\,
+    (f(\bx_*) - m(\bx_*)), \,\,
     K - K_{*}(K_{**} + \sigma^2_o I)^{-1}K_{*}^T
     \right).
 $$
@@ -611,7 +606,7 @@ $$
         Sequence of Gaussian process regressions on the target function
         (black) $f(x) = x(x-1)(x+1),$ after 2, 4, 8, and 16 observations of
         $f(x_i) + \varepsilon_i,$ where $\varepsilon_i$ is i.i.d.\
-        $\mathcal{N}(0, \sigma^2_o)$ with $\sigma^2_o = 0.01$
+        $\MVN(0, \sigma^2_o)$ with $\sigma^2_o = 0.01$
         in blue. The red lines are new realisations from the conditioned
         Gaussian process. The Gaussian process was 0 mean and had a squared
         exponential kernel. The hyperparameters were fixed with $\ell = 2.7$
@@ -620,45 +615,37 @@ $$
     \label{fig:var_cub_reg}
 \end{figure}
 
-Adding noise to the observations makes the predictive distributions means
-that a single observation gives less information about the underlying function,
-and hence the predictive distributions of unseen data are
-much less stable, as empirically seen in Figure \ref{fig:var_cub_reg}.
+The observations $f_o(\bx_*)$ contain less information than when $f(\bx_*)$ 
+is directly observed, and hence interpolating to $\bx$ or even $\bx_*$ 
+naturally has a 
+greater degree of uncertainty as seen in Figure \ref{fig:var_cub_reg}.
 
 \section{Model Selection}
 
-\subsection*{Kernel Family}
+\subsection*{Kernel}
 
-The appropriate choice of kernel will depend on the properties behaviour of the
-target function to approximate. In the case of estimating an extremely
-stochastic distribution (such as the price of a stock over time), it is
-unlikely to be smooth, so no mean square differentiability is required, and a
-Mat\'ern 1/2 kernel would be appropriate. If it is known that our target
-function is extremely smooth, such as a finite sum of infinitely differentiable
-functions (such as polynomials, sin, cos etc.) then the choice of squared
-exponential kernel is the most appropriate kernel. Realistically, the
-smoothness of the function will not be known a priori, and hence some sort of
-compromise (such as Mat\'ern 5/2) kernel allows for flexibility.
-
-Many other kernels exist that induce varying behaviours, such as periodic
-kernels \textcolor{red}{find periodic kernel}, and non-stationary kernels
-(where the covariance is dependent on $x$ and $x^\prime$, not just
-$|x - x^\prime|$)
-\textcolor{red}{have i defined stationary?}.
+The appropriate choice of kernel will depend on the properties of the
+target function $f$ to be regressed to. In the case of estimating an extremely
+stochastic distribution (such as the price of a stock over time), a
+kernel with a high degree of mean square differentiability would be 
+inappropriate. On the other hand a Mat\'ern 1/2 kernel may be appropriate,
+since it is not mean square differentiable. If it is known that the target
+function is smooth, such as a polynomial function or $\sin(x)$, 
+then the choice of squared
+exponential kernel is the most appropriate kernel.
 
 \subsection*{Hyperparameters}
 
-The hyperparameters $\ell$ and $\sigma^2_k$ for a choice of kernel have to be
-are not known beforehand, unless the function is actually a realisation from
-a Gaussian process. Similarly, the observation variance $\sigma^2_o$
-hyperparameter may not be a priori
-known. There are two main (frequentist) ways to fit these hyperparameters:
+The kernel hyperparameters $\ell$ and $\sigma^2_k$ are generally not fixed
+\emph{a prior}. Similarly, the observation variance $\sigma^2_o$
+hyperparameter may not be known.
+There are two main (frequentist) ways to fit these hyperparameters:
 maximum likelihood estimation, and leave-one-out cross validation.
 
 Defining the likelihood
 $
     \mathcal{L}(\ell, \sigma^2_k, \sigma^2_o)
-    := p(f(\mathbf{x}_*) | \ell, \sigma^2_k, \sigma^2_o)
+    := p(f(\bx_*) | \ell, \sigma^2_k, \sigma^2_o)
 $ in the usual way,
 the maximum likelihood estimates are
 $$
@@ -670,9 +657,9 @@ which is equivalent to minimising
 $$
     -\ln(\mathcal{L}) =\frac{1}{2} \left[
     \ln (|K_{**}(\ell, \sigma^2_k) + \sigma^2_o|\,)
-    + (f(\mathbf{x}_*) - m(\mathbf{x}_*))^T
+    + (f(\bx_*) - m(\bx_*))^T
     (K_{**}(\ell, \sigma^2_k) + \sigma^2_o)^{-1}
-    (f(\mathbf{x}_*) - m(\mathbf{x}_*)) + c
+    (f(\bx_*) - m(\bx_*)) + c
     \right].
 $$
 The covariance matrix generated by the choice of kernel $K_{**}$ is
@@ -684,33 +671,29 @@ probability.
 $$
     \{\tilde{\ell}, \tilde{\sigma}^2_k, \tilde{\sigma}^2_o\}
     := \argmax_{\ell, \sigma^2_k, \sigma^2_o} \sum_{i}
-    \ln p(f_i(\mathbf{x}_*) | f_{-i}(\mathbf{x}_*), \ell, \sigma^2_k, \sigma^2_o),
-$$ where $f_i(\mathbf{x}_*) | f_{-i}(\mathbf{x}_*)$ is the distribution of the
-$i$th element of $f(\mathbf{x}_*)$ conditioned on the rest of the
-observed data excluding that element (represented by $f_{-i}(\mathbf{x}_*)$).
-$f_i(\mathbf{x}_*) | f_{-i}(\mathbf{x}_*)$ can be found by
+    \ln p(f_i(\bx_*) | f_{-i}(\bx_*), \ell, \sigma^2_k, \sigma^2_o),
+$$ where $f_i(\bx_*) | f_{-i}(\bx_*)$ is the distribution of the
+$i$th element of $f(\bx_*)$ conditioned on the rest of the
+observed data excluding that element (represented by $f_{-i}(\bx_*)$).
+$f_i(\bx_*) | f_{-i}(\bx_*)$ can be found by
 Theorem \ref{thm:cond_mvn}. Computationally efficient methods for calculating
 the predictive log probability that avoid having to invert the covariance
 matrix for every summand element exist. In particular it can be shown that
-$f_i(\mathbf{x}_*) | f_{-i}(\mathbf{x}_*)$ has mean
+$f_i(\bx_*) | f_{-i}(\bx_*)$ has mean
 $$
-    f_i(\mathbf{x}_*) - m_i(\mathbf{x}_*)
-    - [(K_{**} + \sigma^2_o I)^{-1}(f(\mathbf{x}_*) - m(\mathbf{x}_*))]_i
+    f_i(\bx_*) - m_i(\bx_*)
+    - [(K_{**} + \sigma^2_o I)^{-1}(f(\bx_*) - m(\bx_*))]_i
     /[(K_{**} + \sigma^2_o I)^{-1}]_{ii}
 $$
 and variance $1/[(K_{**} + \sigma^2_o I)^{-1}]_{ii},$ where both the mean and
-covariance are (surprisingly) independent of $f_i(\mathbf{x}_*)$
+covariance are (surprisingly) independent of $f_i(\bx_*)$
 \parencite[116]{rasmussen_gaussian_2008}.
-
-Both methods can be extended to include estimating hyperparameters given a family
-of possible mean functions. For example \cite{gutmann_bayesian_2016} use
-maximimum likelihood estimates for the amplitude and turning points of the
-quadratic mean functions.
 
 Recent work has shown that at least under specific conditions, the
 leave-one-out estimates for the scale hyperparameter are more robust to a larger
 family of target functions \parencite{naslidnyk_comparing_2024}, and the
-broader literature seems to favor leave-one-out cross validation.
+broader literature seems to favor leave-one-out cross validation (for example
+see \cite{gutmann_bayesian_2016}).
 
 Finally there is scope for a Bayesian approach to model selection. By setting
 priors on the hyperparameters to be estimated and using the likelihood as described
@@ -722,32 +705,44 @@ approach has some obvious benefits, particularly when taking a posterior
 sample. Most obviously is that since multiple values for each hyperparameter are
 sampled, the set of functions after
 
-\section{Differing mean functions}
+\subsection*{Mean functions}
+
+Although in the majority of use cases for Gaussian processes, the mean function
+is assumed to be zero, it is not necessary for this to be the case. In cases
+where the discrepency function has been estimated by a Gaussian process, 
+the mean function has been assumed to be quadratic, such as in 
+\parencite{gutmann_bayesian_2016}. Gaussian process regression is relatively
+resilient to misspecified mean function, however the regression will return to
+the behaviour of the mean function where there are no points to regress to. 
+This can be seen in Figure \ref{fig:means}.
 
 \begin{figure}[htbp]
     \missingfigure{GP mean functions}
+    \label{fig:means}
+    \caption{different fns}
 \end{figure}
 
 \section{Bayesian Acquisition Functions}
 
+The purpose of parametrising a model, even when
 Under the assumptions that making observations from the underlying function is
 costly, and we care about regions of the function with high (or low)
 values, new observations should be taken where there is high probability the
 function will be low. There also needs to be a trade-off between observing from
 areas with high predictive mean, and high predictive variance. These ideas are
-formalised by Bayesian acquisition functions $\mathcal{A}(x),$ with larger 
-values corresponding to a higher `desirability.' The target function is then 
-sampled at the $x$ which maximises this aquisition function. The new 
+formalised by Bayesian acquisition functions $\mathcal{A}(x),$ with larger
+values corresponding to a higher `desirability.' The target function is then
+sampled at the $x$ which maximises this aquisition function. The new
 observation is then incorporated into the acquisition function.
 
 \subsection*{Upper Confidence Bound}
 
-The upper confidence bound is one common way of exploring this trade off. The 
+The upper confidence bound is one common way of exploring this trade off. The
 upper confidence bound
 $$
     \mathcal{A}_\text{UCB}(x)
-    := \E[f(x) | f(\mathbf{x}_*)]
-    + \eta_t \sqrt{\mathrm{Var}[f(x) | f(\mathbf{x}_*)]}
+    := \E[f(x) | f(\bx_*)]
+    + \eta_t \sqrt{\mathrm{Var}[f(x) | f(\bx_*)]}
 $$
 
 
@@ -759,7 +754,7 @@ $\mathrm{v}(\btheta)$ are the posterior mean and variance.
 $\varepsilon = 0.1$ was used.
 
 
-Similarly we can also define 
+Similarly we can also define
 
 \begin{itemize}
     \item BOLFI paper uses $$\mu(\btheta) - \eta_t\sqrt{\mathrm{v}(\btheta)}$$ \begin{itemize}
