@@ -4,40 +4,52 @@
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width = \textwidth]{../champagne_GP_images/champagne_simulation.pdf}
+    \includegraphics[width = \textwidth]{
+        ../champagne_GP_images/champagne_simulation.pdf
+    }
     \caption{
         A Doob-Gillespie Simulation of the model described by
         \cite{champagne_using_2022} with $\alpha = 0.4,$ $\beta = 0.4,$
         $\gamma_L = 1 / 223,$ $\lambda = 0.04,$ $f = 1 / 72,$ $r = 1 / 60,$ and
-        $\delta = 0.$ The population was 1000, with 10 initial infections
+        $\delta = 0.$ The population was 10000, with 10 initial infections
         (both blood and liver stage).
     }
     \label{fig:champ_doob}
 \end{figure}
 
+\begin{tabular}{c | c | c | c}\label{tab:synth_params}
+    Parameter description                      & Parameter           & Value
+                                               & Units                           \\
+    effective blood stage treatment proportion & $\alpha$            & $0.4$
+                                               & None                            \\
+    effective liver stage treatment proportion & $\beta $            & $0.4$
+                                               & None                            \\
+    rate of liver stage disease clearance      & $\gamma_L$          & $1 / 223$
+                                               & $1/$days                        \\
+    importation rate                           & $\delta$            & $0$
+                                               & assumed to be known             \\
+    rate of infection                          & $\lambda$           & $0.04$
+                                               & $1/$days                        \\
+    rate of relapse                            & $f$                 & $1/72$
+                                               & $1/$days                        \\
+    rate of blood stage disease clearance      & $r$                 & $1/60$
+                                               & $1/$days.                       \\
+\end{tabular}
+
 We investigated the model by \cite{champagne_using_2022} as described in
 \ref{sec:champ_mod}. A malaria epidemic was simulated using the Doob-Gillepsie
 algorithm (see Figure \ref{fig:champ_doob}), using a population
-size of 1,000, and initial infected population of 10 (with both liver and blood
+size of 10,000, and initial infected population of 100 (with both liver and blood
 stage infection). The parameters used closely followed those reported in
-\cite{champagne_using_2022}: \begin{itemize}
-    \item effective blood stage treatment proportion $\alpha = 0.4,$
-    \item effective liver stage treatment proportion $\beta = 0.4,$
-    \item rate of liver stage disease clearance
-          $\gamma_L = 1 / 223 \text{ days}^{-1},$
-    \item importation rate $\delta = 0$ (assumed to be known),
-    \item rate of infection $\lambda = 0.04 \text{ days}^{-1},$
-    \item rate of relapse $f = 1 / 72 \text{ days}^{-1},$
-    \item rate of blood stage disease clearance $r = 1 / 60 \text{ days}^{-1}.$
-\end{itemize}
+\cite{champagne_using_2022}. Exact parameters used are reported in
+\ref{tab:synth_params}. $\delta = 0$ was assumed to be known.
 
 From intialisation, the simulation was run for 15,000 events
 (with an event being anything that caused the size of any compartment to change
 such as an infection, recovery, relapse etc.), after which, the model was
 understood to have reached steady state behaviour.
 
-The synthetic data (as summary statistics) measured from the steady state
-were:
+The synthetic data (as summary statistics) measured from the steady state.
 \begin{enumerate}
     \item $p_\text{obs}:$ the number of currently infected individuals at the
           end of simulated epidemic (steady state prevalence).
@@ -146,6 +158,9 @@ $m_\mathcal{GP},$ $\sigma_o^2, \sigma_a^2, \ell_\alpha,
 and $\ell_r$ were selected by leave one out cross validation.
 
 \section{Bayesian Acquisition and Parameter Updates}
+
+\textcolor{red}{Talk about how in infinite space aquisition function doesn't
+    work}
 
 For 500 iterations, the next $\bm{\theta}$ to sample
 $\overline{\ln\mathcal{D}}(\bm{\theta})$ from

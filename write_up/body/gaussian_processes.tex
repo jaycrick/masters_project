@@ -696,86 +696,115 @@ broader literature seems to favor leave-one-out cross validation (for example
 see \cite{gutmann_bayesian_2016}).
 
 Finally there is scope for a Bayesian approach to model selection. By setting
-priors on the hyperparameters to be estimated and using the likelihood as described
+priors on the hyperparameters (sometimes called hyper-priors) 
+and using the likelihood as described
 in the maximum likelihood estimation approach, a posterior distribution can be
-easily contrived. A set of samples from this posterior could then be taken, or
-a less prinicipled maximum a posteriori probability
-estimate could then be taken for a point estimate of the hyperparameters. This
+easily contrived. Samples could then be taken from the posterior density 
+of the hyperparameters. Alternatively a point estimate could be taken by 
+choosing the maximum a posteriori point. This
 approach has some obvious benefits, particularly when taking a posterior
-sample. Most obviously is that since multiple values for each hyperparameter are
-sampled, the set of functions after
+sample, which can capture some of the uncertainty in the model more so than
+a point estimate.
 
-\subsection*{Mean functions}
+% \subsection*{Mean functions}
 
-Although in the majority of use cases for Gaussian processes, the mean function
-is assumed to be zero, it is not necessary for this to be the case. In cases
-where the discrepency function has been estimated by a Gaussian process, 
-the mean function has been assumed to be quadratic, such as in 
-\parencite{gutmann_bayesian_2016}. Gaussian process regression is relatively
-resilient to misspecified mean function, however the regression will return to
-the behaviour of the mean function where there are no points to regress to. 
-This can be seen in Figure \ref{fig:means}.
+% Although in the majority of use cases for Gaussian processes, the mean function
+% is assumed to be zero, it is not necessary for this to be the case. In cases
+% where the discrepency function has been estimated by a Gaussian process, 
+% the mean function has been assumed to be quadratic, such as in 
+% \parencite{gutmann_bayesian_2016}. Gaussian process regression is relatively
+% resilient to misspecified mean function, however the regression will return to
+% the behaviour of the mean function where there are no points to regress to. 
+% This can be seen in Figure \ref{fig:means}.
 
-\begin{figure}[htbp]
-    \missingfigure{GP mean functions}
-    \label{fig:means}
-    \caption{different fns}
-\end{figure}
+% \begin{figure}[htbp]
+%     \missingfigure{GP mean functions}
+%     \label{fig:means}
+%     \caption{different fns}
+% \end{figure}
 
 \section{Bayesian Acquisition Functions}
 
-The purpose of parametrising a model, even when
-Under the assumptions that making observations from the underlying function is
-costly, and we care about regions of the function with high (or low)
-values, new observations should be taken where there is high probability the
-function will be low. There also needs to be a trade-off between observing from
-areas with high predictive mean, and high predictive variance. These ideas are
-formalised by Bayesian acquisition functions $\mathcal{A}(x),$ with larger
-values corresponding to a higher `desirability.' The target function is then
-sampled at the $x$ which maximises this aquisition function. The new
-observation is then incorporated into the acquisition function.
+Gaussian processes may be a usefull approximation of $\E[\D(\btheta)].$ We can
+express the Gaussian process surrogate model as $\D_\GP(\btheta),$ trained on
+samples of $\D(\btheta).$
+Considering the approximate Bayesian computation described in
+Algorithm \ref{alg:abc}, samples are only accepted when $\D(\btheta)$ is small.
+Therefore we care most about accurately approximating $\D(\btheta)$ where
+$\E[\D(\btheta)]$ is small since the probability of acceptance elsewhere is
+negligable. Therefore we focus our model sampling where we predict the Gaussian
+process is small, or where the variance of the Gaussian process is large 
+(hence the true values are highly uncertain), to avoid unnecessary model runs
+that may be extremely time consuming.
 
-\subsection*{Upper Confidence Bound}
+These ideas are
+formalised by Bayesian acquisition functions $\mathcal{A}(\btheta)$ which
+describe the desirability of sampling from $\btheta$ as a combination of low
+posterior mean and uncertainty.
 
-The upper confidence bound is one common way of exploring this trade off. The
-upper confidence bound
-$$
-    \mathcal{A}_\text{UCB}(x)
-    := \E[f(x) | f(\bx_*)]
-    + \eta_t \sqrt{\mathrm{Var}[f(x) | f(\bx_*)]}
-$$
+\subsection*{Lower Confidence Bound}
 
+One lower confidence bound acquisition function is a calculation of the lower
+bound of the confidence interval of the regressed Gaussian process. It is a 
+function of both the posterior mean and variance, weighted according to a
+constant $\eta.$
 
-$$\mu(\btheta) - \eta_t\sqrt{\mathrm{v}(\btheta)}$$
-with $\eta_t:= \sqrt{2\ln(\frac{t^{2d + 2}\pi^2}{3\varepsilon})},$ and
-$\varepsilon \in (0, 1)$ that can be chosen
-(with a lower epsilon resulting in more exploration), $\mu(\btheta)$ and
-$\mathrm{v}(\btheta)$ are the posterior mean and variance.
-$\varepsilon = 0.1$ was used.
+\begin{definition}[Lower Confidence Bound]
+    The \emph{lower condidence bound} of a Gaussian process $f$ at $x$ given
+    some observations $\bx_*$ is
+    $$
+        \mathcal{A}_\mathrm{LCB}(x)
+        := \E[f(x) | f(\bx_*)]
+        - \eta \sqrt{\mathrm{Var}[f(x) | f(\bx_*)]}
+    $$
+\end{definition}
 
+For example, when $\eta = 1.96,$ $\mathcal{A}_\text{LCB}(x)$ returns the lower
+bound of the 95\% confidence interval at $x.$ In problems where a global 
+minimum is to be estimated, and where $f$ is regressed on realisations of
+a model, the next point to sample from the
+model would then be chosen $\argmin_{x} A_\mathrm{LCB}(x).$ 
+Larger $\eta$ will prioritise
+exploration of the space of $x,$ whereas small $\eta$ will continue to sample 
+around areas of confirmed low mean.
 
-Similarly we can also define
+$\eta$ can also be replaced by
+$\eta(t),$ where $t$ is the number of points that have been regressed on.
+Generally $\eta(t)$ is chosen to be an increasing function, so that exploration
+is given more weight over time. Some theoretical results regarding optimal
+choice of
+$\eta(t)$ are given in \cite{srinivas_gaussian_2010}, and are highly dependent
+on choice of covariance function and dimensionality of the parameter space.
 
-\begin{itemize}
-    \item BOLFI paper uses $$\mu(\btheta) - \eta_t\sqrt{\mathrm{v}(\btheta)}$$ \begin{itemize}
-              \item $\eta_t:= \sqrt{c + 2\ln(t^{d/2 + 2})},$ and $c$ can be chosen
-              \item $\mu(\btheta)$ and $\mathrm{v}(\btheta)$ are the posterior mean and variance
-          \end{itemize}
+\subsection*{Expected Improvement}
 
-    \item Could use expected information
-          $$
-              (\mu_\text{min} - \mu(\btheta)) \varPhi \left(
-              \frac{\mu_\text{min} - \mu(\btheta)}{\sqrt{\mathrm{v}(\btheta)}}
-              \right)
-              + \sqrt{\mathrm{v}(\btheta)}\phi\left(
-              \frac{\mu_\text{min} - \mu(\btheta)}{\sqrt{\mathrm{v}(\btheta)}}
-              \right)
-          $$
-          \begin{itemize}
-              \item $\mu_\text{min} := \min_{\bm{\theta}} \mu(\btheta)$
-              \item $\varPhi, \phi$ CDF and PDF of standard normal
-          \end{itemize}
-\end{itemize}
-exploration parameter proven by \cite{srinivas_gaussian_2010}
+A similar acquisition function to the lower confidence bound is the expected
+improvement function. Rather than returning a lower bound on a confidence
+bound, the expected improvement at $x$ returns the expected amount that
+$f(x)$ improves on the previous best observation.
+\begin{definition}
+    The \emph{expected improvement} of a Gaussian process $f$ at $x$ given
+    some observations $\bx_*$ is
+    $$
+        \mathcal{A}_\mathrm{EI}(x)
+        := \E[\min(f(x) - \mu_*, 0)],
+    $$ where $\mu_* := \min_{x_*\in\bx_*}f(x_*).$
+\end{definition}
 
-\textcolor{red}{Show why Bayesian Acquisition fn not work for infinite space.}
+The next point to be sampled from $\argmin_{x} A_\mathrm{EI}(x)$ is the point
+where we expect $\mu_*$ to have the largest improvement, if it is indeed 
+improved. By considering $\min(f(x) - \mu_*, 0),$ we only consider the cases 
+where the
+updated point is an improvement (lower) than the previous best observation by
+sending the rest of the cases to 0. Expected improvement does not require a
+choice of hyperparameter such as $\eta,$ but more exploration can be 
+encouraged by slightly altering the function to 
+$\E[\min(f(x) - (\mu_* + \epsilon), 0)].$ $\epsilon$ allows for
+new samples to be $\epsilon$ worse (larger) than the current best sample.
+
+% $$\mu(\btheta) - \eta_t\sqrt{\mathrm{v}(\btheta)}$$
+% with $\eta_t:= \sqrt{2\ln(\frac{t^{2d + 2}\pi^2}{3\varepsilon})},$ and
+% $\varepsilon \in (0, 1)$ that can be chosen
+% (with a lower epsilon resulting in more exploration), $\mu(\btheta)$ and
+% $\mathrm{v}(\btheta)$ are the posterior mean and variance.
+% $\varepsilon = 0.1$ was used.
