@@ -255,9 +255,9 @@ champ_samp = champagne_stochastic(
 ```{python}
 champ_samp.drop("inc_counter", axis=1).plot(x="t", legend=True)
 plt.xlabel("Time")
-plt.ylabel("Value")
+plt.ylabel("Size of Compartment")
 plt.title("Champagne Stochastic Simulation")
-plt.savefig("champagne_GP_images/champagne_simulation.pdf")
+plt.savefig("champagne_GP_images/champagne_simulation.pdf", bbox_inches='tight')
 plt.show()
 ```
 
@@ -588,10 +588,11 @@ observation_noise_variance_champ = tfp.util.TransformedVariable(
 
 ```{python}
 length_scales_champ = tfp.util.TransformedVariable(
-    bijector=tfb.Sigmoid(
-        np.float64(0.0),
-        [1.0 / 2, 1.0 / 2, gamma_L_max / 2, lambda_max / 2, f_max / 2, r_max / 2],
-    ),
+    # bijector=tfb.Sigmoid(
+    #     np.float64(0.0),
+    #     [1.0 / 2, 1.0 / 2, gamma_L_max / 2, lambda_max / 2, f_max / 2, r_max / 2],
+    # ),
+    bijector=constrain_positive,
     initial_value=[1 / 8, 1 / 8, gamma_L_max / 8, lambda_max / 8, f_max / 8, r_max / 8],
     dtype=np.float64,
     name="length_scales_champ",
@@ -672,32 +673,32 @@ for var in champ_GP.trainable_variables:
     if "bias" in var.name:
         print("{} is {}\n".format(var.name, var.numpy().round(3)))
     else:
-        if "length" in var.name:
-            print(
-                "{} is {}\n".format(
-                    var.name,
-                    tfb.Sigmoid(
-                        np.float64(0.0),
-                        [
-                            1.0 / 2,
-                            1.0 / 2,
-                            gamma_L_max / 2,
-                            lambda_max / 2,
-                            f_max / 2,
-                            r_max / 2,
-                        ],
-                    )
-                    .forward(var)
-                    .numpy()
-                    .round(3),
-                )
+        # if "length" in var.name:
+        #     print(
+        #         "{} is {}\n".format(
+        #             var.name,
+        #             tfb.Sigmoid(
+        #                 np.float64(0.0),
+        #                 [
+        #                     1.0 / 2,
+        #                     1.0 / 2,
+        #                     gamma_L_max / 2,
+        #                     lambda_max / 2,
+        #                     f_max / 2,
+        #                     r_max / 2,
+        #                 ],
+        #             )
+        #             .forward(var)
+        #             .numpy()
+        #             .round(3),
+        #         )
+        #     )
+        # else:
+        print(
+            "{} is {}\n".format(
+                var.name, constrain_positive.forward(var).numpy().round(3)
             )
-        else:
-            print(
-                "{} is {}\n".format(
-                    var.name, constrain_positive.forward(var).numpy().round(3)
-                )
-            )
+        )
 
 initial_losses_LOOCV = lls_
 ```
@@ -708,7 +709,7 @@ plt.plot(lls_)
 plt.title("Initial training for GP hyperparameters")
 plt.xlabel("Training iteration")
 plt.ylabel("Log likelihood")
-plt.savefig("champagne_GP_images/hyperparam_loss_log_discrep.pdf")
+plt.savefig("champagne_GP_images/hyperparam_loss_log_discrep.pdf", bbox_inches="tight")
 plt.show()
 ```
 
@@ -723,17 +724,23 @@ gp_samp_no = 30
 
 ```{python}
 slice_samples_dict = {
-    "alpha_slice_samples": np.repeat(np.concatenate(
-        (
-            np.linspace(0, 1, plot_samp_no, dtype=np.float64).reshape(-1, 1),  # alpha
-            np.repeat(pv_champ_beta, plot_samp_no).reshape(-1, 1),  # beta
-            np.repeat(pv_champ_gamma_L, plot_samp_no).reshape(-1, 1),  # gamma_L
-            np.repeat(pv_champ_lambda, plot_samp_no).reshape(-1, 1),  # lambda
-            np.repeat(pv_champ_f, plot_samp_no).reshape(-1, 1),  # f
-            np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
+    "alpha_slice_samples": np.repeat(
+        np.concatenate(
+            (
+                np.linspace(0, 1, plot_samp_no, dtype=np.float64).reshape(
+                    -1, 1
+                ),  # alpha
+                np.repeat(pv_champ_beta, plot_samp_no).reshape(-1, 1),  # beta
+                np.repeat(pv_champ_gamma_L, plot_samp_no).reshape(-1, 1),  # gamma_L
+                np.repeat(pv_champ_lambda, plot_samp_no).reshape(-1, 1),  # lambda
+                np.repeat(pv_champ_f, plot_samp_no).reshape(-1, 1),  # f
+                np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
+            ),
+            axis=1,
         ),
-        axis=1,
-    ), plot_samp_times,  axis = 0),
+        plot_samp_times,
+        axis=0,
+    ),
     "alpha_gp_samples": np.concatenate(
         (
             np.linspace(0, 1, plot_gp_no, dtype=np.float64).reshape(-1, 1),  # alpha
@@ -745,17 +752,23 @@ slice_samples_dict = {
         ),
         axis=1,
     ),
-    "beta_slice_samples": np.repeat(np.concatenate(
-        (
-            np.repeat(pv_champ_alpha, plot_samp_no).reshape(-1, 1),  # alpha
-            np.linspace(0, 1, plot_samp_no, dtype=np.float64).reshape(-1, 1),  # beta
-            np.repeat(pv_champ_gamma_L, plot_samp_no).reshape(-1, 1),  # gamma_L
-            np.repeat(pv_champ_lambda, plot_samp_no).reshape(-1, 1),  # lambda
-            np.repeat(pv_champ_f, plot_samp_no).reshape(-1, 1),  # f
-            np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
+    "beta_slice_samples": np.repeat(
+        np.concatenate(
+            (
+                np.repeat(pv_champ_alpha, plot_samp_no).reshape(-1, 1),  # alpha
+                np.linspace(0, 1, plot_samp_no, dtype=np.float64).reshape(
+                    -1, 1
+                ),  # beta
+                np.repeat(pv_champ_gamma_L, plot_samp_no).reshape(-1, 1),  # gamma_L
+                np.repeat(pv_champ_lambda, plot_samp_no).reshape(-1, 1),  # lambda
+                np.repeat(pv_champ_f, plot_samp_no).reshape(-1, 1),  # f
+                np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
+            ),
+            axis=1,
         ),
-        axis=1,
-    ), plot_samp_times,  axis = 0),
+        plot_samp_times,
+        axis=0,
+    ),
     "beta_gp_samples": np.concatenate(
         (
             np.repeat(pv_champ_alpha, plot_gp_no).reshape(-1, 1),  # alpha
@@ -767,83 +780,111 @@ slice_samples_dict = {
         ),
         axis=1,
     ),
-    "gamma_L_slice_samples": np.repeat(np.concatenate(
-        (
-            np.repeat(pv_champ_alpha, plot_samp_no).reshape(-1, 1),  # alpha
-            np.repeat(pv_champ_beta, plot_samp_no).reshape(-1, 1),  # beta
-            np.linspace(0, gamma_L_max, plot_samp_no, dtype=np.float64).reshape(-1, 1),  # gamma_L
-            np.repeat(pv_champ_lambda, plot_samp_no).reshape(-1, 1),  # lambda
-            np.repeat(pv_champ_f, plot_samp_no).reshape(-1, 1),  # f
-            np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
+    "gamma_L_slice_samples": np.repeat(
+        np.concatenate(
+            (
+                np.repeat(pv_champ_alpha, plot_samp_no).reshape(-1, 1),  # alpha
+                np.repeat(pv_champ_beta, plot_samp_no).reshape(-1, 1),  # beta
+                np.linspace(0, gamma_L_max, plot_samp_no, dtype=np.float64).reshape(
+                    -1, 1
+                ),  # gamma_L
+                np.repeat(pv_champ_lambda, plot_samp_no).reshape(-1, 1),  # lambda
+                np.repeat(pv_champ_f, plot_samp_no).reshape(-1, 1),  # f
+                np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
+            ),
+            axis=1,
         ),
-        axis=1,
-    ), plot_samp_times,  axis = 0),
+        plot_samp_times,
+        axis=0,
+    ),
     "gamma_L_gp_samples": np.concatenate(
         (
             np.repeat(pv_champ_alpha, plot_gp_no).reshape(-1, 1),  # alpha
             np.repeat(pv_champ_beta, plot_gp_no).reshape(-1, 1),  # beta
-            np.linspace(0, gamma_L_max, plot_gp_no, dtype=np.float64).reshape(-1, 1),  # gamma_L
+            np.linspace(0, gamma_L_max, plot_gp_no, dtype=np.float64).reshape(
+                -1, 1
+            ),  # gamma_L
             np.repeat(pv_champ_lambda, plot_gp_no).reshape(-1, 1),  # lambda
             np.repeat(pv_champ_f, plot_gp_no).reshape(-1, 1),  # f
             np.repeat(pv_champ_r, plot_gp_no).reshape(-1, 1),  # r
         ),
         axis=1,
     ),
-    "lambda_slice_samples": np.repeat(np.concatenate(
-        (
-            np.repeat(pv_champ_alpha, plot_samp_no).reshape(-1, 1),  # alpha
-            np.repeat(pv_champ_beta, plot_samp_no).reshape(-1, 1),  # beta
-            np.repeat(pv_champ_gamma_L, plot_samp_no).reshape(-1, 1),  # gamma_L
-            np.linspace(0, lambda_max, plot_samp_no, dtype=np.float64).reshape(-1, 1), # lambda
-            np.repeat(pv_champ_f, plot_samp_no).reshape(-1, 1),  # f
-            np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
+    "lambda_slice_samples": np.repeat(
+        np.concatenate(
+            (
+                np.repeat(pv_champ_alpha, plot_samp_no).reshape(-1, 1),  # alpha
+                np.repeat(pv_champ_beta, plot_samp_no).reshape(-1, 1),  # beta
+                np.repeat(pv_champ_gamma_L, plot_samp_no).reshape(-1, 1),  # gamma_L
+                np.linspace(0, lambda_max, plot_samp_no, dtype=np.float64).reshape(
+                    -1, 1
+                ),  # lambda
+                np.repeat(pv_champ_f, plot_samp_no).reshape(-1, 1),  # f
+                np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
+            ),
+            axis=1,
         ),
-        axis=1,
-    ), plot_samp_times,  axis = 0),
+        plot_samp_times,
+        axis=0,
+    ),
     "lambda_gp_samples": np.concatenate(
         (
             np.repeat(pv_champ_alpha, plot_gp_no).reshape(-1, 1),  # alpha
             np.repeat(pv_champ_beta, plot_gp_no).reshape(-1, 1),  # beta
             np.repeat(pv_champ_gamma_L, plot_gp_no).reshape(-1, 1),  # gamma_L
-            np.linspace(0, lambda_max, plot_gp_no, dtype=np.float64).reshape(-1, 1), # lambda
+            np.linspace(0, lambda_max, plot_gp_no, dtype=np.float64).reshape(
+                -1, 1
+            ),  # lambda
             np.repeat(pv_champ_f, plot_gp_no).reshape(-1, 1),  # f
             np.repeat(pv_champ_r, plot_gp_no).reshape(-1, 1),  # r
         ),
         axis=1,
     ),
-    "f_slice_samples": np.repeat(np.concatenate(
-        (
-            np.repeat(pv_champ_alpha, plot_samp_no).reshape(-1, 1),  # alpha
-            np.repeat(pv_champ_beta, plot_samp_no).reshape(-1, 1),  # beta
-            np.repeat(pv_champ_gamma_L, plot_samp_no).reshape(-1, 1),  # gamma_L
-            np.repeat(pv_champ_lambda, plot_samp_no).reshape(-1, 1),  # lambda
-            np.linspace(0, f_max, plot_samp_no, dtype=np.float64).reshape(-1, 1), # f
-            np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
+    "f_slice_samples": np.repeat(
+        np.concatenate(
+            (
+                np.repeat(pv_champ_alpha, plot_samp_no).reshape(-1, 1),  # alpha
+                np.repeat(pv_champ_beta, plot_samp_no).reshape(-1, 1),  # beta
+                np.repeat(pv_champ_gamma_L, plot_samp_no).reshape(-1, 1),  # gamma_L
+                np.repeat(pv_champ_lambda, plot_samp_no).reshape(-1, 1),  # lambda
+                np.linspace(0, f_max, plot_samp_no, dtype=np.float64).reshape(
+                    -1, 1
+                ),  # f
+                np.repeat(pv_champ_r, plot_samp_no).reshape(-1, 1),  # r
+            ),
+            axis=1,
         ),
-        axis=1,
-    ), plot_samp_times,  axis = 0),
+        plot_samp_times,
+        axis=0,
+    ),
     "f_gp_samples": np.concatenate(
         (
             np.repeat(pv_champ_alpha, plot_gp_no).reshape(-1, 1),  # alpha
             np.repeat(pv_champ_beta, plot_gp_no).reshape(-1, 1),  # beta
             np.repeat(pv_champ_gamma_L, plot_gp_no).reshape(-1, 1),  # gamma_L
             np.repeat(pv_champ_lambda, plot_gp_no).reshape(-1, 1),  # lambda
-            np.linspace(0, f_max, plot_gp_no, dtype=np.float64).reshape(-1, 1), # f
+            np.linspace(0, f_max, plot_gp_no, dtype=np.float64).reshape(-1, 1),  # f
             np.repeat(pv_champ_r, plot_gp_no).reshape(-1, 1),  # r
         ),
         axis=1,
     ),
-    "r_slice_samples": np.repeat(np.concatenate(
-        (
-            np.repeat(pv_champ_alpha, plot_samp_no).reshape(-1, 1),  # alpha
-            np.repeat(pv_champ_beta, plot_samp_no).reshape(-1, 1),  # beta
-            np.repeat(pv_champ_gamma_L, plot_samp_no).reshape(-1, 1),  # gamma_L
-            np.repeat(pv_champ_lambda, plot_samp_no).reshape(-1, 1),  # lambda
-            np.repeat(pv_champ_f, plot_samp_no).reshape(-1, 1),  # f
-            np.linspace(0, r_max, plot_samp_no, dtype=np.float64).reshape(-1, 1), # r
+    "r_slice_samples": np.repeat(
+        np.concatenate(
+            (
+                np.repeat(pv_champ_alpha, plot_samp_no).reshape(-1, 1),  # alpha
+                np.repeat(pv_champ_beta, plot_samp_no).reshape(-1, 1),  # beta
+                np.repeat(pv_champ_gamma_L, plot_samp_no).reshape(-1, 1),  # gamma_L
+                np.repeat(pv_champ_lambda, plot_samp_no).reshape(-1, 1),  # lambda
+                np.repeat(pv_champ_f, plot_samp_no).reshape(-1, 1),  # f
+                np.linspace(0, r_max, plot_samp_no, dtype=np.float64).reshape(
+                    -1, 1
+                ),  # r
+            ),
+            axis=1,
         ),
-        axis=1,
-    ), plot_samp_times,  axis = 0),
+        plot_samp_times,
+        axis=0,
+    ),
     "r_gp_samples": np.concatenate(
         (
             np.repeat(pv_champ_alpha, plot_gp_no).reshape(-1, 1),  # alpha
@@ -851,7 +892,7 @@ slice_samples_dict = {
             np.repeat(pv_champ_gamma_L, plot_gp_no).reshape(-1, 1),  # gamma_L
             np.repeat(pv_champ_lambda, plot_gp_no).reshape(-1, 1),  # lambda
             np.repeat(pv_champ_f, plot_gp_no).reshape(-1, 1),  # f
-            np.linspace(0, r_max, plot_gp_no, dtype=np.float64).reshape(-1, 1), # r
+            np.linspace(0, r_max, plot_gp_no, dtype=np.float64).reshape(-1, 1),  # r
         ),
         axis=1,
     ),
@@ -903,7 +944,7 @@ for var in vars:
 
     gp_samples_dict[var + "initial_gp_samps"] = GP_samples
 
-    plt.figure(figsize=(6, 3.5))
+    plt.figure(figsize=(4, 2.5))
     plt.scatter(
         val_df[var].values,
         discreps,
@@ -927,20 +968,23 @@ for var in vars:
         alpha=1,
         label="Posterior Mean",
     )
-    leg = plt.legend(loc="upper left")
-    for lh in leg.legend_handles:
-        lh.set_alpha(1)
+    # leg = plt.legend(loc="upper left")
+    # for lh in leg.legend_handles:
+    #     lh.set_alpha(1)
     if var in ["f", "r"]:
-        plt.xlabel("$" + var + "$ index points")
-        plt.title("$" + var + "$ slice before Bayesian Acquisition")
+        plt.xlabel("$" + var + "$")
+        # plt.title("$" + var + "$ slice before Bayesian Acquisition")
     else:
-        plt.xlabel("$\\" + var + "$ index points")
-        plt.title("$\\" + var + "$ slice before Bayesian Acquisition")
+        plt.xlabel("$\\" + var + "$")
+        # plt.title("$\\" + var + "$ slice before Bayesian Acquisition")
     # if var not in ["alpha", "beta"]:
     #     plt.xscale("log", base=np.e)
     plt.ylabel("log(Discrepancy)")
     plt.ylim((-3, 2))
-    plt.savefig("champagne_GP_images/initial_" + var + "_slice_log_discrep.pdf")
+    plt.savefig(
+        "champagne_GP_images/initial_" + var + "_slice_log_discrep.pdf",
+        bbox_inches="tight",
+    )
     plt.show()
 ```
 
@@ -1033,36 +1077,36 @@ next_vars
 ```
 
 ```{python}
-eta_t = tf.constant(1.0, dtype=np.float64)
+curr_min = min(champ_GP_reg.mean_fn(index_vals))
 
-def UCB_loss(champ_GP_reg):
+def EI_loss(champ_GP_reg):
     next_guess = tf.reshape(
         tf.stack([next_alpha, next_beta, next_gamma_L, next_lambda, next_f, next_r]),
         [1, 6],
     )
     mean_t = champ_GP_reg.mean_fn(next_guess)
-    std_t = tf.math.sqrt(
-        champ_GP_reg.variance(index_points=next_guess)
-        - observation_noise_variance_champ
+    std_t = champ_GP_reg.stddev(index_points=next_guess)
+    delt = curr_min - mean_t
+    return -tf.squeeze(
+        delt * tfd.Normal(0, np.float64(1)).cdf(delt / std_t)
+        + std_t * tfd.Normal(0, np.float64(1)).prob(delt / std_t)
     )
-    return tf.squeeze(mean_t - std_t)
 
-
-optimizer_fast = tf.keras.optimizers.Adam(learning_rate=0.1)
+first_optimizer = tf.keras.optimizers.Adam(learning_rate=0.05)
 
 @tf.function(autograph=False, jit_compile=False)
 def opt_var():
     with tf.GradientTape() as tape:
-        loss = UCB_loss(champ_GP_reg)
+        loss = EI_loss(champ_GP_reg)
     grads = tape.gradient(loss, next_vars)
-    optimizer_fast.apply_gradients(zip(grads, next_vars))
+    first_optimizer.apply_gradients(zip(grads, next_vars))
     return loss
 
 num_iters = 10000
 
 lls_ = np.zeros(num_iters, np.float64)
-tolerance = 1e-6  # Set your desired tolerance level
-previous_loss = float("inf")
+tolerance = 1e-8  # Set your desired tolerance level
+previous_loss = np.float64("inf")
 
 for i in range(num_iters):
     loss = opt_var()
@@ -1076,17 +1120,24 @@ for i in range(num_iters):
 
     previous_loss = loss
 
-print("Trained parameters:")
-for var in [next_alpha, next_beta, next_gamma_L, next_lambda, next_f, next_r]:
-    print("{} is {}".format(var.name, (var.bijector.forward(var).numpy().round(3))))
+next_guess = tf.reshape(
+    tf.stack([next_alpha, next_beta, next_gamma_L, next_lambda, next_f, next_r]),
+    [1, 6],
+)
+print(
+    "The final EI loss was {}".format(loss.numpy().round(3))
+    + " with predicted mean of {}".format(
+        champ_GP_reg.mean_fn(next_guess).numpy().round(3)
+    )
+)
 ```
 
 ```{python}
-plt.figure(figsize=(6, 3.5))
+plt.figure(figsize=(3.8, 1.5))
 plt.plot(lls_)
 plt.xlabel("Training iteration")
-plt.ylabel("Loss")
-plt.savefig("champagne_GP_images/bolfi_optim_loss_log_discrep.pdf")
+plt.ylabel("EI")
+plt.savefig("champagne_GP_images/initial_EI_loss_training.pdf", bbox_inches="tight")
 plt.show()
 ```
 
@@ -1224,13 +1275,13 @@ def update_var_EI(GP_reg, alpha, beta, gamma_L, lambda_, f, r, min_obs):
         )
         mean_t = GP_reg.mean_fn(next_guess)
         std_t = GP_reg.stddev(index_points=next_guess)
-        delt = min_obs - mean_t
+        delt = min_obs - mean_t - 0.1
         return -tf.squeeze(
             delt * tfd.Normal(0, np.float64(1)).cdf(delt / std_t)
             + std_t * tfd.Normal(0, np.float64(1)).prob(delt / std_t)
         )
 
-    optimizer_fast = tf.keras.optimizers.Adam(learning_rate=0.1)
+    optimizer_fast = tf.keras.optimizers.Adam(learning_rate=0.05)
 
     @tf.function(autograph=False, jit_compile=False)
     def opt_var():
@@ -1243,7 +1294,7 @@ def update_var_EI(GP_reg, alpha, beta, gamma_L, lambda_, f, r, min_obs):
     num_iters = 10000
 
     lls_ = np.zeros(num_iters, np.float64)
-    tolerance = 1e-6  # Set your desired tolerance level
+    tolerance = 1e-8  # Set your desired tolerance level
     previous_loss = np.float64("inf")
 
     for i in range(num_iters):
@@ -1449,7 +1500,7 @@ for t in range(501):
         mean_fn=const_mean_fn(),
     )
 
-    if t % update_GP_hp_freq == 0:
+    if t % update_GP_hp_freq == 0 or t==6:
         champ_GP = tfd.GaussianProcess(
             kernel=kernel_champ,
             observation_noise_variance=observation_noise_variance_champ,
@@ -1473,33 +1524,33 @@ for t in range(501):
             if "bias" in train_var.name:
                 print("{} is {}\n".format(train_var.name, train_var.numpy().round(3)))
             else:
-                if "length" in train_var.name:
-                    print(
-                        "{} is {}\n".format(
-                            train_var.name,
-                            tfb.Sigmoid(
-                                np.float64(0.0),
-                                [
-                                    1.0 / 2,
-                                    1.0 / 2,
-                                    gamma_L_max / 2,
-                                    lambda_max / 2,
-                                    f_max / 2,
-                                    r_max / 2,
-                                ],
-                            )
-                            .forward(train_var)
-                            .numpy()
-                            .round(3),
-                        )
+                # if "length" in train_var.name:
+                #     print(
+                #         "{} is {}\n".format(
+                #             train_var.name,
+                #             tfb.Sigmoid(
+                #                 np.float64(0.0),
+                #                 [
+                #                     1.0 / 2,
+                #                     1.0 / 2,
+                #                     gamma_L_max / 2,
+                #                     lambda_max / 2,
+                #                     f_max / 2,
+                #                     r_max / 2,
+                #                 ],
+                #             )
+                #             .forward(train_var)
+                #             .numpy()
+                #             .round(3),
+                #         )
+                #     )
+                # else:
+                print(
+                    "{} is {}\n".format(
+                        train_var.name,
+                        constrain_positive.forward(train_var).numpy().round(3),
                     )
-                else:
-                    print(
-                        "{} is {}\n".format(
-                            train_var.name,
-                            constrain_positive.forward(train_var).numpy().round(3),
-                        )
-                    )
+                )
 
         for var in vars:
             champ_GP_reg_plot = tfd.GaussianProcessRegressionModel(
@@ -1514,7 +1565,7 @@ for t in range(501):
             GP_samples = champ_GP_reg_plot.sample(gp_samp_no, seed=GP_seed)
             gp_samples_dict[var + "_gp_samps" + str(t) + "iters"] = GP_samples
 
-            plt.figure(figsize=(6, 3.5))
+            plt.figure(figsize=(4, 2.5))
             plt.scatter(
                 slice_indices_dfs_dict[var + "_slice_indices_df"][var].values,
                 slice_discrepencies_dict[var + "_slice_discrepencies"],
@@ -1538,19 +1589,19 @@ for t in range(501):
                 alpha=1,
                 label="Posterior Mean",
             )
-            leg = plt.legend(loc="upper left")
-            for lh in leg.legend_handles:
-                lh.set_alpha(1)
+            # leg = plt.legend(loc="upper left")
+            # for lh in leg.legend_handles:
+            #     lh.set_alpha(1)
             if var in ["f", "r"]:
-                plt.xlabel("$" + var + "$ index points")
-                plt.title(
-                    "$" + var + "$ slice after " + str(t) + " Bayesian acquisitions"
-                )
+                plt.xlabel("$" + var + "$")
+                # plt.title(
+                #     "$" + var + "$ slice after " + str(t) + " Bayesian acquisitions"
+                # )
             else:
-                plt.xlabel("$\\" + var + "$ index points")
-                plt.title(
-                    "$\\" + var + "$ slice after " + str(t) + " Bayesian acquisitions"
-                )
+                plt.xlabel("$\\" + var + "$")
+                # plt.title(
+                #     "$\\" + var + "$ slice after " + str(t) + " Bayesian acquisitions"
+                # )
             plt.ylabel("log(Discrepancy)")
             plt.ylim((-3, 2))
             plt.savefig(
@@ -1558,14 +1609,15 @@ for t in range(501):
                 + var
                 + "_slice_"
                 + str(t)
-                + "_bolfi_updates_log_discrep.pdf"
+                + "_bolfi_updates_log_discrep.pdf",
+                bbox_inches="tight",
             )
             plt.show()
 
 ```
 
 ```{python}
-epsilon = -10
+epsilon = -3
 
 likelihood_dict = {}
 for var in vars:
@@ -1583,25 +1635,27 @@ for var in vars:
 
     mean = champ_GP_reg.mean_fn(indices_for_lik)
     likelihood_dict[var + "_slice_means"] = mean
-    variance = dis_mean_n**2 * observation_noise_variance_champ.numpy()
+    variance = dis_mean_n * observation_noise_variance_champ.numpy()
     post_std = np.sqrt(variance)
     log_cdf_vals = tfd.Normal(mean, post_std).log_cdf(epsilon)
     likelihood_dict[var + "_synth_log_lik"] = log_cdf_vals
 
-    plt.figure(figsize=(6, 3.5))
+    plt.figure(figsize=(4, 2.5))
     plt.plot(
         slice_indices_dfs_dict[var + "_gp_indices_df"][var].values,
         np.exp(log_cdf_vals),
     )
     if var in ["f", "r"]:
-        plt.xlabel("$" + var + "$ index points")
-        plt.title("Final Synthetic Likelihood for $" + var + "$ Slice")
+        plt.xlabel("$" + var + "$")
+        # plt.title("Final Synthetic Likelihood for $" + var + "$ Slice")
     else:
-        plt.xlabel("$\\" + var + "$ index points")
-        plt.title("Final Synthetic Likelihood for $\\" + var + "$ Slice")
+        plt.xlabel("$\\" + var + "$")
+        # plt.title("Final Synthetic Likelihood for $\\" + var + "$ Slice")
     plt.ylabel("Synthetic likelihood")
+    plt.ylim((0, 0.1))
     plt.savefig(
-        "champagne_GP_images/" + var + "_slice_" + str(t) + "_synth_likelihood.pdf"
+        "champagne_GP_images/" + var + "_slice_" + str(t) + "_synth_likelihood.pdf",
+        bbox_inches="tight",
     )
     plt.show()
 ```
@@ -1622,7 +1676,7 @@ print(index_vals[-1,].round(3))
 ```{python}
 objects_to_preserve = [
     index_vals,
-    discreps,
+    obs_vals,
     champ_samp,
     initial_losses_LOOCV,
     slice_samples_dict,

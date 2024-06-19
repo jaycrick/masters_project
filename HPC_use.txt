@@ -20,6 +20,8 @@ module load any-other-nonsense-you-need
 # Go to virtual environment
 source projects/master-tf/bin/activate
 
+maybe module load cuda/12.2, module load cudnn/12.x-8.9.7.29, module load tensorRT/12.x-8.6.1.6 
+
 SUBMIT JOB
 
 source projects/
@@ -36,3 +38,13 @@ module load quarto
 quarto render 
 
 start a30s then can a100
+
+#!/bin/bash
+#SBATCH --mem=150G
+#SBATCH --time=36:00:00
+#SBATCH --gres gpu:A30:4
+#SBATCH --partition gpuq
+#SBATCH --cpus-per-task=96
+#SBATCH --job-name=GP_please_work
+#SBATCH --mail-user=cumming.j@wehi.edu.au
+#SBATCH --mail-type=ALL

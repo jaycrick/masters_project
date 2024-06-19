@@ -34,6 +34,7 @@
 \newtheorem{theorem}[definition]{Theorem}
 \newtheorem{example}[definition]{Example}
 
+\newcommand{\A}{\mathcal{A}}
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
 \newcommand{\btheta}{\bm{\theta}}
@@ -43,11 +44,13 @@
 \DeclareMathOperator{\cov}{cov}
 \newcommand{\D}{\mathcal{D}}
 \DeclareMathOperator{\E}{\mathbb{E}}
+\newcommand{\EI}{\mathrm{EI}}
 \DeclareMathOperator{\Exp}{Exp}
 \newcommand{\GP}{\mathcal{GP}}
 \let\L\relax
 \DeclareMathOperator{\L}{\mathcal{L}}
 \newcommand{\LABC}{\L_\text{ABC}}
+\DeclareMathOperator{\LN}{LN}
 \newcommand{\LS}{\mathrm{LSE}}
 \newcommand{\MLE}{\mathrm{MLE}}
 \DeclareMathOperator{\MVN}{MVN}
@@ -56,6 +59,9 @@
 % \DeclareMathOperator{\p}{\mathbb{P}}
 \DeclareMathOperator{\Pois}{Pois}
 \newcommand{\R}{\mathbb{R}}
+\newcommand{\smtheta}{\overline{\ln\D(\btheta)}}
+\newcommand{\smthetat}{\overline{\ln\D(\btheta^{(t)})}}
+\DeclareMathOperator{\var}{var}
 
 \makeatletter
 \providecommand*{\diff}%
@@ -131,4 +137,6 @@ with an application to an existing \emph{Plasmodium vivax} malaria model}\\
 %  references and appendix
 \addcontentsline{toc}{part}{Bibliography}
 \printbibliography
+
+\include{body/appendices}
 \end{document}

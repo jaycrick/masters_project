@@ -549,7 +549,7 @@ and has a multivariate normal distribution.
 We can use this to fit a Gaussian process to set of indices $\bx_*$ with
 observations $f(\bx_*).$
 This can be used in an iterative process where $f(x)$
-may be expensive to compute and by treating $f$ as a Gaussian process 
+may be expensive to compute and by treating $f$ as a Gaussian process
 realisation, the function can be probabilistically interpolated for unobserved
 $f(x).$ The
 more points that the Gaussian process is conditioned on, the more certainty
@@ -615,9 +615,9 @@ $$
     \label{fig:var_cub_reg}
 \end{figure}
 
-The observations $f_o(\bx_*)$ contain less information than when $f(\bx_*)$ 
-is directly observed, and hence interpolating to $\bx$ or even $\bx_*$ 
-naturally has a 
+The observations $f_o(\bx_*)$ contain less information than when $f(\bx_*)$
+is directly observed, and hence interpolating to $\bx$ or even $\bx_*$
+naturally has a
 greater degree of uncertainty as seen in Figure \ref{fig:var_cub_reg}.
 
 \section{Model Selection}
@@ -627,10 +627,10 @@ greater degree of uncertainty as seen in Figure \ref{fig:var_cub_reg}.
 The appropriate choice of kernel will depend on the properties of the
 target function $f$ to be regressed to. In the case of estimating an extremely
 stochastic distribution (such as the price of a stock over time), a
-kernel with a high degree of mean square differentiability would be 
+kernel with a high degree of mean square differentiability would be
 inappropriate. On the other hand a Mat\'ern 1/2 kernel may be appropriate,
 since it is not mean square differentiable. If it is known that the target
-function is smooth, such as a polynomial function or $\sin(x)$, 
+function is smooth, such as a polynomial function or $\sin(x)$,
 then the choice of squared
 exponential kernel is the most appropriate kernel.
 
@@ -696,11 +696,11 @@ broader literature seems to favor leave-one-out cross validation (for example
 see \cite{gutmann_bayesian_2016}).
 
 Finally there is scope for a Bayesian approach to model selection. By setting
-priors on the hyperparameters (sometimes called hyper-priors) 
+priors on the hyperparameters (sometimes called hyper-priors)
 and using the likelihood as described
 in the maximum likelihood estimation approach, a posterior distribution can be
-easily contrived. Samples could then be taken from the posterior density 
-of the hyperparameters. Alternatively a point estimate could be taken by 
+easily contrived. Samples could then be taken from the posterior density
+of the hyperparameters. Alternatively a point estimate could be taken by
 choosing the maximum a posteriori point. This
 approach has some obvious benefits, particularly when taking a posterior
 sample, which can capture some of the uncertainty in the model more so than
@@ -733,19 +733,19 @@ Algorithm \ref{alg:abc}, samples are only accepted when $\D(\btheta)$ is small.
 Therefore we care most about accurately approximating $\D(\btheta)$ where
 $\E[\D(\btheta)]$ is small since the probability of acceptance elsewhere is
 negligable. Therefore we focus our model sampling where we predict the Gaussian
-process is small, or where the variance of the Gaussian process is large 
+process is small, or where the variance of the Gaussian process is large
 (hence the true values are highly uncertain), to avoid unnecessary model runs
 that may be extremely time consuming.
 
 These ideas are
-formalised by Bayesian acquisition functions $\mathcal{A}(\btheta)$ which
+formalised by Bayesian acquisition functions $\A(\btheta)$ which
 describe the desirability of sampling from $\btheta$ as a combination of low
 posterior mean and uncertainty.
 
 \subsection*{Lower Confidence Bound}
 
-One lower confidence bound acquisition function is a calculation of the lower
-bound of the confidence interval of the regressed Gaussian process. It is a 
+The lower confidence bound acquisition function is a calculation of the lower
+bound of the confidence interval of the regressed Gaussian process. It is a
 function of both the posterior mean and variance, weighted according to a
 constant $\eta.$
 
@@ -753,19 +753,23 @@ constant $\eta.$
     The \emph{lower condidence bound} of a Gaussian process $f$ at $x$ given
     some observations $\bx_*$ is
     $$
-        \mathcal{A}_\mathrm{LCB}(x)
+        \A_\mathrm{LCB}(x)
         := \E[f(x) | f(\bx_*)]
         - \eta \sqrt{\mathrm{Var}[f(x) | f(\bx_*)]}
     $$
 \end{definition}
 
-For example, when $\eta = 1.96,$ $\mathcal{A}_\text{LCB}(x)$ returns the lower
-bound of the 95\% confidence interval at $x.$ In problems where a global 
+\begin{figure}
+    \missingfigure{Maybe put in an example of lower confidence bound here.}
+\end{figure}
+
+For example, when $\eta = 1.96,$ $\A_\text{LCB}(x)$ returns the lower
+bound of the 95\% confidence interval at $x.$ In problems where a global
 minimum is to be estimated, and where $f$ is regressed on realisations of
 a model, the next point to sample from the
-model would then be chosen $\argmin_{x} A_\mathrm{LCB}(x).$ 
+model would then be chosen $\argmin_{x} A_\mathrm{LCB}(x).$
 Larger $\eta$ will prioritise
-exploration of the space of $x,$ whereas small $\eta$ will continue to sample 
+exploration of the space of $x,$ whereas small $\eta$ will continue to sample
 around areas of confirmed low mean.
 
 $\eta$ can also be replaced by
@@ -776,31 +780,66 @@ choice of
 $\eta(t)$ are given in \cite{srinivas_gaussian_2010}, and are highly dependent
 on choice of covariance function and dimensionality of the parameter space.
 
+\subsection*{Probability of Improvement}
+
+The probability of improvement is simply a measure of how probable it is that
+an observation at $x$ is better than the previous best observation.
+
+\begin{definition}
+    The \emph{probability of improvement} of a Gaussian process $f$ at $x$ given
+    some observations $\bx_*$ is
+    $$
+        \A_\mathrm{PI}(x) := \Pr(f(x) < \mu_*)
+    $$
+    where $\mu_* := \min_{x_*\in\bx_*}f(x_*).$
+\end{definition}
+
+Unlike the lower confidence bound, we choose $\argmax_{x} A_\mathrm{PI}(x),$ as
+the point which is most likely to better than our current best.
+
+The probability of improvement can also be expressed as
+$$
+    \A_\mathrm{PI}(x) = \Pr(\min(f(x) - \mu_*, 0) < 0),
+$$
+which motivates the form of the next acquisition function.
+
 \subsection*{Expected Improvement}
 
-A similar acquisition function to the lower confidence bound is the expected
-improvement function. Rather than returning a lower bound on a confidence
-bound, the expected improvement at $x$ returns the expected amount that
-$f(x)$ improves on the previous best observation.
+A similar acquisition function to the probability of improvement is the expected
+improvement function. Rather than returning a the probability that $f(x)$ is
+better (lower) than the current best, it also takes into account how large that
+improvement is likely to be.
+
 \begin{definition}
     The \emph{expected improvement} of a Gaussian process $f$ at $x$ given
     some observations $\bx_*$ is
     $$
-        \mathcal{A}_\mathrm{EI}(x)
+        \A_\EI(x)
         := \E[\min(f(x) - \mu_*, 0)],
     $$ where $\mu_* := \min_{x_*\in\bx_*}f(x_*).$
 \end{definition}
-
-The next point to be sampled from $\argmin_{x} A_\mathrm{EI}(x)$ is the point
-where we expect $\mu_*$ to have the largest improvement, if it is indeed 
-improved. By considering $\min(f(x) - \mu_*, 0),$ we only consider the cases 
-where the
-updated point is an improvement (lower) than the previous best observation by
-sending the rest of the cases to 0. Expected improvement does not require a
-choice of hyperparameter such as $\eta,$ but more exploration can be 
-encouraged by slightly altering the function to 
+The next point to be sampled from $\argmin_{x} A_\EI(x)$ is the point
+where we expect $\mu_*$ to have the largest improvement, if it is indeed
+improved.
+\footnote{
+    Bayesian acquisition function are
+    conventionally employed to find the maximum of an unknown function,
+    and so generally the expected improvement is maximised.
+    However in the context of $\D_\GP(\btheta),$ we want to find the minimum.
+    Therefore we have reframed the expected information 
+    as a function to be minimised.
+}
+Both the probability of improvement and
+expected improvement do not require a
+choice of hyperparameter such as $\eta,$ but more exploration can be
+encouraged by slightly altering the probability of improvement to
+$\Pr(f(x) < \mu_* + \epsilon),$ and the expected improvement to
 $\E[\min(f(x) - (\mu_* + \epsilon), 0)].$ $\epsilon$ allows for
 new samples to be $\epsilon$ worse (larger) than the current best sample.
+This is beneficial in the case where finding the exact global minimum may not
+be the target, but rather exploring areas close to the minimum.
+
+
 
 % $$\mu(\btheta) - \eta_t\sqrt{\mathrm{v}(\btheta)}$$
 % with $\eta_t:= \sqrt{2\ln(\frac{t^{2d + 2}\pi^2}{3\varepsilon})},$ and

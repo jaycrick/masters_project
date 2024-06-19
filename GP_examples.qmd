@@ -58,7 +58,7 @@ for i in range(num_samples):
 # plt.xlabel("x")
 # plt.ylabel("f(x)")
 # plt.title(r"Gaussian Process Realisation With the Squared Exponential Kernel")
-plt.savefig("write_up/images/exponentiated_kernel.pdf")
+plt.savefig("write_up/images/exponentiated_kernel.pdf", bbox_inches="tight")
 plt.show()
 
 gp = tfd.GaussianProcess(
@@ -83,7 +83,7 @@ for i in range(num_samples):
 # plt.xlabel("x")
 # plt.ylabel("f(x)")
 # plt.title(r"Gaussian Process Realisation with Matern Kernel $\nu = 1/2$")
-plt.savefig("write_up/images/maternonehalf_kernel.pdf")
+plt.savefig("write_up/images/maternonehalf_kernel.pdf", bbox_inches="tight")
 plt.show()
 
 gp = tfd.GaussianProcess(
@@ -108,7 +108,7 @@ for i in range(num_samples):
 # plt.xlabel("x")
 # plt.ylabel("f(x)")
 # plt.title(r"Gaussian Process Realisation with Matern Kernel $\nu = 3/2$")
-plt.savefig("write_up/images/maternthreehalves_kernel.pdf")
+plt.savefig("write_up/images/maternthreehalves_kernel.pdf", bbox_inches="tight")
 plt.show()
 
 gp = tfd.GaussianProcess(
@@ -133,7 +133,7 @@ for i in range(num_samples):
 # plt.xlabel("x")
 # plt.ylabel("f(x)")
 # plt.title(r"Gaussian Process Realisation with Matern Kernel $\nu = 5/2$")
-plt.savefig("write_up/images/maternfivehalves_kernel.pdf")
+plt.savefig("write_up/images/maternfivehalves_kernel.pdf", bbox_inches="tight")
 plt.show()
 ```
 
@@ -168,7 +168,14 @@ for ell in [0.5, 2]:
         # plt.xlabel("x")
         # plt.ylabel("f(x)")
         # plt.title(r"Squared Exponential kernel with $\ell = $" + str(ell))
-        plt.savefig("write_up/images/GP_ell_" + str(int(ell * 10)) + "_sigma2_" + str(int(sigma_2 * 10)) + "_tenths.pdf")
+        plt.savefig(
+            "write_up/images/GP_ell_"
+            + str(int(ell * 10))
+            + "_sigma2_"
+            + str(int(sigma_2 * 10))
+            + "_tenths.pdf",
+            bbox_inches="tight",
+        )
         plt.show()
 ```
 
@@ -181,12 +188,12 @@ plt.figure(figsize=(7, 4))
 plt.scatter(flat_index[:, 0], easy_obs, label="Observations")
 leg = plt.legend(loc="lower right")
 for lh in leg.legend_handles:
-  lh.set_alpha(1)
+    lh.set_alpha(1)
 plt.xlabel("x")
 plt.ylabel("f(x)")
 plt.ylim(-2, 2)
 plt.title("Initial Points")
-plt.savefig("write_up/images/flatish_GP_bare.pdf")
+plt.savefig("write_up/images/flatish_GP_bare.pdf", bbox_inches="tight")
 plt.show()
 ```
 
@@ -224,7 +231,10 @@ for ell in [0.5, 1, 2]:
     # plt.ylabel("f(x)")
     plt.ylim(-2, 2)
     # plt.title(r"Squared Exponential Kernel with $\ell = $" + str(ell))
-    plt.savefig("write_up/images/flatish_GP_ell_" + str(int(ell * 10)) + "_tenths.pdf")
+    plt.savefig(
+        "write_up/images/flatish_GP_ell_" + str(int(ell * 10)) + "_tenths.pdf",
+        bbox_inches="tight",
+    )
     plt.show()
 ```
 
@@ -259,7 +269,10 @@ for sigma in [0.5, 1, 2]:
     # plt.ylabel("f(x)")
     plt.ylim(-2, 2)
     # plt.title(r"Function estimation with $\sigma = $" + str(sigma))
-    plt.savefig("write_up/images/flatish_GP_sigma_" + str(sigma * 10) + "_tenths.pdf")
+    plt.savefig(
+        "write_up/images/flatish_GP_sigma_" + str(sigma * 10) + "_tenths.pdf",
+        bbox_inches="tight",
+    )
     plt.show()
 ```
 
@@ -297,7 +310,10 @@ for nu in [0.5, 1.5, 2.5]:
     # plt.ylabel("f(x)")
     plt.ylim(-2, 2)
     # plt.title(r"Matern Kernel with $\nu = $" + str(nu))
-    plt.savefig("write_up/images/flatish_GP_matern_" + str(nu * 10) + "_tenths.pdf")
+    plt.savefig(
+        "write_up/images/flatish_GP_matern_" + str(nu * 10) + "_tenths.pdf",
+        bbox_inches="tight",
+    )
     plt.show()
 ```
 
@@ -413,7 +429,9 @@ for ind in range(ind_range):
     #  plt.ylabel("f(x)")
     plt.ylim(-1, 1)
     # plt.title(r"Function estimation with GP")
-    plt.savefig("write_up/images/cub_GP_" + str(ind + 1) + "_iters.pdf")
+    plt.savefig(
+        "write_up/images/cub_GP_" + str(ind + 1) + "_iters.pdf", bbox_inches="tight"
+    )
     plt.show()
 ```
 
@@ -480,7 +498,9 @@ for ind in range(ind_range):
     #   plt.ylabel("f(x)")
     plt.ylim(-1, 1)
     # plt.title(r"Function estimation with GP")
-    plt.savefig("write_up/images/cub_GP_err_" + str(ind + 1) + "_iters.pdf")
+    plt.savefig(
+        "write_up/images/cub_GP_err_" + str(ind + 1) + "_iters.pdf", bbox_inches="tight"
+    )
     plt.show()
 
 ```
@@ -615,9 +635,11 @@ for ind in range(ind_range):
     # plt.xlabel("x")
     # plt.ylabel("f(x)")
     plt.ylim(-1, 1)
-    plt.xlim(-1.1,1.1)
+    plt.xlim(-1.1, 1.1)
     # plt.title(r"Function estimation with GP")
-    plt.savefig("write_up/images/UCB_" + str(ind + 1) + "_iters.pdf")
+    plt.savefig(
+        "write_up/images/UCB_" + str(ind + 1) + "_iters.pdf", bbox_inches="tight"
+    )
     plt.show()
 ```
 
@@ -641,7 +663,8 @@ for i in range(3):
         axis[i, j].plot(
             predictive_index_points_,
             cub_fn(predictive_index_points_),
-            label="Target fn", c="black",
+            label="Target fn",
+            c="black",
         )
         for k in range(num_samples):
             axis[i, j].plot(
@@ -656,7 +679,7 @@ for i in range(3):
             UCB_obs_points[range(snaps[i, j])],
             label="Observations",
         )
-        axis[i,j].set_title(str(snaps[i, j]) + " Acquisitions")
+        axis[i, j].set_title(str(snaps[i, j]) + " Acquisitions")
         # leg = plt.legend(loc="upper right")
         # for lh in leg.legend_handles:
         #     lh.set_alpha(1)
@@ -664,7 +687,7 @@ for i in range(3):
 # plt.xlabel("x")
 # plt.ylabel("f(x)")
 # plt.title(r"Function estimation with GP")
-# plt.savefig("write_up/images/UCB_" + str(ind + 1) + "_iters.pdf")
+# plt.savefig("write_up/images/UCB_" + str(ind + 1) + "_iters.pdf", bbox_inches='tight')
 # plt.figure(num = SubFigure, figsize=(10, 3.5))
 plt.show()
 print(i, j)

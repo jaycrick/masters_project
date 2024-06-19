@@ -331,7 +331,7 @@ available.
 \begin{algorithm}[htbp]
     \caption{Rejection Sampler}
     \label{alg:rej_samp}
-    \begin{algorithmic}[1]
+    \begin{algorithmic}
         \State Sample $X^\ast \sim p$
         \State Sample $U \sim \mathrm{Unif}(0, 1)$
         \If{$U \leq \frac{g(X^\ast)}{M p(X^\ast)}$}
@@ -508,7 +508,7 @@ Algorithm \ref{alg:MH}.
 \begin{algorithm}[htbp]
     \caption{Metropolis-Hastings Sampler}
     \label{alg:MH}
-    \begin{algorithmic}[1]
+    \begin{algorithmic}
         \State Initialise $x_0$
         \For{$i = 1$ to $N$}
         \State Sample $X^\prime \sim q(x^\prime|x_{i - 1})$
@@ -605,7 +605,7 @@ This can be seen in Example \ref{ex:coin_toss} and Figure \ref{fig:coin_R}.
     $$
     We sample from this distribution using the Metropolis algorithm which
     becomes
-    \begin{algorithmic}[1]
+    \begin{algorithmic}
         \State Initialise $p_0$
         \For{$i = 1$ to $N$}
         \State Sample $P^\prime \sim q(p^\prime|p_{i - 1})$
@@ -683,7 +683,7 @@ estimate sample from $\btheta | y^\obs$ as in Figure \ref{fig:SIS_MH_R}.
 \begin{algorithm}[htbp]
     \caption{Gibbs Sampler}
     \label{alg:gibbs}
-    \begin{algorithmic}[1]
+    \begin{algorithmic}
         \State Initialise
         $\btheta^{(0)} = (\theta_1^{(0)}, \theta_2^{(0)}, \dots, \theta_d^{(0)})$
         \For{$i = 1$ to $N$}
@@ -860,7 +860,7 @@ and sample $\by(\btheta)$ directly.
 \begin{algorithm}[htbp]
     \caption{Naive Bayesian Sampler}
     \label{alg:naive_samp}
-    \begin{algorithmic}[1]
+    \begin{algorithmic}
         \State Sample $\btheta^\ast \sim \Pr(\btheta)$
         \State Run model and compute $\by(\btheta^\ast)$
         \If{$\by(\btheta^\ast) = \by^\obs$}
@@ -929,7 +929,7 @@ $||\by(\btheta) - \by^\obs||_p.$
 \begin{algorithm}[htbp]
     \caption{Approximate Bayesian Compuation Sampler}
     \label{alg:abc}
-    \begin{algorithmic}[1]
+    \begin{algorithmic}
         \State Sample $\btheta^\ast \sim \Pr(\btheta)$
         \State Run model and compute $\mathcal{D}(\btheta^\ast)$
         \If{$\mathcal{D}(\btheta^\ast) < \epsilon$}

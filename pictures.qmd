@@ -7,13 +7,13 @@ jupyter: python3
 
 ```{python}
 import matplotlib.pyplot as plt
-import pickle
-
-```
-
-```{python}
-import pickle
+import numpy as np
 import os
+import pandas as pd
+import pickle
+import seaborn as sns
+import tensorflow as tf
+
 file_path = "gp_objs.pkl"
 
 # Load the objects from the pickle file
@@ -21,8 +21,84 @@ with open(file_path, "rb") as fp:
     objects_loaded = pickle.load(fp)
 
 # Unpack the objects into individual variables
-index_vals, discreps, champ_samp, initial_losses_LOOCV, slice_samples_dict, slice_discrepencies_dict, LHC_indices_df, gp_samples_dict, likelihood_dict = objects_loaded
+(
+    index_vals,
+    obs_vals,
+    champ_samp,
+    initial_losses_LOOCV,
+    slice_samples_dict,
+    slice_discrepencies_dict,
+    LHC_indices_df,
+    gp_samples_dict,
+    likelihood_dict,
+) = objects_loaded
 
 # Verify that the objects are loaded correctly
 print("Objects loaded successfully from file")
+
+df = pd.DataFrame(obs_vals, columns=["Values"])
+
+# Generate summary statistics
+summary_stats = df.describe()
+print("Summary Statistics:")
+print(summary_stats)
+```
+
+```{python}
+plt.figure(figsize=(1.9, 5))
+sns.violinplot(data=obs_vals, inner="box")
+plt.ylabel(r"$\overline{\ln\mathcal{D}(\theta)}$")
+# plt.title("Violin Plot of Data Points")
+plt.savefig("write_up/images/discreps_violin.pdf", bbox_inches='tight')
+plt.show()
+```
+
+```{python}
+plt.figure(figsize=(3.8, 1.5))
+plt.plot(initial_losses_LOOCV)
+plt.xlabel("Training iteration")
+plt.ylabel("Neg. Pred. Log-Lik")
+plt.savefig("write_up/images/hyperparam_loss_log_discrep.pdf", bbox_inches='tight')
+plt.show()
+```
+
+```{python}
+# plt.figure(figsize=(6, 3.5))
+# plt.plot(lls_)
+# plt.xlabel("Training iteration")
+# plt.ylabel("Loss")
+# plt.savefig("champagne_GP_images/bolfi_optim_loss_log_discrep.pdf", bbox_inches="tight")
+# plt.show()
+```
+
+```{python}
+vars = ["alpha", "beta", "gamma_L", "lambda", "f", "r"]
+slice_index_vals_dict = {}
+slice_indices_dfs_dict = {}
+for var in vars:
+    val_df = pd.DataFrame(slice_samples_dict[var + "_slice_samples"], columns=vars)
+    slice_index_vals_dict[var + "_slice_index_vals"] = val_df.values
+    log_cdf_vals = likelihood_dict[var + "_synth_log_lik"]
+
+    gp_samples_df = pd.DataFrame(slice_samples_dict[var + "_gp_samples"], columns=vars)
+    slice_indices_dfs_dict[var + "_gp_indices_df"] = gp_samples_df
+
+    plt.figure(figsize=(4, 2.5))
+    plt.plot(
+        slice_indices_dfs_dict[var + "_gp_indices_df"][var].values,
+        np.exp(log_cdf_vals),
+    )
+    if var in ["f", "r"]:
+        plt.xlabel("$" + var + "$")
+        # plt.title("Final Synthetic Likelihood for $" + var + "$ Slice")
+    else:
+        plt.xlabel("$\\" + var + "$")
+        # plt.title("Final Synthetic Likelihood for $\\" + var + "$ Slice")
+    plt.ylabel("Synthetic likelihood")
+    plt.ylim((0, 0.1))
+    plt.savefig(
+        "write_up/images/" + var + "_slice_synth_likelihood.pdf",
+        bbox_inches="tight",
+    )
+    plt.show()
 ```

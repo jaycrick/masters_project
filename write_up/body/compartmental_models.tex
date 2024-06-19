@@ -322,7 +322,7 @@ All of this leads naturally to a common method of simulating the stochastic mode
 
 \begin{algorithm}
     \caption{The Doob-Gillespie Algorithm}\label{alg:doob}
-    \begin{algorithmic}[1]
+    \begin{algorithmic}
         \State Initialise time $t \gets 0$ and initial state of the model $\mathbf{C}(0) := \{C_1(0), C_2(0), \dots, C_n(0)\}$
         \While{termination condition not met}
         \State Calculate intensities $\lambda_i$ for all possible events $\mathcal{E}_i$
@@ -347,7 +347,7 @@ $\tau$-leaping exploits the local Poisson point process like behaviour of epidem
 \begin{algorithm}
     \caption{$\tau$-Leaping Algorithm}
     \label{alg:tau_leaping}
-    \begin{algorithmic}[1]
+    \begin{algorithmic}
         \State Initialise time $t \gets 0$ and initial state of the model $\mathbf{C}(0) := \{C_1(0), C_2(0), \dots, C_n(0)\}$
         \While{termination condition not met}
         \State Calculate intensities $\lambda_i$ for all possible events $\mathcal{E}_i$
