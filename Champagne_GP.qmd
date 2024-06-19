@@ -1613,6 +1613,64 @@ for t in range(501):
                 bbox_inches="tight",
             )
             plt.show()
+        
+        epsilon = -3
+
+        likelihood_dict = {}
+        for var in vars:
+            champ_GP_reg = tfd.GaussianProcessRegressionModel(
+                kernel=kernel_champ,
+                index_points=slice_indices_dfs_dict[var + "_gp_indices_df"].values,
+                observation_index_points=index_vals,
+                observations=obs_vals,
+                observation_noise_variance=observation_noise_variance_champ,
+                predictive_noise_variance=0.0,
+                mean_fn=const_mean_fn(),
+            )
+
+            indices_for_lik = slice_indices_dfs_dict[var + "_gp_indices_df"].values
+
+            mean = champ_GP_reg.mean_fn(indices_for_lik)
+            likelihood_dict[var + "_slice_means"] = mean
+            variance = dis_mean_n * observation_noise_variance_champ.numpy()
+            post_std = np.sqrt(variance)
+            log_cdf_vals = tfd.Normal(mean, post_std).log_cdf(epsilon)
+            likelihood_dict[var + "_synth_log_lik"] = log_cdf_vals
+
+            plt.figure(figsize=(4, 2.5))
+            plt.plot(
+                slice_indices_dfs_dict[var + "_gp_indices_df"][var].values,
+                np.exp(log_cdf_vals),
+            )
+            if var in ["f", "r"]:
+                plt.xlabel("$" + var + "$")
+                # plt.title("Final Synthetic Likelihood for $" + var + "$ Slice")
+            else:
+                plt.xlabel("$\\" + var + "$")
+                # plt.title("Final Synthetic Likelihood for $\\" + var + "$ Slice")
+            plt.ylabel("Synthetic likelihood")
+            plt.ylim((0, 0.1))
+            plt.savefig(
+                "champagne_GP_images/" + var + "_slice_" + str(t) + "_synth_likelihood.pdf",
+                bbox_inches="tight",
+            )
+            plt.show()
+        objects_to_preserve = [
+            index_vals,
+            obs_vals,
+            champ_samp,
+            initial_losses_LOOCV,
+            slice_samples_dict,
+            slice_discrepencies_dict,
+            LHC_indices_df,
+            gp_samples_dict,
+            likelihood_dict,
+        ]
+
+        with open("gp_objs.pkl", "wb") as fp:
+            pickle.dump(objects_to_preserve, fp)
+            print("dictionary saved successfully to file")
+        
 
 ```
 

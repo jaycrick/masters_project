@@ -3,7 +3,7 @@
 \section{Malaria}
 
 Malaria kills around 600,000 people each year, with over 75\% of deaths
-occuring in children under 5 years old
+occurring in children under 5 years old
 \parencite{world_health_organization_world_2022}.
 
 \subsection*{Plasmodium Life Cycle}
@@ -118,8 +118,8 @@ money are spent on trials.
     \caption{
         A simple Ross-Macdonald malaria model schematic, as described by
         \cite{aron_population_1982}. $S_\mathrm{H}$ and $I_\mathrm{H}$ are the
-        number of susceptable and infected humans respectively, and
-        $S_\mathrm{M}$ and $I_\mathrm{M}$ are the number of susceptable and
+        number of susceptible and infected humans respectively, and
+        $S_\mathrm{M}$ and $I_\mathrm{M}$ are the number of susceptible and
         infected mosquitos. The rate of human infection ($\lambda_\mathrm{H}$)
         is dependant on $I_\mathrm{M}$, and the rate of human infection
         ($\lambda_\mathrm{M}$) is dependant on $I_\mathrm{H}$.
@@ -202,7 +202,7 @@ following four steps \parencite{smith_ross_2012}: \begin{enumerate}
     \end{tikzpicture}
     \caption{
         Diagram for \textit{P.\ vivax} model in a tropical setting described by
-        \cite{white_variation_2016}. $S$ and $I$ are the number of susceptable
+        \cite{white_variation_2016}. $S$ and $I$ are the number of susceptible
         and infected humans and mosquitos (denoted by subscript M).
         $\lambda_\mathrm{H} = mabI_\mathrm{M}$ and
         $\lambda_\mathrm{M} = ac(I_0 + I_\mathrm{L})$
@@ -263,7 +263,7 @@ The model is comprised of six compartments: \begin{enumerate}
           Blood-stage infection is cleared (moving into compartment $S_0$) with
           rate $r$.
     \item \textbf{
-              $S_\mathrm{L}$ (Susceptable Individuals -
+              $S_\mathrm{L}$ (Susceptible Individuals -
               Blood-Stage Infection Only)
           }: Those in this compartment have latent hypnozoite infection in
           the liver without blood-stage infection. They get novel infection
@@ -274,7 +274,7 @@ The model is comprised of six compartments: \begin{enumerate}
           Alternatively the hypnozoites are cleared from the liver
           (moving to compartment $S_0$) with rate $\gamma_\mathrm{L}.$
     \item \textbf{
-              $S_\mathrm{M}$ (Susceptable Mosquitoes)
+              $S_\mathrm{M}$ (Susceptible Mosquitoes)
           }:
           Suspectable mosquitoes become infectious at rate
           $\lambda_\mathrm{M}p.$ They die at rate

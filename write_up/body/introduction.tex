@@ -1,11 +1,59 @@
 \chapter{Introduction}
 
-All the stuff that's really hard about calibrating malaria model parameters.
-Recent model don't even calibrate using their models.
+Malaria is an infectious disease that poses a significant global health 
+challenge. In 2022, the WHO estimated that malaria had caused over 600,000 
+deaths that year, most of which were in children under five. 
+The majority of malaria-related deaths are attributable to the 
+\textit{Plasmodium falciparum} species of the parasite. 
+However, the literature is increasingly recognising that 
+the amount of death and severe disease attributable to the 
+\textit{Plasmodium vivax} species is 
+likely traditionally underestimated. The malaria lifecycle is complicated, 
+needing both a vertebrate and mosquito host. In addition, \textit{P. vivax} has 
+a dormant stage that causes relapses. 
 
-Why are we looking at mathematical models for vivax malaria and why do we need 
-to do more complicated parameter inference. Outline that the limitation is that 
-it takes a long time to run simulations from complicated malaria models and we 
-still need to fit to data.
+Various countries with endemic malaria have undertaken significant efforts to 
+reduce the burden of or eradicate malaria. Mathematical disease models are 
+increasingly aiding these efforts by helping to understand the spread of the 
+disease and estimate the effectiveness of possible interventions. 
+Malaria models are complex due to the many staged lifecycle, and in 
+particular, \textit{P. vivax} models need to consider relapses, further 
+complicating the model.
 
-The aim of this thesis was to investigate the use of Gaussian Processes to
+To simulate different scenarios using models, modellers must first calibrate
+the model parameters to approximate observed disease dynamics, measured by
+observed data such as case counts or prevalence surveys. Standard techniques
+to calibrate parameters include maximum likelihood estimation and sampling
+from a posterior distribution, which both require a likelihood function. As
+models become increasingly complicated, analytic forms for the likelihood may
+not exist, or calculating the likelihood may be very computationally
+burdensome. Some researchers calibrate compartmental models by relying on
+their deterministic counterparts, which is questionable, as the deterministic
+model sometimes behaves differently from the stochastic model. Modern
+likelihood-free techniques, such as approximate Bayesian computation, address
+this issue but require large model runs to calibrate the parameters.
+
+Drawing on concepts from approximate Bayesian computation, we aimed to improve
+parameter calibration in malaria models, addressing a recognised need for
+improvement. We do this by training a Gaussian process to predict how close a
+model run will be to observed data and extracting a synthetic likelihood.
+
+The thesis follows the following outline: The literature review in Part I
+discusses fundamental concepts of epidemiological modelling, covering
+deterministic ordinary differential equation models, stochastic models, and
+their simulation methods. It then examines malaria and reviews various malaria
+models. Part I further surveys parameter inference techniques, comparing
+frequentist and Bayesian approaches, and ends with discussing likelihood-free
+techniques, particularly approximate Bayesian computation.
+Approximate Bayesian computation then motivates using Gaussian processes to
+develop a synthetic likelihood, which can be used in place of the unknown true
+likelihood to use the traditional parameter calibration techniques in complex
+models. Finally, Part I discusses using Bayesian acquisition functions to train
+the Gaussian process efficiently.
+
+Part II applies and extends this methodology by calibrating parameters specific
+to a \textit{P. vivax} model using synthetic observed data. The results and 
+discussion
+section validates the method and demonstrates that the parameters that produced
+the observed data are recoverable. Finally, the thesis concludes with a
+discussion of the findings and outlines avenues for future research.

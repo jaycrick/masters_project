@@ -1,24 +1,25 @@
 \chapter{Epidemiological Modelling}
 
-In order to study the behaviour and characteristics of disease spread and
-eradication, compartmental epidemiological models have been developed. They
-seek to simplify the dynamics of a disease down to a mathematically
-representable form. Inference on these models allow for an understanding of how
-the modelled disease spreads, and allows an assessment of how effective
-differing disease interventions (such as treatments or vaccinations) may be
-without the need for large long term trials. Models can also simulate various
-scenarios such as increases or decreases in viral transmission.
+Researchers have developed compartmental epidemiological models to study the
+behaviour and characteristics of disease spread and eradication. Compartmental
+models simplify the dynamics of a disease down to a mathematically
+representable form. By determining the parameters within a model, 
+it is possible to facilitate an understanding of 
+how the modelled disease spreads and assess the effectiveness of 
+differing disease interventions (such as treatments or vaccinations) 
+without large long-term trials. Models can also simulate various
+scenarios, such as increases or decreases in viral transmission.
 
-Simple compartmental disease models assume individuals can be only be in one of
+Simple compartmental disease models assume individuals can only be in one of
 a finite number of states (which are called compartments). These compartments
-usually correspond to a state of disease. Some simple common compartments
+usually correspond to a state of disease. A standard compartmental model may 
 include: \begin{itemize}
-    \item $S$ - Susceptable: at risk of contracting the disease
-    \item $E$ - Exposed: contracted the disease but not yet transmitting it
-    \item $I$ - Infectious (also called Infected): at risk of transmitting the
-          disease
-    \item $R$ - Recovered: neither at risk of contracting or transmitting the
-          disease.
+    \item $S$ - Susceptible: at risk of contracting the disease
+    \item $E$ - Exposed: contracted the disease but not infecting other
+          individuals
+    \item $I$ - Infectious (also called Infected): at risk of infecting others
+          with the disease
+    \item $R$ - Recovered: no longer infectious and incapable of being reinfected.
 \end{itemize}
 
 \begin{figure}[htbp]
@@ -78,13 +79,13 @@ include: \begin{itemize}
     \end{subfigure}%
     \caption{
         Some simple model schematics, with varying numbers of compartments: $S$
-        (susceptable), $E$ (exposed), $I$ (infectious) and $R$ (recovered). The
+        (susceptible), $E$ (exposed), $I$ (infectious) and $R$ (recovered). The
         force of infection $\lambda_t$ is usually a function of $I_t$, depicted
         by the dashed red lines. $\mu$ and $\nu$ are natural birth and death
         rates respectively. $\gamma$ is the rate of progression out of the
         infectious state. In each of these models the physical interpretation
         differs slightly. In the $SIS$ and $SEIR$ models, it is the rate at
-        which individuals move from infectious to susceptable again or into
+        which individuals move from infectious to susceptible again or into
         lifelong immunity, whereas in the $SI$ with demography model, it can be
         interpreted as the increase to the rate of death attributable to
         disease induced mortality. $\sigma$ is the rate of progression from a
@@ -94,29 +95,37 @@ include: \begin{itemize}
 
 The number of people in each compartment at time $t$ is a (possibly
 non-deterministic) function of time $t,$ which we indicate as a subscript $t$
-(eg.\ $S_t$ is the number of susceptibles at time $t$). Models are routinely
-described by the compartments they contain. For example, an $SIS$ model, is a
-model with the susceptable and infectious compartments. Recovering from the
-infection leaves you susceptible to reinfection (for example most sexually
-transmitted diseases \parencite[56]{keeling_modeling_2008}), and is graphically
-depicted in Figure \ref{fig:SIS_model}.
-
-Furthermore we can also include demography into a compartmental model. Diseases
-that infect the individual until the time of death such as bovine spongiform
-encephalopathy (BSE commonly known as mad cow disease) may be modelled using an
+(e.g., $S_t$ is the number of susceptibles at time $t$). Models are typically
+described by the compartments they contain. For instance, an $SIS$ model
+includes susceptible and infectious compartments. In this model, individuals 
+who recover from infection become susceptible to reinfection, as is the case 
+with most sexually transmitted diseases \parencite[56]{keeling_modeling_2008} 
+This model is graphically illustrated in Figure \ref{fig:SIS_model}.
+Furthermore, we can also include demography in a compartmental model. Diseases 
+that infect the individual until the time of death, such as bovine spongiform 
+encephalopathy (BSE, commonly known as mad cow disease), 
+may be modelled using an 
 $SI$ model with demography (birth and death rates), as depicted in Figure
 \ref{fig:SI_demog_model} \parencite{hagenaars_epidemiological_2006}.
 
 Childhood diseases such as varicella (chickenpox) which give lifetime immunity
-after infection can be modelled using an $SEIR$ model (see Figure
+after infection, can be modelled using an $SEIR$ model (see Figure
 \ref{fig:SEIR_model}), particularly when modelling a local outbreak setting
-(for example \cite{zha_research_2020} used the $SEIR$ model to model a school
-outbreak of varicella). Not including demograpy is usually appropriate when
-disease induced mortality is low.
+(for example, \cite{zha_research_2020} used the $SEIR$ model to model a school
+outbreak of varicella). Omitting demography is usually appropriate when 
+disease-induced mortality is low, or the timescale of interest is short 
+compared to the population's lifespan.
+
+Researchers often extend and configure the number (and names) of compartments 
+as required, allowing for the addition of compartments for 
+vaccinated individuals, quarantined individuals, and other relevant categories.
 
 The number (and names) of compartments can be extended and configured as
 needed, and compartments could be added for vaccinated individuals, quarantined
-individuals and so on. By convention $N_t$ (often simply $N$ in models with a
+individuals and so on. For example, \Citeauthor{acuna-zegarra_covid-19_2021} 
+include a vaccinated compartment, and two infectious compartments for 
+symptomatic and asymptomatic individuals.
+By convention $N_t$ (often simply $N$ in models with a
 closed population) is the total number of individuals in the model, the sum of
 all compartments.
 
@@ -166,15 +175,15 @@ Finally, the system of ODEs that describe the $SEIR$ model is \begin{align}
     \centering
     \includegraphics{ODE_plots.pdf}
     \caption{
-        Solutions to the ordinary differential equations describing the models 
-        depicted in Figure \ref{fig:simple_models}. The initial infectious 
-        population was $I_0 = 10,$ with $S_0 = 990.$ In the $SEIR$ model, 
+        Solutions to the ordinary differential equations describing the models
+        depicted in Figure \ref{fig:simple_models}. The initial infectious
+        population was $I_0 = 10,$ with $S_0 = 990.$ In the $SEIR$ model,
         $E_0 = R_0 = 0.$ For all models $\beta = 0.4.$ For the $SIS$ and $SI$
-         model with demography $\gamma = 1/4.$ For the $SI$ model with 
-         demography $\mu = 0.012,$ and $\nu = 0.0012.$ For the $SEIR$ model, 
-         $\gamma = 1/90,$ and $\sigma = 1/2.$
+        model with demography $\gamma = 1/4.$ For the $SI$ model with
+        demography $\mu = 0.012,$ and $\nu = 0.0012.$ For the $SEIR$ model,
+        $\gamma = 1/90,$ and $\sigma = 1/2.$
     }
-         \label{fig:ODE_outputs}
+    \label{fig:ODE_outputs}
 \end{figure}
 
 After specifying the initial for each compartment the ordinary differential equations have a deterministic output, such as in \ref{fig:ODE_outputs}.
