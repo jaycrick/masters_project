@@ -1363,7 +1363,7 @@ min_index = index_vals[
 ][0]
 simulation_reps = 20
 
-for t in range(501):
+for t in range(401):
     min_index = index_vals[
         champ_GP_reg.mean_fn(index_vals) == min(champ_GP_reg.mean_fn(index_vals))
     ][

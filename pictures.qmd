@@ -82,6 +82,11 @@ for var in vars:
 
     gp_samples_df = pd.DataFrame(slice_samples_dict[var + "_gp_samples"], columns=vars)
     slice_indices_dfs_dict[var + "_gp_indices_df"] = gp_samples_df
+    maxat = slice_indices_dfs_dict[var + "_gp_indices_df"][var].values[
+        log_cdf_vals == max(log_cdf_vals)
+    ]
+
+    print(maxat)
 
     plt.figure(figsize=(4, 2.5))
     plt.plot(
@@ -95,7 +100,7 @@ for var in vars:
         plt.xlabel("$\\" + var + "$")
         # plt.title("Final Synthetic Likelihood for $\\" + var + "$ Slice")
     plt.ylabel("Synthetic likelihood")
-    plt.ylim((0, 0.1))
+    plt.ylim((0, 0.12))
     plt.savefig(
         "write_up/images/" + var + "_slice_synth_likelihood.pdf",
         bbox_inches="tight",

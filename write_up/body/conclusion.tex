@@ -8,17 +8,19 @@ public health scenarios, with a specific focus on the complex issue of
 \textit{P. vivax} malaria. 
 
 The complicated lifecycle of \textit{P. vivax} poses a tough hurdle in 
-disease modelling. This complexity is problematic during the parameter 
+disease modelling,
+particularly with respect to asymptomatic cases and relapses.
+This complexity is problematic during the parameter 
 calibration stage, where traditional methods that rely on being about to 
 compute a likelihood are not viable. Likelihood-free methods, while effective, 
 come with a high computational cost due to repeated and inefficient model runs. 
 This has led some researchers to calibrate models using deterministic 
-approximations, failing to capture stochastic models' uncertainty. 
+approximations, failing to capture the stochastic models' uncertainty. 
 There is an obvious need for a better calibration methodology.
 
 This research used Gaussian processes to approximate the distribution of the 
 discrepancy function used in approximate Bayesian computation for any set of 
-parameters. The true likelihood function was approximated by manipulating the 
+parameters. The true likelihood function was approximated by using the 
 Gaussian process to create a synthetic likelihood. Empirical evidence 
 demonstrated that this methodology successfully recovered parameters of a 
 \textit{P. vivax} model given simulated data while mitigating the 
@@ -32,4 +34,5 @@ proven effective in overcoming the infeasibility of traditional calibration
 methods and the computational cost of likelihood-free calibration methods. 
 Future research should focus on refining these techniques and exploring their 
 application to other infectious diseases. These advancements are crucial for 
-developing more effective interventions and achieving malaria eradication.
+developing more effective interventions and ultimately to help support 
+achieving malaria eradication.

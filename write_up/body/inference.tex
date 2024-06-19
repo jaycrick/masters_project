@@ -69,11 +69,11 @@ estimating $\btheta^{\LS}$ is to take the least squares estimate.
         [\sum_{i = 1}^3 (\theta_0 + \theta_1x_i - y_i^\obs)^2] \\
         = & \, \argmin_{\btheta}
         [(\theta_0 + \theta_1 - 2)^2 + (\theta_0 + 2\theta_1 - 4)^2
-            + (\theta_0 + 3\theta_1 - 4)^2]
+            + (\theta_0 + 3\theta_1 - 4)^2].
     \end{align*}
 
-    Since the expanded quadratic will have positive coefficients out the front
-    of $\theta_0$ and $\theta_1,$ we can solve for $\btheta^{\LS}$
+    Since the expanded quadratic will have positive coefficients for
+    $\theta_0$ and $\theta_1,$ we can solve for $\btheta^{\LS}$
     by
 
     \begin{align*}
@@ -90,7 +90,9 @@ estimating $\btheta^{\LS}$ is to take the least squares estimate.
             \end{bmatrix}
     \end{align*}
     And solving these two equations results in $\theta^\LS_0 = 4/3$ and
-    $\theta^\LS_1 = 1.$ This can be visually seen in Figure \ref{fig:LSE}
+    $\theta^\LS_1 = 1.$ This can be visually seen in Figure \ref{fig:LSE} in
+    the red line that minimises the sum of the squares of the difference
+    between the observations (in black dots) and the linear model.
 \end{example}
 
 
@@ -102,8 +104,8 @@ estimating $\btheta^{\LS}$ is to take the least squares estimate.
         $y_i(\btheta) = \theta_0 + \theta_1x_i$ fit given the set
         of observations $\{(1, 2), (2, 4), (3, 4)\}$ using the method of
         least squares and maximum likelihood under
-        the assumption that the data are independent realisations by a Poisson
-        distribution with $\Pois(y_i(\btheta)).$ The least squares estimates
+        the assumption that the data are independent realisations from a Poisson
+        distribution with mean $y_i(\btheta).$ The least squares estimates
         were $\theta^\LS_0 = 4/3$ and $\theta^\LS_1 = 1.$ The maximum likelihood
         estimates were $\hat{\theta}_0 \approx 1.329$ and
         $\hat{\theta}_1 \approx 0.751.$
@@ -113,7 +115,7 @@ estimating $\btheta^{\LS}$ is to take the least squares estimate.
 
 \subsection*{Maximum Likelihood Estimator}
 
-The least square method makes no explicit assumptions about the distribution
+The least squares method makes no explicit assumptions about the distribution
 of the noise $\varepsilon.$ However if the distribution of $\varepsilon$ is
 known (or can be reasonably assumed), we can
 explicitly calculate the probability of the data given the parameters.
@@ -138,9 +140,11 @@ explicitly calculate the probability of the data given the parameters.
     $$
 \end{definition}
 
-The dependence on $\by^\obs$ is suppressed, but can be
-explicitly written as $\mathcal{L}(\btheta|\by^\obs).$ In the continuous
-(and mixture of discrete and continuous) case,
+The dependence of the likelihood function on $\by^\obs$ is notationally
+suppressed, but can be
+explicitly written as $\mathcal{L}(\btheta|\by^\obs)$ to avoid confusion.
+In the continuous
+(or mixture of discrete and continuous) case,
 we interpret
 $
     \Pr(
@@ -157,29 +161,34 @@ $
 $ with respect to an underlying probability measure.
 
 A natural estimate for $\btheta$ is the one that maximises the likelihood
-function $\mathcal{L}$, as it coincides with the value of $\btheta$ maximises the
-probability of the data. Such an estimate is called the maximum likelihood
+function $\mathcal{L}$, as it coincides with the value of $\btheta$
+that maximises the
+probability of the data (possibly expressed as a density).
+Such an estimate is called the maximum likelihood
 estimate.
 
 \begin{definition}[Maximum Likelihood Estimate]
     The \emph{maximum likelihood estimate} of $\btheta$ is
     $$
         \hat{\btheta}
-        := \argmax_{\btheta\in\mathbf{\Theta}} \mathcal{L}(\btheta)
+        := \argmax_{\btheta\in\mathbf{\Theta}} \mathcal{L}(\btheta).
     $$
 \end{definition}
 
 It is often computationally easier to deal with the log-likelihood
-$\ell(\btheta) := \ln\mathcal{L}(\btheta).$ Since $\ln$ is a monotonic function,
-$\argmax_{\btheta\in\mathbf{\Theta}} \mathcal{L}(\btheta)
-    = \argmax_{\btheta\in\mathbf{\Theta}} \ell(\btheta)$
+$\ell(\btheta) := \ln\mathcal{L}(\btheta).$ Since the natural
+logarithm is a monotonic function,
+$$
+    \argmax_{\btheta\in\mathbf{\Theta}} \mathcal{L}(\btheta)
+    = \argmax_{\btheta\in\mathbf{\Theta}} \ell(\btheta).
+$$
 
 \begin{example}
     Using the same observed data set as Example \ref{ex:LSE}, we assume that
     $y_i^\obs$ were generated independently from
     $y_i(\btheta) + \varepsilon_i \sim \Pois(y_i(\btheta)),$ where
     $y_i(\btheta) = \theta_0 + \theta_1x_i$ as previously defined. Therefore
-    the maximimum likelihood estimate of $\btheta$ is
+    the maximum likelihood estimate of $\btheta$ is
     \begin{align*}
         \hat{\btheta}
         = & \, \argmax \ell(\btheta)                                  \\
@@ -194,20 +203,22 @@ $\argmax_{\btheta\in\mathbf{\Theta}} \mathcal{L}(\btheta)
         + 4\ln(\theta_0 + 2\theta_1) - \theta_0 - 2\theta_1
         + 4\ln(\theta_0 + 3\theta_1) - \theta_0 - 3\theta_1
     \end{align*}
-    which we numerically solve to get $\hat{\theta}_0 \approx 1.329$
-    and $\hat{\theta_1} \approx 0.751,$ as seen in Figure \ref{fig:LSE}.
+    which we can solve to get $\hat{\theta}_0 \approx 1.329$
+    and $\hat{\theta_1} \approx 0.751,$ as seen in Figure \ref{fig:LSE} with
+    the green line. This estimate is not the same as the linear model
+    estimate using the least squares estimates for $\btheta$
 \end{example}
 
 \subsection*{Relationship of Least Squares and Maximum Likelihood Estimates}
 
 Although the least squares estimate does not explicitly assume a distribution,
 it coincides with the maximum likelihood estimate under the assumption that
-the $y_i^\obs$s were has been generated with normal error.
+the $y_i^\obs$ were generated with i.i.d.\ normal error.
 
-\begin{theorem}
+\begin{theorem}\label{thm:LSE_normal}
     If $y_i(\btheta) + \epsilon_i \sim N(y_i(\btheta), \sigma^2),$ then
     $$
-        \hat{\btheta} = \btheta^\LS
+        \hat{\btheta} = \btheta^\LS.
     $$
 \end{theorem}
 
@@ -229,6 +240,9 @@ the $y_i^\obs$s were has been generated with normal error.
     \end{align*}
 \end{proof}
 
+Surprisingly, the proof only requires $\sigma^2$ to be a constant, but does
+not require it to be known.
+
 \subsection*{Frequentist Parameter Estimates in Compartmental Models}
 
 Various approaches are possible to parameterise compartmental models.
@@ -236,48 +250,58 @@ If the stochastic compartmental model is simple enough, and the number of
 people in the model is small enough, then the likelihood
 for the stochastic model could be calculated directly. However this is hardly
 ever the case, and approximations are usually made.
-For a model with a single parameter to fit, the ODE model is
-fit to that data point. For example \cite{champagne_using_2022} fit one
-unknown model parameter to incidence data.
+
+For a model with a single unknown parameter, such as in
+it is possible to fit a deterministic ODE model
+fit to a single data point. For example, \cite{champagne_using_2022} fits one
+unknown model parameter to incidence data. Fitting to a single data point
+is not generally advisable, as the parameter estimates will not be
+robust to variations in the observation of that data.
 Alternatively, if there are multiple observations to fit the model to
 parameters can be estimated by finding the least squares estimates fit to
 the ODE model.
 \cite{gani_transmission_2001} fit part of their modified $SEIR$ smallpox model
-for using least square estimates.
-Another alternative approach
+using least squares estimates.
+Another approach
 is to assume that the observed data follow a particular distribution
 determined by the ODE solution. For example, it is plausible to assume that
-daily incidence (case counts) could be distributed according to a Poisson
+daily incidence (case counts) in an $SIS$ model such as described by Equations
+\ref{eq:SIS_1} and \ref{eq:SIS_2},
+could be distributed according to a Poisson
 distribution, with a mean number of cases $\beta \frac{I_t}{N}S_t,$ where $I_t$
-and $S_t$ are solutions of the ODEs at time $t$.
+and $S_t$ are solutions of the ODEs at time $t$. This is because
+$\beta \frac{I_t}{N}S_t$ describes the rate at which individuals are moving
+from the susceptible compartment to the infected compartment.
 Other data such as samples from the population to estimate
-prevalence (proportion of those infectious) could be
-distributed $\mathrm{Binom}(n, \frac{I_t}{N}).$
+the proportion of population who are infectious could be
+distributed according to $\mathrm{Binom}(n, \frac{I_t}{N}),$
+where $n$ is the total number
+of people sampled.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics{MLE_SSE_SEIR.pdf}
     \caption{
         An $SEIR$ model fit to some observed prevalence data taken every two
-        weeks over a 14 week period, genetated as $I_t/N$ from the $SEIR$
+        weeks over a 14 week period, generated as $I_t/N$ from the $SEIR$
         simulation in Figure \ref{fig:doob_outputs}.
         All parameters were considered known except for $\beta$.
         The least squares estimate (LSE) $\beta^\LS = 0.3516$
-        for $\beta$
         was found by solving the model ODEs and numerically minimising the
         square differences between observed prevalences and the ODE prevalences
         (as proportions). Similarly the maximum likelihood estimate
-        $\hat{\beta} = 0.3493$ for $\beta$
+        $\hat{\beta} = 0.3493$
         was found by assuming the prevalence (times 1000) was binomially
-        distributed from 1000 samples with the probability of success being
+        distributed from 1000 samples with the probability of being infectious
         equal to $\frac{I_t}{N}.$
     }
     \label{fig:MLE_SSE}
 \end{figure}
 
-We demonstrate estimation of one unknown parameter $\beta$ from an $SEIR$ model,
-using prevalence data in Figure
-\ref{fig:MLE_SSE}. Both $\beta^\LS$ and $\hat{\beta}$ are very close, but do
+Figure \ref{fig:MLE_SSE} demonstrates estimation of one unknown parameter
+$\beta$ from an $SEIR$ model,
+using prevalence data. Both $\beta^\LS$ in grey and $\hat{\beta}$ in yellow
+are very close, but do
 not fit the data well suggesting fitting the ODEs to a stochastic model
 simulation may be a poor choice. This is because at the beginning of an
 epidemic the behaviour is very stochastic. Therefore trying to fit an ODE model
@@ -293,8 +317,9 @@ generated from a distribution depending on $\btheta.$ Although it is possible
 to quantify the uncertainty in parameter estimates through confidence intervals,
 frequentist estimates naturally lend themselves to point estimates.
 In contrast, inference under a Bayesian
-framework assumes that $\btheta$ is also a random variable according to some
-pre-known prior distribution. `Evidence' from the observed data then updates
+framework assumes that $\btheta$ is also a random variable that before any
+observations are made follows a
+prior distribution. `Evidence' from the observed data then updates
 belief about
 $\btheta,$ resulting in a posterior distribution of $\btheta,$ described by
 Bayes' theorem, namely
@@ -304,52 +329,66 @@ $$
 
 Bayesian parameter estimation is still dependent on the likelihood function
 $\mathcal{L}(\btheta) := \Pr(\by^\obs|\btheta).$
-With samples from the posterior distribution, we are
-able to run our models to capture uncertainty in predicting future scenarios.
+By using the posterior estimates of our parameter values, we can generate a
+posterior predictive distribution of our model. This can be helpful in 
+forecasting, as it can capture uncertainty more robustly (at least than point
+estimates).
 For instance, a government may be interested in the number of additional
 hospital beds that need to be available to cope with an outbreak of a disease.
 If a disease model can be used to approximate outbreaks of the disease,
 we can use previous instances of the disease to calibrate our model parameters.
 Samples from the posterior parameter distribution, allow
-the model to be run multiple times with the varying sets of parameters,
+the model to be run multiple times with varying sets of parameters,
 and provide a range of predicted outcomes for the disease. This allows for
 confidence in how much investment may be required in the health system.
 Similarly, samples from the posterior parameter distribution allow for scenario
 modelling such as introducing a new vaccine.
 
-\subsection*{Rejection Sampling}
+If $\Pr(\btheta | \by^\obs)$ is a known distribution with established
+sampling methods, we can sample directly from the distribution. If not we
+have to use other methods to sample from the distribution.
 
-If we have known ways to sample from the posterior parameter distribution,
-then we can use these. However if we have an equation for the probability
-distribution, but no way of sampling directly we can sample using rejection
-sampling. To sample $X$ through rejection sampling,
-we need an explicit way of calculating
-$g(x)$ (where $g$ is proportional to the density of $X$), a constant $M$ and
-a distribution $p$ such that $Mp(x) \geq g(x)$ with a sampling method
-available.
+\subsection*{Rejection Sampling}
 
 \begin{algorithm}[htbp]
     \caption{Rejection Sampler}
     \label{alg:rej_samp}
     \begin{algorithmic}
-        \State Sample $X^\ast \sim p$
+        \State Sample $\Theta^\ast \sim p$
         \State Sample $U \sim \mathrm{Unif}(0, 1)$
-        \If{$U \leq \frac{g(X^\ast)}{M p(X^\ast)}$}
-        \State \Return $X^\ast$ as a sample from the distribution of $X$
+        \If{$U \leq \frac{g(\Theta^\ast)}{M p(\Theta^\ast)}$}
+        \State \Return $\Theta^\ast$ as a sample from the distribution of
+        $\Theta$
         \Else
-        \State Repeat
+        \State Reject $\Theta^\ast$ as a sample from the distribution of
+        $\Theta,$ and repeat the algorithm
         \EndIf
     \end{algorithmic}
 \end{algorithm}
 
-Under this methodology, the distribution function of $X$ is
+Rejection sampling is not just a method for sampling from a posterior
+distribution, but rather a method for sampling from any distribution
+where the density can
+be calculated up to a proportionality constant.
+Algorithm \ref{alg:rej_samp}
+demonstrates how this can be done for $\Theta$ with density proportional to
+$g.$ Given a distribution $p$ and constant $M$ such that $Mp(x) \geq g(x),$ we
+sample a proposal $\Theta^\ast$ from $p.$ We then accept $\Theta^\ast$ as a
+sample from $g$ with probability $\frac{g(\Theta^\ast)}{M p(\Theta^\ast)},$ and
+rejected otherwise.
 
+Under this methodology, let $\Theta^\ast$ be the proposed sampled.
+The distribution function of the accepted samples $\Theta$ is
 \begin{align*}
-    \Pr(X = x)
-    \propto & \Pr(X^\ast = x , U \leq \frac{g(X^\ast)}{M p(X^\ast)})
-    \tag*{where the probabilities may be interpreted as densities}                   \\
-    =       & \Pr(U \leq \frac{g(X^\ast)}{M p(X^\ast)} | X^\ast = x) \Pr(X^\ast = x) \\
-    =       & \frac{g(x)}{M p(x)} p(x)
+    \Pr(\Theta = \theta)
+    \propto & \Pr\left(
+    \Theta^\ast = x , U \leq \frac{g(\Theta^\ast)}{M p(\Theta^\ast)}
+    \right)
+    \tag{where the probabilities may be interpreted as densities} \\
+    =       & \Pr\left(
+    U \leq \frac{g(X^\ast)}{M p(X^\ast)} | X^\ast = x\right) \Pr(X^\ast = x
+    )                                                             \\
+    =       & \frac{g(x)}{M p(x)} p(x)                            \\
     =       & \frac{g(x)}{M}
 \end{align*}
 
@@ -371,11 +410,15 @@ as required.
 
 \begin{example}
     Let $g(x) = (x - 1)^2$ be an unnormalised density function for
-    $x \in (0,2).$ $g(x) \leq 1,$ the density of a $\mathrm{Unif}(0,2)$ random
+    $x \in (0,2).$ It can be shown that $g(x) \leq 1,$ 
+    the density of a $\mathrm{Unif}(0,1)$ random
     variable. Therefore to generate samples from $g$ we sample uniformly from
-    $X^\ast \sim \mathrm{Unif}(0, 2),$ and then accept the sample if a new
+    $X^\ast \sim \mathrm{Unif}(0, 1),$ and accept the sample if a new
     $U \sim \mathrm{Unif}(0, 1)$ is less than $(X^\ast - 2)^2.$ This is
-    demonstrated in \ref{fig:accept_reject}
+    demonstrated in Figure \ref{fig:accept_reject}, with the black line being
+    the unnormalised density, the green dots being accepted samples, and red
+    dots being rejected samples. The values along the $X^\ast$ axis correspond
+    to samples from $g.$
 \end{example}
 
 \subsection*{Markov Chain Monte Carlo Methods}
@@ -397,13 +440,14 @@ or in our case $\Pr(\btheta|\by^\obs).$
     $k\in\mathbb{N}$,
     $$
         \Pr(X_{i+1}\in A|X_0, X_1, \dots, X_i)
-        = \Pr(X_{i+1}\in A|X_i)
+        = \Pr(X_{i+1}\in A|X_i).
     $$
 \end{definition}
 
 If $X_i\in\mathcal{X},$ then $\mathcal{X}$ is the state space of the Markov
-chain. For example the Markov chain constructed in Figure \ref{fig:MC}, has
-discrete state space $\mathcal{X} = \{1, 2\}.$
+chain. For example the Markov chain depicted in Figure \ref{fig:MC}, has
+discrete state space $\mathcal{X} = \{1, 2\},$ and transition probabilities
+depicted by the numbers on the arrows.
 
 \begin{figure}[htbp]
     \centering
@@ -435,10 +479,11 @@ discrete state space $\mathcal{X} = \{1, 2\}.$
 Markov chains are characterised by a transition kernel $K$ with
 $$K(x_i, x_{i + 1}) := \Pr(X_{i + 1} = x_{i + 1} | X_i = x_{i + 1}),$$
 where this probability is interpreted as a density for continuous random
-variables. $K(1, 1)$ would therefore be the probability of going from state 1
-to state 2.
+variables. $K(1, 1)$ would therefore be the probability of transitioning
+from state 1
+to state 2 in a single disrete time step.
 
-We will restrict our focus to Markov chains where
+We will restrict our focus to time homogeneous Markov chains where
 if the value of $X_i$ is known to be $x$, behaviour of chain from this point on
 will be identical to the behaviour of the chain from $X_j,$ if this is also
 observed to be $x$.
@@ -452,7 +497,7 @@ observed to be $x$.
     for all $i, i^\prime, n \in \mathbb{N},$ given $X_i = x = X_{i^\prime}.$
 \end{definition}
 
-The Markov chain in Figure \ref{fig:MC} is time homogeneous. It doesn't
+The Markov chain in Figure \ref{fig:MC} is time homogeneous. It does not
 matter how long it took to get into a state, the Markov chain will behave the
 same from that point forward.
 
@@ -475,7 +520,7 @@ same from that point forward.
 
 As stated earlier, to sample from a distribution $p(x),$ we construct a Markov
 chain with this stationary distribution. A sufficient condition to know that
-we have achieved this is if our chain satisfies the the detailed balance
+we have achieved this is if our chain satisfies the detailed balance
 condition.
 
 \begin{theorem}[Detailed balance condition]
@@ -486,9 +531,10 @@ condition.
 
 \begin{proof}
     More formally this requires the notions of recurrent, nonnull,
-    irreducible and aperiodic which we do not discuss here. For a full
+    irreducible and aperiodic Markov chains which we do not discuss here. 
+    For a full
     discussion and proof
-    see \cite[chapter 6]{robert_monte_2010}.
+    see \cite[Chapter 6]{robert_monte_2010}.
 \end{proof}
 
 \subsubsection*{Metropolis-Hastings}
@@ -499,10 +545,12 @@ We choose a proposal distribution $q(x^\prime| x)$ which given our last sample
 $x,$ generates a new random
 variable $X^\prime.$ For example $q$ might be the density of
 $X^\prime \sim N(x, 1),$ a normal random variable with mean
-around the previous sample. Then similar to rejection sampling, then $X^\prime$
+around the previous sample. Then similar to rejection sampling, $X^\prime$
 is accepted as the next state in the distribution with some probability
-$\alpha$, chosen in such a way that if
-$X_i \sim g,$ then $X_{i + 1}\sim g.$ Formally this is set out in
+$\alpha$, chosen in such a way that if the chain is distributed according to
+a stationary distribution
+$X_i \sim g,$ then the next step will also be distributed according to that
+stationary distribution $X_{i + 1}\sim g.$ Formally this is set out in
 Algorithm \ref{alg:MH}.
 
 \begin{algorithm}[htbp]
@@ -590,8 +638,8 @@ which case the algorithm is simply called a Metropolis sampler.
     \label{fig:coin_R}
 \end{figure}
 
-Interestingly, the proof does not depend choice of proposal distribution,
-This can be seen in Example \ref{ex:coin_toss} and Figure \ref{fig:coin_R}.
+As seen empirically in Example \ref{ex:coin_toss} and Figure \ref{fig:coin_R}, 
+the proof does not depend on choice of proposal distribution.
 
 \begin{example}[Coin toss]\label{ex:coin_toss}
     Let the probability of tossing a heads on a weighted coin be
@@ -641,13 +689,13 @@ a derived chain $\{x_{B + iT}\}_{i \in \mathbb{N}}$ is constructed
 from the output. The
 first $B$ samples are discarded as `burn in' samples to reduce the impact
 of the initialisation point. The chain is `thinned' by taking every $T$th sample,
-Since $X_i$ and $X_{i + 1}$ may also be highly correlated (in samples where
+since $X_i$ and $X_{i + 1}$ may also be highly correlated (in samples where
 the proposed $X^\prime$ is rejected, $X_i = X_{i + 1}$).
 This derived chain is considered a
 random sample from the target distribution $g.$
 In practice, diagnostics such as trace plots and autocorrelation plots are used
-to determine $B$ and $T$ are used (see
-\cite[chapter 11]{gelman_bayesian_2014}).
+to determine $B$ and $T$ (see
+\cite[Chapter 11]{gelman_bayesian_2014}).
 
 \begin{figure}[htbp]
     \centering
@@ -674,9 +722,13 @@ Metropolis-Hastings can be used to produce samples from
 $\Pr(\btheta | y^\obs) \propto \mathcal{L}(\btheta)\Pr(\btheta),$ where
 $\mathcal{L}(\btheta)\Pr(\btheta)$ can be calculated to a proportionality
 constant but not directly
-sampled from. For example given an $SIS$ model with unknown
+sampled from. For example given an $SIS$ model described in Equations
+\ref{eq:SIS_1} and \ref{eq:SIS_2} with unknown effective contact rate
 $\beta \sim \mathrm{Gamma}(2, 6)$ and daily case counts $y^\obs,$ we can
-estimate sample from $\btheta | y^\obs$ as in Figure \ref{fig:SIS_MH_R}.
+draw samples from $\btheta | y^\obs$ as in Figure \ref{fig:SIS_MH_R}. This
+figure demonstrates that the choice of likelihood results in different posterior
+sample distributions. The samples from Poisson likelihood have greater variance
+than the samples from the binomial likelihood.
 
 \subsubsection*{Gibbs Sampling}
 
@@ -730,7 +782,7 @@ chain a sequence of independent samples from our target distribution.
 \end{theorem}
 
 \begin{proof}
-    We prove that the Gibbs Sampler satifies the detail balance
+    We prove that the Gibbs Sampler satisfies the detailed balance
     equation for two unknown parameters.
     The transition kernel of the Markov chain is
     $$
@@ -769,8 +821,8 @@ chain a sequence of independent samples from our target distribution.
         \Pr(\theta_1^{(i-1)}| \theta_2^{(i-1)}, \by)                     \\
         = & \, \Pr(\btheta^{(t)}| \by) q(\btheta^{(i -1)}|\btheta^{(i)})
     \end{align*}
-    as required, so the posterior pdf $\Pr(\btheta|\by)$ is the unique
-    stationary pdf associated with the generated Markov chain.
+    as required, so the posterior distribution $\Pr(\btheta|\by)$ is the unique
+    stationary distribution associated with the generated Markov chain.
 \end{proof}
 
 \begin{figure}[htbp]
@@ -789,14 +841,14 @@ chain a sequence of independent samples from our target distribution.
 \end{figure}
 
 \begin{example}
-    Consider the $SIS$ model described by equations \ref{eq:SIS_1}
+    Consider the $SIS$ model described by Equations \ref{eq:SIS_1}
     and \ref{eq:SIS_2}. Early in an epidemic, the average number of new
     cases generated from a single infectious individual is known as $R_0.$
     This can be shown to be $\frac{\beta}{\gamma}$ for the $SIS$ model.
     Let $\by^\obs = \{1, 1, 3, 1\}$ be the number of people infected by four
     different individuals at the start of the epidemic. We assume that the
     number of infections are generated from a Poisson distribution with mean
-    $\frac{\beta}{\gamma}.$ Therefore the likelihood
+    $\frac{\beta}{\gamma}.$ Therefore the likelihood is
     $$
         \mathcal{L}(\beta, \gamma):= \Pr(\by^\obs | \beta, \gamma)
         = \frac{
@@ -805,7 +857,7 @@ chain a sequence of independent samples from our target distribution.
         }{
             1!\times 1! \times 3! \times 1!
         }
-        \propto\left(\frac{\beta}{\gamma}\right)^{6}\exp( -\frac{4\beta}{\gamma})
+        \propto\left(\frac{\beta}{\gamma}\right)^{6}\exp( -\frac{4\beta}{\gamma}).
     $$
     Let us assume that from similar previous epidemics we assume that
     $\beta | \gamma \sim \mathrm{Gamma}(3, 4 + 8\gamma),$ and
@@ -838,7 +890,7 @@ chain a sequence of independent samples from our target distribution.
         \sim \mathrm{InvGamma}(12, 12\beta).$
     Now we have explicit forms for the conditional probabilities,
     we generate samples using the Gibbs sampler in Algorithm \ref{alg:gibbs}.
-    Samples from the distribution can be seen in Figure \ref{fig:gibbs_R}
+    Samples from the distribution can be seen in Figure \ref{fig:gibbs_R}.
 \end{example}
 
 The Gibbs sampler and Metropolis-Hastings sampler are often combined, by
@@ -876,12 +928,13 @@ $\by(\btheta^\ast).$ For each iteration,
 $\by(\btheta^\ast)$ will exactly equal $\by^\obs$
 with probability $\Pr(\by^\obs|\btheta^\ast)\Pr(\btheta^\ast)
     \propto \Pr(\btheta^\ast|\by^\obs),$
-and hence if $\by(\btheta) = \by^\obs$ we can accept $\btheta$ as a sample
+and hence if $\by(\btheta^\ast) = \by^\obs$ we can accept $\btheta^\ast$ 
+as a sample
 from our posterior parameter distribution. This is outlined in
 Algorithm \ref{alg:naive_samp}. When
 $\by^\obs|\btheta^\ast$ does not have a countable number of non-zero
 probability outputs,
-$\btheta^\ast = \by^\obs$ can be exactly zero, and even in the
+$\by(\btheta^\ast) = \by^\obs$ can be exactly zero, and even in the
 countable case, for
 higher dimensional $\by(\btheta),$ the probability of returning exactly
 $\by^\obs$ vanishes. Therefore we draw inspiration from the continuous
@@ -908,8 +961,8 @@ $\by(\btheta)$ if it falls within a ball of size $\epsilon$ around $\by^\obs.$
 Equivalently we accept samples if $D(\by(\btheta), \by^\obs) < \epsilon.$
 
 Since the distribution of $\by(\btheta)$ is unknown, and since the metric
-required for equation \ref{eq:dens_ball} to hold depends on $\btheta,$ we do
-not explicitly derive $D(\by(\btheta), \by^\obs),$ are are forced to
+required for Equation \ref{eq:dens_ball} to hold depends on $\btheta,$ we do
+not explicitly derive $D(\by(\btheta), \by^\obs),$ we are forced to
 approximate it with $\tilde{D}(\by(\btheta), \by^\obs)$. The most common choice
 of $\tilde{D}$ is the $L^p$ norm of $\by(\btheta) - \by^\obs$
 $$
@@ -919,15 +972,15 @@ $$
     \left|y_i(\btheta)
     - y_i^\obs\right|^p\right)^{1/p},
 $$
-for $p\geq 1.$ For $p=1$ or $2$ this is the Manhattan or Euclidean distance 
+for $p\geq 1.$ For $p=1$ or $2$ this is the Manhattan or Euclidean distance
 between the two vectors. When the observations in $\by^\obs$ are on different
-scales, or $\by^\obs$ are highly correlated between model runs, care needs to 
-be taken to rescale $\by^\obs$ and $\by(\btheta)$ by a covariance matrix to 
+scales, or $\by^\obs$ are highly correlated between model runs, care needs to
+be taken to rescale $\by^\obs$ and $\by(\btheta)$ by a covariance matrix to
 remove correlation, or by rescaling using the relative differences instead of
 $||\by(\btheta) - \by^\obs||_p.$
 
 \begin{algorithm}[htbp]
-    \caption{Approximate Bayesian Compuation Sampler}
+    \caption{Approximate Bayesian Computation Sampler}
     \label{alg:abc}
     \begin{algorithmic}
         \State Sample $\btheta^\ast \sim \Pr(\btheta)$
@@ -938,9 +991,10 @@ $||\by(\btheta) - \by^\obs||_p.$
     \end{algorithmic}
 \end{algorithm}
 
-Since $\by^\obs$ is fixed, we consider $\tilde{D}(\by(\btheta), \by^\obs)$ as a
+The full procedure is outlined in Algorithm \ref{alg:abc}, but since 
+$\by^\obs$ is fixed, we consider $\tilde{D}(\by(\btheta), \by^\obs)$ as a
 function of $\btheta,$ and
-we can equivalently write $\mathcal{D}(\btheta) := \tilde{D}(\by(\btheta), \by^\obs).$
+we can equivalently write 
+$\mathcal{D}(\btheta) := \tilde{D}(\by(\btheta), \by^\obs).$
 We call $\mathcal{D}(\btheta)$ the discrepancy function where in a
-non-deterministic model, $\mathcal{D}(\btheta)$ is be random.
-. The full procedure is outlined in Algorithm \ref{alg:abc}.
+non-deterministic model, $\mathcal{D}(\btheta)$ is random.

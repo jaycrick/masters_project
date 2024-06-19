@@ -1,8 +1,10 @@
 \chapter{Introduction}
 
 Malaria is an infectious disease that poses a significant global health 
-challenge. In 2022, the WHO estimated that malaria had caused over 600,000 
-deaths that year, most of which were in children under five. 
+challenge. In 2022, the World Health Organisation estimated that malaria 
+caused over 600,000 
+deaths, most of which were in children under five 
+\parencite{world_health_organization_world_2022}. 
 The majority of malaria-related deaths are attributable to the 
 \textit{Plasmodium falciparum} species of the parasite. 
 However, the literature is increasingly recognising that 
@@ -29,14 +31,23 @@ models become increasingly complicated, analytic forms for the likelihood may
 not exist, or calculating the likelihood may be very computationally
 burdensome. Some researchers calibrate compartmental models by relying on
 their deterministic counterparts, which is questionable, as the deterministic
-model sometimes behaves differently from the stochastic model. Modern
-likelihood-free techniques, such as approximate Bayesian computation, address
-this issue but require large model runs to calibrate the parameters.
+model sometimes behaves differently from the stochastic model.
+
+Modern
+likelihood-free techniques, such as approximate Bayesian computation, 
+have been designed to
+facilitate a principled method of parameter calibration.
+Various forms of approximate Bayesian computation have been widely adopted, 
+however forms require 
+require large numbers of model runs, which may be unfeasible or undesirable.
 
 Drawing on concepts from approximate Bayesian computation, we aimed to improve
 parameter calibration in malaria models, addressing a recognised need for
 improvement. We do this by training a Gaussian process to predict how close a
-model run will be to observed data and extracting a synthetic likelihood.
+model run will be to observed data. The Gaussian process approximation
+can then be used to extract a synthetic likelihood which approximates the
+true unknown likelihood. This allows for the use of frequentist and Bayesian
+parameter inference.
 
 The thesis follows the following outline: The literature review in Part I
 discusses fundamental concepts of epidemiological modelling, covering

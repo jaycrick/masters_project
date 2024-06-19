@@ -1,7 +1,7 @@
 \chapter{Gaussian Processes and Synthetic Likelihoods}
 
 If the distribution of $\D(\btheta)$ was known for all $\btheta,$ then the need
-to sample from the model in Algorithm
+to sample from the model within Algorithm
 \ref{alg:abc} would be redundant, since $\D(\btheta)$ could be sampled from
 directly. Moreover, the probability of drawing and accepting a sample
 using this algorithm becomes
@@ -57,13 +57,15 @@ Formally, we treat $\E(\D(\beta))$ as a realisation of a Gaussian process.
     $$k(x_{i}, x_{i^\prime}) := \cov\left(f(x_i), f(x_{i^\prime})\right).$$
 \end{definition}
 
-Although Gaussian processes are simultaneously realised over the whole space
+Gaussian processes are simultaneously realised over the whole space
 $\mathcal{X}$ (for example $\R^d$) and are hence collections of
 (uncountably infinite)
-random variables, the choice of covariance function
-$\corr(x, x^\prime) \to 1$ as $||x - x^\prime||\to 0$
-induces continuity in $x$ almost
-surely. The most famous example of a Gaussian process is Brownian motion.
+random variables. However the covariance function $k$ is always constructed 
+such that
+$\corr(x, x^\prime) \to 1$ as $||x - x^\prime||\to 0.$
+This induces a form of continuity in $x$ called mean square continuity which
+is defined in Definition \ref{def:MSC}
+The most famous example of a Gaussian process is Brownian motion.
 
 \begin{definition}[Brownian Motion]
     $B(t):\R^+ \to \R$ is a \emph{Brownian motion} on $\R$ if\begin{enumerate}
@@ -87,7 +89,7 @@ $\mathcal{F}$ depend on the covariance kernel $k.$ Different $k$ result
 in very different functions. One such property to consider is the smoothness of
 the functions, which we describe by mean square differentiability.
 
-\begin{definition}[Mean Square Continuous]
+\begin{definition}[Mean Square Continuous]\label{def:MSC}
     A function $f:\R^d\to\R$ is \emph{mean square continuous} at $\bx$
     in the $i$th direction at $\bx$ if
     $\E(|f(\bx + h\mathbf{e}_i) - f(\bx)|^2)\to 0$ as $|h|\to 0,$
@@ -135,11 +137,11 @@ Since we are motivated to consider $\E(\D(\btheta))$ as a realisation of a
 Gaussian process, we consider some common choices of kernel function and their
 effect on the Gaussian process realisations. The two most common families of
 kernel functions are the squared exponential
-and Mat\'ern families.
+and Mat\'ern families \parencite{rasmussen_gaussian_2008}.
 The Mat\'ern kernel explicitly allows for adjustment of function
 smoothness through a hyperparameter $\nu.$
 
-\begin{definition}[Mat\`ern Kernel]
+\begin{definition}[Mat\'ern Kernel]
     $$k_\nu(x, x^\prime)
         = \sigma^2_k \frac{2^{1 - \nu}}{\Gamma(\nu)}
         \left(\frac{\sqrt{2\nu}||x - x^\prime||}{\ell}\right)^\nu
@@ -178,7 +180,8 @@ smoothness through a hyperparameter $\nu.$
         \label{fig:squared_exp}
     \end{subfigure}%
     \caption{
-        Ten sample realisations from 4 different kernels, with one bolded.
+        Ten sample realisations from 4 different kernels, with one realisation
+        bolded.
         Samples
         for each kernel were generated from the same seed and the
         hyperparameters $\ell,$ and $\sigma_k$ were set to 1.
@@ -332,10 +335,10 @@ positive semi-definite.
 \section{Gaussian Process Regression}
 
 Given a realisation of a Gaussian process $f$, observed at the set of indices
-$\bx_*,$ we can make inferences on unobserved indices $\bx$ by considering the
-Gaussian process conditioned on $f(\bx_*).$
+$\bx^\ast,$ we can make inferences on unobserved indices $\bx$ by considering the
+Gaussian process conditioned on $f(\bx^\ast).$
 Since $f$ is a realisation of a Gaussian
-process, the distribution of $f(\bx) | f(\bx_*)$ reduces to linear algebra
+process, the distribution of $f(\bx) | f(\bx^\ast)$ reduces to linear algebra
 and has a multivariate normal distribution.
 
 \begin{theorem}[Conditional Multivariate Normal Distribution is Multivariate Normal]
@@ -344,23 +347,23 @@ and has a multivariate normal distribution.
     $$
         \begin{bmatrix}
             f(\bx) \\
-            f(\bx_*)
+            f(\bx^\ast)
         \end{bmatrix} \sim \MVN\left(
         \begin{bmatrix}
                 m(\bx) \\
-                m(\bx_*)
+                m(\bx^\ast)
             \end{bmatrix}, \begin{bmatrix}
-                K       & K_{*}  \\
-                K_{*}^T & K_{**}
+                K       & K^{*}  \\
+                (K^{\ast})^T & K^{**}
             \end{bmatrix}
         \right),
     $$
     then
     $$
-        f(\bx) | f(\bx_*)
+        f(\bx) | f(\bx^\ast)
         \sim \MVN\left(
-        m(\bx) + K_{*}K_{**}^{-1}(f(\bx_*) - m(\bx_*)), \,\,
-        K - K_{*}K_{**}^{-1}K_{*}^T
+        m(\bx) + K^{*}(K^{**})^{-1}(f(\bx^\ast) - m(\bx^\ast)), \,\,
+        K - K^{\ast}(K^{**})^{-1}(K^{\ast})^T
         \right).
     $$
 \end{theorem}
@@ -368,81 +371,81 @@ and has a multivariate normal distribution.
     % https://statproofbook.github.io/P/mvn-cond.html
     Since marginal distribution of the multivariate normal distribution, is also
     multivariate normal,
-    $f(\bx_*) \sim \MVN(m(\bx_*), K).$
+    $f(\bx^\ast) \sim \MVN(m(\bx^\ast), K).$
     Let the inverse of $\begin{bmatrix}
-            K       & K_{*}  \\
-            K_{*}^T & K_{**}
+            K       & K^{*}  \\
+            (K^{\ast})^T & K^{**}
         \end{bmatrix}$ be defined as
     $$
         \begin{bmatrix}
-            \tilde{K}       & \tilde{K}_{*}  \\
-            \tilde{K}_{*}^T & \tilde{K}_{**}
+            \tilde{K}       & \tilde{K}^{\ast}  \\
+            (\tilde{K}^{\ast})^T & \tilde{K}^{**}
         \end{bmatrix} =
         \begin{bmatrix}
-            (K - K_{*} K_{**}^{-1} K_{*}^T)^{-1}
+            (K - K^{\ast} (K^{**})^{-1} (K^{\ast})^T)^{-1}
              & -(K
-            - K_{*} K_{**}^{-1} K_{*}^T)^{-1} K_{*} K_{**}^{-1} \\
-            -K_{**}^{-1} K_{*}^T (K
-            - K_{*} K_{**}^{-1} K_{*}^T)^{-1}
-             & K_{**}^{-1} + K_{**}^{-1} K_{*}^T (K
-            - K_{*} K_{**}^{-1} K_{*}^T)^{-1} K_{*} K_{**}^{-1}
+            - K^{\ast} (K^{**})^{-1} (K^{\ast})^T)^{-1} K^{\ast} (K^{**})^{-1} \\
+            -(K^{**})^{-1} (K^{\ast})^T (K
+            - K^{\ast} (K^{**})^{-1} (K^{\ast})^T)^{-1}
+             & (K^{**})^{-1} + (K^{**})^{-1} (K^{\ast})^T (K
+            - K^{\ast} (K^{**})^{-1} (K^{\ast})^T)^{-1} K^{\ast} (K^{**})^{-1}
         \end{bmatrix}
     $$ by the inverse of a block matrix. Therefore
     \begin{align*}
-        p(f(\bx) | f(\bx_*))
-        =       & \frac{p(f(\bx), f(\bx_*))}{p(f(\bx_*))}              \\
+        p(f(\bx) | f(\bx^\ast))
+        =       & \frac{p(f(\bx), f(\bx^\ast))}{p(f(\bx^\ast))}              \\
         \propto & \frac{\exp \left[ -\frac{1}{2} \left(\begin{bmatrix}
                                                                f(\bx) \\
-                                                               f(\bx_*)
+                                                               f(\bx^\ast)
                                                            \end{bmatrix} -
         \begin{bmatrix}
                 m(\bx) \\
-                m(\bx_*)
+                m(\bx^\ast)
             \end{bmatrix}
         \right)^\mathrm{T} \begin{bmatrix}
-                               K       & K_{*} \\
-                               K_{*}^T & K
+                               K       & K^{\ast} \\
+                               (K^{\ast})^T & K
                            \end{bmatrix}^{-1} \left(
         \begin{bmatrix}
                 f(\bx) \\
-                f(\bx_*)
+                f(\bx^\ast)
             \end{bmatrix}-
         \begin{bmatrix}
                 m(\bx) \\
-                m(\bx_*)
+                m(\bx^\ast)
             \end{bmatrix}\right) \right]}
         {
         \exp \left[
         -\frac{1}{2}
-        (f(\bx_*)-m(\bx_*))^\mathrm{T}
-        K_{**}^{-1}
-        (f(\bx_*)-m(\bx_*))
+        (f(\bx^\ast)-m(\bx^\ast))^\mathrm{T}
+        (K^{**})^{-1}
+        (f(\bx^\ast)-m(\bx^\ast))
         \right]
         }                                                              \\
         =       & \exp \left[ -\frac{1}{2} \left(\begin{bmatrix}
                                                          f(\bx) \\
-                                                         f(\bx_*)
+                                                         f(\bx^\ast)
                                                      \end{bmatrix} -
         \begin{bmatrix}
                 m(\bx) \\
-                m(\bx_*)
+                m(\bx^\ast)
             \end{bmatrix}
         \right)^\mathrm{T} \begin{bmatrix}
-                               K       & K_{*}  \\
-                               K_{*}^T & K_{**}
+                               K       & K^{\ast}  \\
+                               (K^{\ast})^T & K^{**}
                            \end{bmatrix}^{-1} \left(
         \begin{bmatrix}
                 f(\bx) \\
-                f(\bx_*)
+                f(\bx^\ast)
             \end{bmatrix} -
         \begin{bmatrix}
                 m(\bx) \\
-                m(\bx_*)
+                m(\bx^\ast)
             \end{bmatrix} \right)\right.                                   \\
                 & \hphantom{\exp \left[\right.} \left.
-        + \frac{1}{2}(f(\bx_*)-m(\bx_*))^\mathrm{T}
-        K_{**}^{-1}
-        (f(\bx_*)-m(\bx_*))\right]                                     \\
+        + \frac{1}{2}(f(\bx^\ast)-m(\bx^\ast))^\mathrm{T}
+        (K^{**})^{-1}
+        (f(\bx^\ast)-m(\bx^\ast))\right]                                     \\
         =       & \exp \left[
         -\frac{1}{2} \left(
         (f(\bx)-m(\bx))^\mathrm{T}
@@ -451,21 +454,21 @@ and has a multivariate normal distribution.
                 & \hphantom{\exp \left[
         -\frac{1}{2} \left( \right.\right.}
         + 2 (f(\bx)-m(\bx))^\mathrm{T}
-        \tilde{K}_{*}
-        (f(\bx_*)-m(\bx_*))                                            \\
+        \tilde{K}^{\ast}
+        (f(\bx^\ast)-m(\bx^\ast))                                            \\
                 & \hphantom{\exp \left[
         -\frac{1}{2} \left( \right.\right.}
         \left.
-        + (f(\bx_*)-m(\bx_*))^\mathrm{T}
-        \tilde{K}_{**}
-        (f(\bx_*)-m(\bx_*))
+        + (f(\bx^\ast)-m(\bx^\ast))^\mathrm{T}
+        \tilde{K}^{**}
+        (f(\bx^\ast)-m(\bx^\ast))
         \right)
         \\
                 & \hphantom{\exp \left[
         -\frac{1}{2} \left( \right.\right.}\left.
-        + \frac{1}{2} (f(\bx_*)-m(\bx_*))^\mathrm{T}
-        K_{**}^{-1}
-        (f(\bx_*)-m(\bx_*))
+        + \frac{1}{2} (f(\bx^\ast)-m(\bx^\ast))^\mathrm{T}
+        (K^{**})^{-1}
+        (f(\bx^\ast)-m(\bx^\ast))
         \right]                                                        \\
         \propto & \exp \left[
         -\frac{1}{2}
@@ -476,8 +479,8 @@ and has a multivariate normal distribution.
         -\frac{1}{2} \left( \right.\right.}
         -\left.
         (f(\bx)-m(\bx))^\mathrm{T}
-        \tilde{K}_{*}
-        (f(\bx_*)-m(\bx_*))
+        \tilde{K}^{\ast}
+        (f(\bx^\ast)-m(\bx^\ast))
         \right] \tag{by removing the terms independent of $f(\bx)$}.
     \end{align*}
     Since
@@ -489,28 +492,28 @@ and has a multivariate normal distribution.
         \right)
         \implies \mathbf{z} \sim \MVN\left(\Sigma \mathbf{c}, \Sigma\right),
     $$
-    $f(\bx) - m(\bx) | f(\bx_*)$ is
+    $f(\bx) - m(\bx) | f(\bx^\ast)$ is
     multivariate normal with mean
     \begin{align*}
-        - \tilde{K}^{-1}\tilde{K}_{*}(f(\bx_*) - m(\bx_*))
-        = & (K - K_{*} K_{**}^{-1} K_{*}^T)                              \\
-          & \times(K - K_{*} K_{**}^{-1} K_{*}^T)^{-1} K_{*} K_{**}^{-1}
-        (f(\bx_*) - m(\bx_*))                                            \\
-        = & K_{*} K_{**}^{-1}(f(\bx_*) - m(\bx_*))
+        - \tilde{K}^{-1}\tilde{K}^{\ast}(f(\bx^\ast) - m(\bx^\ast))
+        = & (K - K^{\ast} (K^{**})^{-1} (K^{\ast})^T)                              \\
+          & \times(K - K^{\ast} (K^{**})^{-1} (K^{\ast})^T)^{-1} K^{\ast} (K^{**})^{-1}
+        (f(\bx^\ast) - m(\bx^\ast))                                            \\
+        = & K^{\ast} (K^{**})^{-1}(f(\bx^\ast) - m(\bx^\ast))
     \end{align*}
     and covariance matrix
     $$
-        \tilde{K}^{-1} = K - K_{*} K_{**}^{-1} K_{*}^T
+        \tilde{K}^{-1} = K - K^{\ast} (K^{**})^{-1} (K^{\ast})^T
     $$
-    by the alternative parametrisation of the multivariate normal distribution
+    by the alternative parameterisation of the multivariate normal distribution
     as a member of the exponential family of distributions
     (see \cite[Table of Distributions]{noauthor_exponential_2024}).
     Finally, by the linearity of the multivariate normal mean,
     $$
-        f(\bx) | f(\bx_*)
+        f(\bx) | f(\bx^\ast)
         \sim \MVN\left(
-        m(\bx) + K_{*}K_{**}^{-1}(f(\bx_*) - m(\bx_*)), \,\,
-        K - K_{*}K_{**}^{-1}K_{*}^T
+        m(\bx) + K^{\ast}(K^{**})^{-1}(f(\bx^\ast) - m(\bx^\ast)), \,\,
+        K - K^{\ast}(K^{**})^{-1}(K^{\ast})^T
         \right).
     $$
 \end{proof}
@@ -546,14 +549,14 @@ and has a multivariate normal distribution.
     \label{fig:no_var_cub_reg}
 \end{figure}
 
-We can use this to fit a Gaussian process to set of indices $\bx_*$ with
-observations $f(\bx_*).$
+We can use this to fit a Gaussian process to set of indices $\bx^\ast$ with
+observations $f(\bx^\ast).$
 This can be used in an iterative process where $f(x)$
 may be expensive to compute and by treating $f$ as a Gaussian process
 realisation, the function can be probabilistically interpolated for unobserved
-$f(x).$ The
-more points that the Gaussian process is conditioned on, the more certainty
-there is in the sample paths, seen in Figure \ref{fig:no_var_cub_reg}.
+$f(x).$ Figure \ref{fig:no_var_cub_reg} empirically demonstrates that as
+the number of points that the Gaussian process is conditioned on increases, 
+the variance in the sample paths decreases.
 
 \subsection*{Observation Variance}
 
@@ -563,21 +566,21 @@ observe $f(\bx)$ directly, but observations may be noisy.
 The simplest assumption is that the
 observations are of the form
 $$
-    f_o(\bx_*) = f(\bx_*) + \bm{\varepsilon}
+    f_o(\bx^\ast) = f(\bx^\ast) + \bm{\varepsilon}
 $$
 where $\bm{\varepsilon} \sim \MVN(\mathbf{0}, \sigma^2_o I).$
 Under these assumptions,
-$\mathrm{Cov}(f_o(\bx_*), f_o(\bx_*)) = K_{**} + \sigma^2_o I,$
-where $K_{**} = \mathrm{Cov}(f(\bx_*), f(\bx_*))$
-matrix of $f(\bx_*)$ without noise. Therefore the conditional
+$\mathrm{Cov}(f_o(\bx^\ast), f_o(\bx^\ast)) = K^{**} + \sigma^2_o I,$
+where $K^{**} = \mathrm{Cov}(f(\bx^\ast), f(\bx^\ast))$
+matrix of $f(\bx^\ast)$ without noise. Therefore the conditional
 distribution of our unobserved function outputs given noisy observations
 $$
-    f(\bx) | f_o(\bx_*)
+    f(\bx) | f_o(\bx^\ast)
     \sim \MVN\left(
-    m(\bx) + K_{*}
-    (K_{**} + \sigma^2_o I)^{-1}
-    (f(\bx_*) - m(\bx_*)), \,\,
-    K - K_{*}(K_{**} + \sigma^2_o I)^{-1}K_{*}^T
+    m(\bx) + K^{\ast}
+    (K^{**} + \sigma^2_o I)^{-1}
+    (f(\bx^\ast) - m(\bx^\ast)), \,\,
+    K - K^{\ast}(K^{**} + \sigma^2_o I)^{-1}(K^{\ast})^T
     \right).
 $$
 
@@ -615,12 +618,17 @@ $$
     \label{fig:var_cub_reg}
 \end{figure}
 
-The observations $f_o(\bx_*)$ contain less information than when $f(\bx_*)$
-is directly observed, and hence interpolating to $\bx$ or even $\bx_*$
+The observations $f_o(\bx^\ast)$ contain less information than when $f(\bx^\ast)$
+is directly observed, and hence interpolating to $\bx$ or even $\bx^\ast$
 naturally has a
 greater degree of uncertainty as seen in Figure \ref{fig:var_cub_reg}.
 
 \section{Model Selection}
+
+After deciding to use a Gaussian process to approximate a function, there is
+still a variety of choices that need to be made, particularly
+regarding the covariance kernel. The first
+choice needs to be the class of kernel used.
 
 \subsection*{Kernel}
 
@@ -638,55 +646,59 @@ exponential kernel is the most appropriate kernel.
 
 The kernel hyperparameters $\ell$ and $\sigma^2_k$ are generally not fixed
 \emph{a prior}. Similarly, the observation variance $\sigma^2_o$
-hyperparameter may not be known.
+may not be known.
 There are two main (frequentist) ways to fit these hyperparameters:
 maximum likelihood estimation, and leave-one-out cross validation.
 
 Defining the likelihood
 $
     \mathcal{L}(\ell, \sigma^2_k, \sigma^2_o)
-    := p(f(\bx_*) | \ell, \sigma^2_k, \sigma^2_o)
+    := p(f(\bx^\ast) | \ell, \sigma^2_k, \sigma^2_o)
 $ in the usual way,
 the maximum likelihood estimates are
-$$
-    \{\hat{\ell}, \hat{\sigma}^2_k, \hat{\sigma}^2_o\} :=
-    \argmax_{\{\ell, \sigma^2_k, \sigma^2_o\}}
-    \mathcal{L}(\ell, \sigma^2_k, \sigma^2_o)
-$$
+\begin{align}
+        \{\hat{\ell}, \hat{\sigma}^2_k, \hat{\sigma}^2_o\} :=
+        \argmax_{\{\ell, \sigma^2_k, \sigma^2_o\}}
+        \mathcal{L}(\ell, \sigma^2_k, \sigma^2_o)
+        \label{eq:MLE_GP}
+\end{align}
 which is equivalent to minimising
 $$
     -\ln(\mathcal{L}) =\frac{1}{2} \left[
-    \ln (|K_{**}(\ell, \sigma^2_k) + \sigma^2_o|\,)
-    + (f(\bx_*) - m(\bx_*))^T
-    (K_{**}(\ell, \sigma^2_k) + \sigma^2_o)^{-1}
-    (f(\bx_*) - m(\bx_*)) + c
+    \ln (|K^{**}(\ell, \sigma^2_k) + \sigma^2_o|\,)
+    + (f(\bx^\ast) - m(\bx^\ast))^T
+    (K^{**}(\ell, \sigma^2_k) + \sigma^2_o)^{-1}
+    (f(\bx^\ast) - m(\bx^\ast)) + c
     \right].
 $$
-The covariance matrix generated by the choice of kernel $K_{**}$ is
-explicitly written with its dependence on $\ell$ and $\sigma^2_k.$ $c$ is a
+The covariance matrix generated by the choice of kernel $K^{**}$ is
+explicitly written with its dependence on $\ell$ and $\sigma^2_k.$ Here $c$ is a
 constant.
 
 Leave-one-out cross validation aims to maximise the predictive log
-probability.
-$$
-    \{\tilde{\ell}, \tilde{\sigma}^2_k, \tilde{\sigma}^2_o\}
-    := \argmax_{\ell, \sigma^2_k, \sigma^2_o} \sum_{i}
-    \ln p(f_i(\bx_*) | f_{-i}(\bx_*), \ell, \sigma^2_k, \sigma^2_o),
-$$ where $f_i(\bx_*) | f_{-i}(\bx_*)$ is the distribution of the
-$i$th element of $f(\bx_*)$ conditioned on the rest of the
-observed data excluding that element (represented by $f_{-i}(\bx_*)$).
-$f_i(\bx_*) | f_{-i}(\bx_*)$ can be found by
+probability:
+\begin{align}
+        \{\tilde{\ell}, \tilde{\sigma}^2_k, \tilde{\sigma}^2_o\}
+        := \argmax_{\ell, \sigma^2_k, \sigma^2_o} \sum_{i}
+        \ln p(f_i(\bx^\ast) | f_{-i}(\bx^\ast), \ell, \sigma^2_k, \sigma^2_o),
+        \label{eq:pred_log_prob}
+\end{align}
+where $f_i(\bx^\ast) | f_{-i}(\bx^\ast)$ is the distribution of the
+$i$th element of $f(\bx^\ast)$ conditioned on the rest of the
+observed data excluding that element (represented by $f_{-i}(\bx^\ast)$).
+$f_i(\bx^\ast) | f_{-i}(\bx^\ast)$ can be found by
 Theorem \ref{thm:cond_mvn}. Computationally efficient methods for calculating
-the predictive log probability that avoid having to invert the covariance
+the predictive log probability (Equation \ref{eq:pred_log_prob}) 
+that avoid having to invert the covariance
 matrix for every summand element exist. In particular it can be shown that
-$f_i(\bx_*) | f_{-i}(\bx_*)$ has mean
+$f_i(\bx^\ast) | f_{-i}(\bx^\ast)$ has mean
 $$
-    f_i(\bx_*) - m_i(\bx_*)
-    - [(K_{**} + \sigma^2_o I)^{-1}(f(\bx_*) - m(\bx_*))]_i
-    /[(K_{**} + \sigma^2_o I)^{-1}]_{ii}
+    f_i(\bx^\ast) - m_i(\bx^\ast)
+    - [(K^{**} + \sigma^2_o I)^{-1}(f(\bx^\ast) - m(\bx^\ast))]_i
+    /[(K^{**} + \sigma^2_o I)^{-1}]_{ii}
 $$
-and variance $1/[(K_{**} + \sigma^2_o I)^{-1}]_{ii},$ where both the mean and
-covariance are (surprisingly) independent of $f_i(\bx_*)$
+and variance $1/[(K^{**} + \sigma^2_o I)^{-1}]_{ii},$ where both the mean and
+covariance are (surprisingly) independent of $f_i(\bx^\ast)$
 \parencite[116]{rasmussen_gaussian_2008}.
 
 Recent work has shown that at least under specific conditions, the
@@ -698,19 +710,20 @@ see \cite{gutmann_bayesian_2016}).
 Finally there is scope for a Bayesian approach to model selection. By setting
 priors on the hyperparameters (sometimes called hyper-priors)
 and using the likelihood as described
-in the maximum likelihood estimation approach, a posterior distribution can be
-easily contrived. Samples could then be taken from the posterior density
-of the hyperparameters. Alternatively a point estimate could be taken by
-choosing the maximum a posteriori point. This
-approach has some obvious benefits, particularly when taking a posterior
-sample, which can capture some of the uncertainty in the model more so than
-a point estimate.
+in the maximum likelihood estimation approach (Equation \ref{eq:MLE_GP}), 
+a posterior distribution can be
+contrived. Samples could then be taken from the posterior density
+of the hyperparameters. Alternatively a point estimate could be drawn by
+choosing the maximum a posteriori estimate (i.e. the mode of the
+posterior density). Posterior
+samples of the hyperparameters, can then capture some of the model fit 
+uncertainty, unlike in a point estimate.
 
 % \subsection*{Mean functions}
 
 % Although in the majority of use cases for Gaussian processes, the mean function
 % is assumed to be zero, it is not necessary for this to be the case. In cases
-% where the discrepency function has been estimated by a Gaussian process, 
+% where the discrepancy function has been estimated by a Gaussian process, 
 % the mean function has been assumed to be quadratic, such as in 
 % \parencite{gutmann_bayesian_2016}. Gaussian process regression is relatively
 % resilient to misspecified mean function, however the regression will return to
@@ -725,14 +738,14 @@ a point estimate.
 
 \section{Bayesian Acquisition Functions}
 
-Gaussian processes may be a usefull approximation of $\E[\D(\btheta)].$ We can
+Gaussian processes may be a useful approximation of $\E[\D(\btheta)].$ We can
 express the Gaussian process surrogate model as $\D_\GP(\btheta),$ trained on
 samples of $\D(\btheta).$
 Considering the approximate Bayesian computation described in
 Algorithm \ref{alg:abc}, samples are only accepted when $\D(\btheta)$ is small.
 Therefore we care most about accurately approximating $\D(\btheta)$ where
 $\E[\D(\btheta)]$ is small since the probability of acceptance elsewhere is
-negligable. Therefore we focus our model sampling where we predict the Gaussian
+negligible. Therefore we focus our model sampling where we predict the Gaussian
 process is small, or where the variance of the Gaussian process is large
 (hence the true values are highly uncertain), to avoid unnecessary model runs
 that may be extremely time consuming.
@@ -750,12 +763,12 @@ function of both the posterior mean and variance, weighted according to a
 constant $\eta.$
 
 \begin{definition}[Lower Confidence Bound]
-    The \emph{lower condidence bound} of a Gaussian process $f$ at $x$ given
-    some observations $\bx_*$ is
+    The \emph{lower confidence bound} of a Gaussian process $f$ at $x$ given
+    some observations $\bx^\ast$ is
     $$
         \A_\mathrm{LCB}(x)
-        := \E[f(x) | f(\bx_*)]
-        - \eta \sqrt{\mathrm{Var}[f(x) | f(\bx_*)]}
+        := \E[f(x) | f(\bx^\ast)]
+        - \eta \sqrt{\mathrm{Var}[f(x) | f(\bx^\ast)]}
     $$
 \end{definition}
 
@@ -787,11 +800,11 @@ an observation at $x$ is better than the previous best observation.
 
 \begin{definition}
     The \emph{probability of improvement} of a Gaussian process $f$ at $x$ given
-    some observations $\bx_*$ is
+    some observations $\bx^\ast$ is
     $$
-        \A_\mathrm{PI}(x) := \Pr(f(x) < \mu_*)
+        \A_\mathrm{PI}(x) := \Pr(f(x) < \mu^\ast)
     $$
-    where $\mu_* := \min_{x_*\in\bx_*}f(x_*).$
+    where $\mu^\ast := \min_{x^\ast\in\bx^\ast}f(x^\ast).$
 \end{definition}
 
 Unlike the lower confidence bound, we choose $\argmax_{x} A_\mathrm{PI}(x),$ as
@@ -799,7 +812,7 @@ the point which is most likely to better than our current best.
 
 The probability of improvement can also be expressed as
 $$
-    \A_\mathrm{PI}(x) = \Pr(\min(f(x) - \mu_*, 0) < 0),
+    \A_\mathrm{PI}(x) = \Pr(\min(f(x) - \mu^\ast, 0) < 0),
 $$
 which motivates the form of the next acquisition function.
 
@@ -812,29 +825,29 @@ improvement is likely to be.
 
 \begin{definition}
     The \emph{expected improvement} of a Gaussian process $f$ at $x$ given
-    some observations $\bx_*$ is
+    some observations $\bx^\ast$ is
     $$
         \A_\EI(x)
-        := \E[\min(f(x) - \mu_*, 0)],
-    $$ where $\mu_* := \min_{x_*\in\bx_*}f(x_*).$
+        := \E[\min(f(x) - \mu^\ast, 0)],
+    $$ where $\mu^\ast := \min_{x^\ast\in\bx^\ast}f(x^\ast).$
 \end{definition}
 The next point to be sampled from $\argmin_{x} A_\EI(x)$ is the point
-where we expect $\mu_*$ to have the largest improvement, if it is indeed
+where we expect $\mu^\ast$ to have the largest improvement, if it is indeed
 improved.
 \footnote{
     Bayesian acquisition function are
     conventionally employed to find the maximum of an unknown function,
     and so generally the expected improvement is maximised.
     However in the context of $\D_\GP(\btheta),$ we want to find the minimum.
-    Therefore we have reframed the expected information 
+    Therefore we have reframed the expected improvement 
     as a function to be minimised.
 }
 Both the probability of improvement and
 expected improvement do not require a
 choice of hyperparameter such as $\eta,$ but more exploration can be
 encouraged by slightly altering the probability of improvement to
-$\Pr(f(x) < \mu_* + \epsilon),$ and the expected improvement to
-$\E[\min(f(x) - (\mu_* + \epsilon), 0)].$ $\epsilon$ allows for
+$\Pr(f(x) < \mu^\ast + \epsilon),$ and the expected improvement to
+$\E[\min(f(x) - (\mu^\ast + \epsilon), 0)].$ $\epsilon$ allows for
 new samples to be $\epsilon$ worse (larger) than the current best sample.
 This is beneficial in the case where finding the exact global minimum may not
 be the target, but rather exploring areas close to the minimum.

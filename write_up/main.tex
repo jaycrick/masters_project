@@ -37,7 +37,9 @@
 \newcommand{\A}{\mathcal{A}}
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
+\newcommand{\bemph}[1]{\textbf{\emph{#1}}}
 \newcommand{\btheta}{\bm{\theta}}
+\newcommand{\bTheta}{\bm{\theta}}
 \newcommand{\bx}{\mathbf{x}}
 \newcommand{\by}{\mathbf{y}}
 \DeclareMathOperator{\corr}{corr}
@@ -120,23 +122,22 @@ with an application to an existing \emph{Plasmodium vivax} malaria model}\\
 %-----------------------body
 \pagenumbering{arabic}
 
-\include{body/introduction}
-% \part{Literature Review}
-% \include{body/compartmental_models}
-% \include{body/malaria_and_modelling}
-% \include{body/inference}
-% % \include{body/MCMC}
-% % \include{body/abc_methods}
-% \include{body/gaussian_processes}
+\input{body/introduction}
+\part{Literature Review}
+\input{body/compartmental_models}
+\input{body/malaria_and_modelling}
+\input{body/inference}
+\input{body/gaussian_processes}
 
-% \part{Calibrating Parameters for a \emph{P. vivax} Model}
-% \include{body/methods}
-% \include{body/results_discussion}
-\include{body/conclusion}
+\part{Calibrating Parameters for a \emph{P. vivax} Model}
+\input{body/methods}
+\input{body/results_discussion}
+\input{body/conclusion}
 
-% %  references and appendix
-% \addcontentsline{toc}{part}{Bibliography}
-% \printbibliography
+%  references and appendix
+\addcontentsline{toc}{part}{Bibliography}
+\printbibliography
 
-% \include{body/appendices}
+\appendix
+\input{body/appendices}
 \end{document}

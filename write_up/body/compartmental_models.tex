@@ -3,16 +3,16 @@
 Researchers have developed compartmental epidemiological models to study the
 behaviour and characteristics of disease spread and eradication. Compartmental
 models simplify the dynamics of a disease down to a mathematically
-representable form. By determining the parameters within a model, 
-it is possible to facilitate an understanding of 
-how the modelled disease spreads and assess the effectiveness of 
-differing disease interventions (such as treatments or vaccinations) 
+representable form. By determining the parameters within a model,
+it is possible to facilitate an understanding of
+how the modelled disease spreads and assess the effectiveness of
+differing disease interventions (such as treatments or vaccinations)
 without large long-term trials. Models can also simulate various
 scenarios, such as increases or decreases in viral transmission.
 
 Simple compartmental disease models assume individuals can only be in one of
 a finite number of states (which are called compartments). These compartments
-usually correspond to a state of disease. A standard compartmental model may 
+usually correspond to a state of disease. A standard compartmental model may
 include: \begin{itemize}
     \item $S$ - Susceptible: at risk of contracting the disease
     \item $E$ - Exposed: contracted the disease but not infecting other
@@ -78,17 +78,17 @@ include: \begin{itemize}
         \caption{$SEIR$ model}\label{fig:SEIR_model}
     \end{subfigure}%
     \caption{
-        Some simple model schematics, with varying numbers of compartments: $S$
+        Some simple model schematics with varying numbers of compartments: $S$
         (susceptible), $E$ (exposed), $I$ (infectious) and $R$ (recovered). The
         force of infection $\lambda_t$ is usually a function of $I_t$, depicted
         by the dashed red lines. $\mu$ and $\nu$ are natural birth and death
-        rates respectively. $\gamma$ is the rate of progression out of the
-        infectious state. In each of these models the physical interpretation
+        rates, respectively. $\gamma$ is the rate of progression out of the
+        infectious state. In each of these models, the physical interpretation
         differs slightly. In the $SIS$ and $SEIR$ models, it is the rate at
         which individuals move from infectious to susceptible again or into
-        lifelong immunity, whereas in the $SI$ with demography model, it can be
-        interpreted as the increase to the rate of death attributable to
-        disease induced mortality. $\sigma$ is the rate of progression from a
+        lifelong immunity, whereas, in the $SI$ with demography model, it can be
+        interpreted as the increase in the rate of death attributable to
+        disease-induced mortality. $\sigma$ is the rate of progression from a
         state of latent infection to becoming infectious.
     }\label{fig:simple_models}
 \end{figure}
@@ -96,86 +96,122 @@ include: \begin{itemize}
 The number of people in each compartment at time $t$ is a (possibly
 non-deterministic) function of time $t,$ which we indicate as a subscript $t$
 (e.g., $S_t$ is the number of susceptibles at time $t$). Models are typically
-described by the compartments they contain. For instance, an $SIS$ model
-includes susceptible and infectious compartments. In this model, individuals 
-who recover from infection become susceptible to reinfection, as is the case 
-with most sexually transmitted diseases \parencite[56]{keeling_modeling_2008} 
-This model is graphically illustrated in Figure \ref{fig:SIS_model}.
-Furthermore, we can also include demography in a compartmental model. Diseases 
-that infect the individual until the time of death, such as bovine spongiform 
-encephalopathy (BSE, commonly known as mad cow disease), 
-may be modelled using an 
-$SI$ model with demography (birth and death rates), as depicted in Figure
-\ref{fig:SI_demog_model} \parencite{hagenaars_epidemiological_2006}.
+described by the compartments they contain. The $SIS$ model
+depicted in Figure \ref{fig:SIS_model} consists of a susceptible compartment
+$S$, and an infectious compartment $I$. In this model, individuals
+who recover from infection are immediately susceptible to reinfection,
+as is the case
+with most sexually transmitted diseases \parencite[56]{keeling_modeling_2008}.
+Movement between the two compartments determined
+by the the force of infection $\lambda_t$ and rate of recovery $\gamma.$
 
+The $SI$ with demography model depicted in Figure \ref{fig:SI_demog_model} is
+used to model diseases
+that infect the individual until the time of death, such as bovine spongiform
+encephalopathy (BSE, commonly known as mad cow disease)
+\parencite{hagenaars_epidemiological_2006}.
+In addition to the rates in the $SIS$ model, $\mu$ and $\nu$ are birth and
+death rates respectively. $\gamma$ becomes the rate of disease
+induced mortality.
+
+The $SEIR$ model depicted in Figure \ref{fig:SEIR_model} includes the
+exposed compartment $E$ and recovered compartment $R.$ The additional
+parameter $\sigma$ is the rate at which individuals who are exposed become
+infectious.
 Childhood diseases such as varicella (chickenpox) which give lifetime immunity
 after infection, can be modelled using an $SEIR$ model (see Figure
-\ref{fig:SEIR_model}), particularly when modelling a local outbreak setting
-(for example, \cite{zha_research_2020} used the $SEIR$ model to model a school
-outbreak of varicella). Omitting demography is usually appropriate when 
-disease-induced mortality is low, or the timescale of interest is short 
+), particularly when modelling a local outbreak setting.
+For example, an $SEIR$ model was used in \cite{zha_research_2020} for a school
+outbreak of varicella.
+
+Omitting demography is usually appropriate when
+disease-induced mortality is low, or the timescale of interest is short
 compared to the population's lifespan.
-
-Researchers often extend and configure the number (and names) of compartments 
-as required, allowing for the addition of compartments for 
-vaccinated individuals, quarantined individuals, and other relevant categories.
-
-The number (and names) of compartments can be extended and configured as
-needed, and compartments could be added for vaccinated individuals, quarantined
-individuals and so on. For example, \Citeauthor{acuna-zegarra_covid-19_2021} 
-include a vaccinated compartment, and two infectious compartments for 
+The number of compartments in a model can be increased
+as required, to incorporate states such as
+vaccinated, or quarantined that change the disease dynamics.
+For example, the Covid-19 model described in \cite{acuna-zegarra_covid-19_2021}
+includes a vaccinated compartment, and two infectious compartments for
 symptomatic and asymptomatic individuals.
-By convention $N_t$ (often simply $N$ in models with a
-closed population) is the total number of individuals in the model, the sum of
+By convention, $N_t$ (often simply $N$ in models with a
+closed population) is the total number of individuals in the model - the sum of
 all compartments.
 
-\section{Deterministic ODE models}
+\section{Deterministic Ordinary Differential Equation Models}
 
-Diseases are often simulated as deterministic ordinary differential equations.
-For the examples below we assume that the force of infection $\lambda_t$ is
+Infectious diseases are often simulated as deterministic ordinary differential
+equations (ODEs).
+Let the force of infection $\lambda_t$ be
 proportional to the number of people in $I$, such that
 $\lambda_t := \beta \frac{I_t}{N_t}.$ $\beta$ can be interpreted as the average
 number of people that an individual interacts with per day in a way such that
-disease would be spread in that interaction per unit of time $t$. This is
-sometimes called the effective contact rate. Therefore since $\frac{I_t}{N_t}$
+disease would be spread in that interaction per unit of time $t$.
+Since $\frac{I_t}{N_t}$
 is the probability that a randomly selected individual is infectious,
 $\beta \frac{I_t}{N_t}$ can be interpreted as the average number of people that
-a person interacts with each day who are infectious in a way that they would
-pass on the infection. In different diseases $\beta$ varies dramatically, as
-some diseases need prolonged exposure or sexual contact to transmit, whereas
-some are very highly transmittable, and so will have very low $\beta.$
-Implicitly there is also a (sometimes poor) assumption of complete uniformly
-random mixing of people. Note that for this thesis we assume that $\beta$ is
-frequency dependent (people interact with the same number of people regardless
-of population size) as opposed to density dependent (people interact with a
-number of people proportional to population size, in which case
-$\lambda := \beta I_t.$).
+a person interacts with each day who are infectious multiplied by the
+probability that an infection occurs during that contact.
+In different diseases $\beta$ varies dramatically. $\beta$ is low is
+diseases that need prolonged exposure or sexual contact to transmit, whereas
+$\beta$ is very for diseases that are very highly transmittable such as measles.
+Implicitly there is an assumption of complete uniformly
+random mixing of people. This is often a poor assumption, since in reality
+people see people regularly with varying probabilities, and
+do not mix randomly with the people in a population.
+This means the infection status
+of a group of friends or a household is likely to be highly correlated.
+One solution would be to include contact networks in the model
+(such as \cite{kerr_covasim_2021}), however we do not consider these models in
+this thesis.
+For this thesis we assume that $\beta$ is
+frequency dependent as opposed to density dependent, that is,
+a person interacts with the same number of individuals regardless
+of population size. A density dependent contact rate assumes that the number
+of individuals a person interacts with
+grows proportional to population size. In the density dependent case the force
+of infection has the form $\lambda_t := \beta I_t.$
 
-The $SIS$ model depicted in Figure \ref{fig:SIS_model}, the ordinary different
-equations (ODEs) governing the model could be \begin{align}
-    \frac{\diff S_t}{\diff t} = & \, -\lambda S_t + \gamma I_t = -\beta \frac{I_t}{N}S_t + \gamma I\label{eq:SIS_1} \\
-    \frac{\diff I_t}{\diff t} = & \, \lambda S_t - \gamma I_t = \beta \frac{I_t}{N}S_t - \gamma I\label{eq:SIS_2}.
+The ODEs that govern the $SIS$ model,
+are \begin{align}
+    \frac{\diff S_t}{\diff t}
+    = & \, -\lambda S_t + \gamma I_t
+    = -\beta \frac{I_t}{N}S_t + \gamma I_t\label{eq:SIS_1} \\
+    \frac{\diff I_t}{\diff t}
+    = & \, \lambda S_t - \gamma I_t
+    = \beta \frac{I_t}{N}S_t - \gamma I_t\label{eq:SIS_2}.
 \end{align}
 
-With a stated assumption that population size is closed, equation \ref{eq:SIS_1} fully describes the model.
+Given a set of initial conditions $S_0$ and $I_0,$ Equation
+\ref{eq:SIS_1} (or \ref{eq:SIS_2}) fully describes the model.
 
 The system of ODEs that describe the $SI$ with demography model is \begin{align}
-    \frac{\diff S_t}{\diff t} = & \, \mu N_t - \lambda_t S_t - \nu I_t = \mu N_t -\beta \frac{I_t}{N_t}S_t - \nu I \label{eq:SI_1}   \\
-    \frac{\diff I_t}{\diff t} = & \, \lambda_t S_t - (\gamma + \nu)I_t = \beta \frac{I_t}{N_t}S_t - (\gamma + \nu) I\label{eq:SI_2}.
-\end{align} Here is it important to note that $N_t$ is not necessarily constant.
+    \frac{\diff S_t}{\diff t}
+    = & \, \mu N_t - \lambda_t S_t - \nu I_t
+    = \mu N_t -\beta \frac{I_t}{N_t}S_t - \nu I_t \label{eq:SI_1} \\
+    \frac{\diff I_t}{\diff t}
+    = & \, \lambda_t S_t - (\gamma + \nu)I_t
+    = \beta \frac{I_t}{N_t}S_t - (\gamma + \nu) I_t\label{eq:SI_2}.
+\end{align}
+Unlike for the $SIS$ and $SEIR$ models, $N_t$ is not constant in this model.
 
 Finally, the system of ODEs that describe the $SEIR$ model is \begin{align}
-    \frac{\diff S_t}{\diff t} = & \, - \lambda_t S_t - \nu I                   & = -\beta \frac{I_t}{N}S_t + \gamma I_t \label{eq:SEIR_1} \\
-    \frac{\diff E_t}{\diff t} = & \, \lambda_t S_t - \omega E_t                & = \beta \frac{I_t}{N}S_t - \omega I_t \label{eq:SEIR_2}  \\
-    \frac{\diff I_t}{\diff t} = & \, \omega E_t - \gamma I_t \label{eq:SEIR_3}                                                            \\
-    \frac{\diff R_t}{\diff t} = & \, \gamma I_t \label{eq:SEIR_4}
+    \frac{\diff S_t}{\diff t}
+    = & \, - \lambda_t S_t - \nu I_t
+    = -\beta \frac{I_t}{N}S_t + \gamma I_t \label{eq:SEIR_1} \\
+    \frac{\diff E_t}{\diff t}
+    = & \, \lambda_t S_t - \omega E_t
+    = \beta \frac{I_t}{N}S_t - \omega I_t \label{eq:SEIR_2}  \\
+    \frac{\diff I_t}{\diff t}
+    = & \, \omega E_t - \gamma I_t \label{eq:SEIR_3}         \\
+    \frac{\diff R_t}{\diff t}
+    = & \, \gamma I_t \label{eq:SEIR_4}
 \end{align}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics{ODE_plots.pdf}
     \caption{
-        Solutions to the ordinary differential equations describing the models
+        Solutions to the ODEs describing the models
         depicted in Figure \ref{fig:simple_models}. The initial infectious
         population was $I_0 = 10,$ with $S_0 = 990.$ In the $SEIR$ model,
         $E_0 = R_0 = 0.$ For all models $\beta = 0.4.$ For the $SIS$ and $SI$
@@ -186,185 +222,244 @@ Finally, the system of ODEs that describe the $SEIR$ model is \begin{align}
     \label{fig:ODE_outputs}
 \end{figure}
 
-After specifying the initial for each compartment the ordinary differential equations have a deterministic output, such as in \ref{fig:ODE_outputs}.
+After specifying the the initial conditions $S_0,$ $I_0$ etc.\
+the ODEs can be numerically solved. Figure \ref{fig:ODE_outputs} shows
+solutions to the three models introduced so far for an initial population
+$N_0 = 1000$, with an initial infectious population $I_0 = 10.$ Under the
+models without demography, $N_t$ remains constant. The disease is eradicated
+for the $SEIR$ model after a small spike in cases. The disease reaches a
+steady state equilibrium for the $SIS$ and
+$SI$ with demography model, with a much higher number of infected individuals
+in the $SI$ with demography model, since once an individual acquires the
+disease they have it until they die.
 
 \section{Stochastic models}
 
 \subsection*{Motivating the form of the stochastic model}
 
-To establish a relationship between the deterministic and stochastic disease models, we first need to establish Poisson point processes and their properties.
+Deterministic ODE models can appropriate to study infectious diseases
+when the disease in near equilibrium and the numbers
+in each compartment are large. At the start of an epidemic, when the
+number of infected individuals is small the behaviour of the epidemic may
+vary significantly. When case numbers are small, there is a non zero
+probability that the disease may die out, but under the right conditions
+such as a large gathering of people
+in a small space, the outbreak may become a pandemic.
+In these cases, a deterministic model is inadequate in emulating the real world
+behaviour. For this reason we consider models of the disease which are
+stochastic in nature. A natural stochastic analogue for a deterministic
+model can be constructed through consideration of
+Poisson point processes and their properties.
 
 \begin{definition}[Poisson Point Process]\label{def:ppp}
-    $\{\N(t)\}_{t\geq0}$ is a \emph{(stationary) Poisson point process} with intensity $\lambda$ if \begin{enumerate}
+    $\{\N(t)\}_{t\geq0}$ is a \emph{(stationary) Poisson point process} with intensity $\kappa$ if \begin{enumerate}
         \item $\N(0) = 0$
         \item $\N(t_1) - \N(t_0), \N(t_2) - \N(t_1), \dots, \N(t_n) - \N(t_{n-1})$ are independent for $0 \leq t_0 < t_1 < \dots < t_{n-1} < t_n $
-        \item $\N(t_2) - \N(t_1) \sim \Pois(\lambda(t_2 - t_1)), 0 \leq t_1 < t_2.$
+        \item $\N(t_2) - \N(t_1) \sim \Pois(\kappa(t_2 - t_1)), 0 \leq t_1 < t_2.$
     \end{enumerate}
 \end{definition}
 
-Deterministic ODE models are appropriate to study a kind of aggregate disease spread behaviour, and well approximate real world behaviour when the numbers in each compartment are large, however at the start of an epidemic, when the number of infected individuals is small the behaviour of the epidemic may vary significantly. It is possible that if the average number of people that an infectious individual infects near the beginning of the epidemic (formally referred to as $R_0$) is close to 1, then the disease may die out or become stable. Under the deterministic $SIS$ model described by equations \ref{eq:SIS_1} and \ref{eq:SIS_2}, consider the model at time $t^*$ the instantaneous rate at which $S$ is decreasing is $\beta \frac{I_{t^*}}{N} S_{t^*}.$ In other words, one individual leaves the $S$ compartment every $\beta \frac{I_{t^*}}{N} S_{t^*}$ units of time. We can consider a Poisson point process $\{\N_1(t - t^*)\}_{t\geq t^*}$ with intensity $\beta \frac{I_{t^*}}{N} S_{t^*}$ corresponding to the count of the number of individuals who have left $S$ and entered $I$ $t$ units of time since $t^*.$ $$\frac{\diff \E(\N_1(t^*))}{\diff t^*} = \lim_{\delta \to 0}\frac{\E{(\N(t^* + \delta) - \N(t^*))}}{\delta} = \frac{\beta \frac{I_{t^*}}{N} S_{t^*}(t^* + \delta - t^*)\beta \frac{I_{t^*}}{N} S_{t^*}}{\delta} = \beta \frac{I_{t^*}}{N} S_{t^*}.$$
+To demonstrate how Poisson point processes aid us in creating a natural
+analogue of the deterministic model, we construct two Poisson processes
+that when combined have the
+the same instantaneous average behaviour as the
+deterministic ODE model.
 
-Under the same deterministic formulation of the model, the instantaneous rate into $S$ at $t^*$ is $\gamma I_{t^*}.$ Therefore as above we can construct a Poisson point process $\{\N_2(t - t^*)\}_{t\geq t^*}$ with rate $\gamma I_{t^*}$ describing the number of recoveries from $I$ to $S,$ with $\frac{\diff \E(\N_2(t^*))}{\diff t^*} = \gamma I_{t^*}.$ Combining the two processes, we can see that the rate of change in the average number of people in $S$ is $$\frac{\diff \E(\N_2(t^*) - \N_1(t^*))}{\diff t^*} = \frac{\diff \E(\N_2(t^*)) - \diff \E(\N_1(t^*))}{\diff t^*} = -\beta \frac{I_t}{N}S_t + \gamma I = \frac{\diff S_t}{\diff t}.$$
+Consider the deterministic $SIS$ model described by Equations
+\ref{eq:SIS_1} and \ref{eq:SIS_2} at time $t^*.$ The
+instantaneous rate at which $S_t$ is decreasing is
+$\beta \frac{I_{t^*}}{N} S_{t^*}.$ In other words, at time $t^*,$
+an individual leaves
+the susceptible compartment every $\beta \frac{I_{t^*}}{N} S_{t^*}$
+units of time.
 
-% \begin{definition}[Markov Chain]
-%     A set of random variables $\{X_i\}_{i\in\mathcal{I}}$ is Markov if $\Pr(X_{i})$
-% \end{definition}
+Now consider a Poisson point process $\{\N_1(t - t^*)\}_{t\geq t^*}$ with
+intensity $\beta \frac{I_{t^*}}{N} S_{t^*}$ corresponding to the count of the
+number of individuals who have left $S$ and entered $I$ $t$ units of time
+since $t^*.$ The average rate at which an individual leaves $S$ is then
+\begin{align*}
+    \frac{\diff \E(\N_1(t^*))}{\diff t^*}
+    = & \lim_{\delta \to 0}\frac{\E{(\N(t^* + \delta) - \N(t^*))}}{\delta}
+    \tag{Since the mean of a Poisson random variable is its intensity}     \\
+    = & \frac{
+        \beta \frac{I_{t^*}}{N} S_{t^*}
+        (t^* + \delta - t^*)
+        \beta \frac{I_{t^*}}{N} S_{t^*}
+    }{
+        \delta
+    }                                                                      \\
+    = & \beta \frac{I_{t^*}}{N} S_{t^*},
+\end{align*}
+the same rate as the ODE model.
 
-Therefore we can create a stochastic model where the local average in each compartment matches the behaviour of the ODE model at the same state. We do this first by formulating the model as a random vector $\{\mathbf{C}_t\}_{t\geq 0} = \{C_1(t), C_2(t), \dots, C_n(t)\}_{t\geq 0}$ where $C_i:\mathbb{R} \to \mathbb{N}\cup\{0\},$ is the number of people in compartment $C_i,$ and for any fixed $t$, $\{C_1(t), C_2(t), \dots, C_n(t)\}$ is a random variable describing the state of the model. For example in a model with $S$ and $I$ compartments, $\{\mathbf{C}_t\}_{t\geq 0}:=\{S_t, I_t\}_{t\geq 0}.$ $\{\mathbf{C}_t\}_{t\geq 0}$ is a continuous time Markov chain (see Definition \ref{Markov_chains}) with transition kernel corresponding to the rates of the model. For example, in the $SI$ model with demography in Figure \ref{fig:SI_demog_model} the transition rates are: \begin{itemize}
-    \item $\{s, i\}$ to $\{s + 1, i\}$ has rate $\mu (s + i)$
-    \item $\{s, i\}$ to $\{s - 1, i\}$ has rate $\nu s$
-    \item $\{s, i\}$ to $\{s - 1, i + 1\}$ has rate $\beta \frac{i}{i+s}s$
-    \item $\{s, i\}$ to $\{s, i - 1\}$ has rate $(\nu + \gamma) i.$
+Under the same deterministic ODE formulation of the $SIS$ model,
+the instantaneous
+rate into $S$ at time $t^*$ is $\gamma I_{t^*}.$ Also as above we
+construct a Poisson point process $\{\N_2(t - t^*)\}_{t\geq t^*}$ with
+mean rate $\gamma I_{t^*}$ describing the number of recoveries from
+$I$ to $S,$
+since
+$$\frac{\diff \E(\N_2(t^*))}{\diff t^*} = \gamma I_{t^*}.
+$$
+
+Combining the two processes, we can see that the rate of change in the
+average number of people in $S$ is
+$$
+    \frac{\diff \E(\N_2(t^*) - \N_1(t^*))}{\diff t^*}
+    = \frac{\diff \E(\N_2(t^*)) - \diff \E(\N_1(t^*))}{\diff t^*}
+    = -\beta \frac{I_t}{N}S_t + \gamma I
+    = \frac{\diff S_t}{\diff t}.
+$$
+
+For an arbitrary number of compartments and transitions, we can model each
+transition as a Poisson point process.
+
+Therefore we construct a stochastic analogue to the ODEs in the following way.
+Let the stochastic model be a
+random vector
+$\{\mathbf{C}_t\}_{t\geq 0} = \{C_1(t), C_2(t), \dots, C_n(t)\}_{t\geq 0}$
+where $C_i:\mathbb{R} \to \mathbb{N}\cup\{0\},$ is the number of people in
+compartment $C_i,$ and for any fixed $t$, $\{C_1(t), C_2(t), \dots, C_n(t)\}$
+is a random variable describing the state of the model. For example the $SI$
+with demography model can be represented as
+$\{\mathbf{C}_t\}_{t\geq 0}:=\{S_t, I_t\}_{t\geq 0}.$
+% $\{\mathbf{C}_t\}_{t\geq 0}$ is a continuous time Markov chain 
+% with transition kernel corresponding to 
+% the rates of the model. 
+% For example, in the $SI$ model with demography in 
+% Figure \ref{fig:SI_demog_model} the transition rates are: \begin{itemize}
+%     \item $\{s, i\}$ to $\{s + 1, i\}$ has rate $\mu (s + i)$
+%     \item $\{s, i\}$ to $\{s - 1, i\}$ has rate $\nu s$
+%     \item $\{s, i\}$ to $\{s - 1, i + 1\}$ has rate $\beta \frac{i}{i+s}s$
+%     \item $\{s, i\}$ to $\{s, i - 1\}$ has rate $(\nu + \gamma) i.$
+% \end{itemize}
+
+If the model is in state $\{S_t, I_t\},$ after the next transition
+at time $t^*,$ the next possible states are:
+\begin{enumerate}
+    \item $\{S_{t^*}, I_{t^*}\}=\{S_t + 1, I_t\}$ %with rate $\mu (S_t + I_t)$
+    \item $\{S_{t^*}, I_{t^*}\}=\{S_t - 1, I_t\}$ %has rate $\nu S_t$
+    \item $\{S_{t^*}, I_{t^*}\}=\{S_t - 1, I_t + 1\}$ %has rate $\beta \frac{I_t}{I_t+S_t}S_t$
+    \item $\{S_{t^*}, I_{t^*}\}=\{S_t, I_t - 1\}$ %has rate $(\nu + \gamma) I_t.$
+\end{enumerate}
+
+Each of these transitions behave like Poisson processes at time $t.$ We think
+of these processes in the following way:
+\begin{itemize}
+    \item $\{\mathcal{E}_1(t^*)\}_{t^*\geq 0}:$
+          the number of births into $S$ after time $t$ with intensity
+          $\mu N_{t}$
+    \item $\{\mathcal{E}_2(t^*)\}_{t^*\geq 0}:$
+          the number of deaths in $S$ after time $t$ with intensity
+          $\nu S_{t}$
+    \item $\{\mathcal{E}_3(t^*)\}_{t^*\geq 0}:$
+          the number of infections after time $t$ with intensity
+          $\beta \frac{I_{t}}{N_{t}} S_{t}$
+    \item $\{\mathcal{E}_4(t^*)\}_{t^*\geq 0}:$
+          the number of deaths from $I$ after time $t$ with intensity
+          $(\nu + \gamma) I_{t}.$
 \end{itemize}
 
-We can interpret each transition as a seperate events, each behaving as independent Poisson point processes until the time of the first transition. Therefore at time $t^*$ we have the Poisson point processes: \begin{itemize}
-    \item $\{\mathcal{E}_1(t)\}_{t\geq 0}:$ the number of births into $S$ after time $t^*$ with intensity $\mu N_{t^*}$
-    \item $\{\mathcal{E}_2(t)\}_{t\geq 0}:$ the number of deaths in $S$ after time $t^*$ with intensity $\nu S_{t^*}$
-    \item $\{\mathcal{E}_3(t)\}_{t\geq 0}:$ the number of infections after time $t^*$ with intensity $\beta \frac{I_{t^*}}{N_{t^*}} S_{t^*}$
-    \item $\{\mathcal{E}_4(t)\}_{t\geq 0}:$ the number of deaths from $I$ after time $t^*$ with intensity $(\nu + \gamma) I_{t^*}.$
-\end{itemize}
+Since the sum of two Poisson point processes is a Poisson point process (see
+Theorem \ref{thm:sum_ppp}) and the time between events in a Poisson process
+is exponentially distributed (see Theorem \ref{thm:next_pp_event}).
 
-\begin{theorem}[Sums of Independent Poisson Point Processes]\label{thm:sum_ppp}
-    Given independent Poisson point processes $\{\N_1(t)\}_{t\geq0},
-        \{\N_2(t)\}_{t\geq0}, \dots,  \{\N_n(t)\}_{t\geq0},$ with intensities
-    $\lambda_1, \lambda_2, \dots, \lambda_n,$
-    $$\{\N(t)\}_{t\geq0} := \{\N_1(t) + \N_2(t) + \dots + \N_n(t)\}_{t\geq0}$$ is a Poisson point process with intensity $\lambda_1 + \lambda_2 + \dots +
-        \lambda_n.$
-\end{theorem}
-
-\begin{proof}
-    We show that
-    $\{\N(t) := \{\N_1(t) + \N_2(t) + \dots + \N_n(t)\}_{t\geq0}\}$ meets each
-    component of Definition \ref{def:ppp}.
-    \begin{enumerate}
-        \item $\N(0) := \N_1(0) + \N_2(0) + \dots + \N_n(0) = 0$ since
-              $\N_i(0) = 0$ by definition of a Poisson point process.
-        \item We show that $\N(t_1) - \N(t_0), \N(t_2) - \N(t_1), \dots,
-                  \N(t_n) - \N(t_{n - 1})$
-              with $0 \leq t_0 < t_1 < \dots < t_n$ are independent.
-              $$\N(t_i) - \N(t_{i - 1})
-                  = \underset{X_{i1}}
-                  {\underbrace{[\N_1(t_i) - \N_1(t_{i - 1})]}}
-                  + \underset{X_{i2}}
-                  {\underbrace{[\N_2(t_i) - \N_2(t_{i - 1})]}} + \dots
-                  + \underset{X_{in}}
-                  {\underbrace{[\N_n(t_i) - \N_n(t_{i - 1})]}}$$
-              $X_{ik}$ is independent of $X_{j\ell}$ for $k \neq \ell$ since
-              $\N_k$ and $\N_\ell$ are independent processes. $X_{ik}$ is
-              independent of $X_{jk}$ for $i\neq j$ by the second property
-              of Definition \ref{def:ppp}. Therefore all $X_{ik}$ are
-              independent of $X_{j\ell}$ for $i\neq j,$ and all $j, k.$
-              Hence
-              $\N(t_1) - \N(t_0), \N(t_2) - \N(t_1), \dots,
-                  \N(t_n) - \N(t_{n - 1})$
-              with $0 \leq t_0 < t_1 < \dots < t_n$ are independent.
-        \item For fixed $t_1 < t_2,$ and $i \in \{1, 2, \dots, n\},$
-              $$\N_i(t_2) - \N_i(t_1) \sim \Pois((t_2 - t_1)\lambda_i).$$
-              Consider the associated moment generating function of
-              $\N_i(t_2) - \N_i(t_1),$
-              $$M_i(z) := \exp(\lambda_i(t_2 - t_1)(\exp(z) - 1)).$$
-              Therefore the moment generating function of
-              $$\N(t_2) - \N(t_1) =
-                  [\N_1(t_2) - \N_1(t_1)] + [\N_2(t_2) - \N_2(t_1)] + \dots
-                  + [\N_n(t_2) - \N_n(t_1)]$$ is
-              $$ M(z) := \prod_{i = 1}^n M_i(z) =
-                  \exp[
-                      (\lambda_1 (t_2 - t_1) + \lambda_2 (t_2 - t_1) + \dots
-                      + \lambda_n (t_2 - t_1))
-                      (\exp(z) - 1)
-                  ].$$
-              Therefore
-              $\N_1(t) + \N_2(t) + \dots + \N_n(t) \sim
-                  \Pois((\lambda_1 + \lambda_2 + \dots + \lambda_n) t)$
-              by the uniqueness of the moment generating function.
-    \end{enumerate}
-\end{proof}
-
-\begin{theorem}[Time to First Event in Poisson Point Process]
-    \label{thm:next_pp_event}
-    Given a Poisson point process $\{\N(t)\}_{t\geq 0}$ with intensity
-    $\lambda,$ let $\tau = \inf\{t | \N(t_0 + t) - \N(t_0) = 1, t > 0\}$.
-    $\tau \sim \Exp(\lambda)$ for $t_0 \geq 0$
-\end{theorem}
-
-\begin{proof}
-    $$\Pr(\tau > x) = \Pr(\N(t_0 + x) - \N(t_0) = 0)
-        = \frac{(\lambda x)^0e^{-\lambda x}}{0!} = e^{-\lambda x}$$
-\end{proof}
-
-By Theorem \ref{thm:sum_ppp} and Theorem \ref{thm:next_pp_event},
-$$\{\mathcal{E}(t)\}_{t\geq 0}:=\{\mathcal{E}_1(t) + \mathcal{E}_2(t)
-    + \mathcal{E}_3(t) + \mathcal{E}_4(t)\}_{t\geq 0}$$
+$$
+    \{\mathcal{E}(t)\}_{t\geq 0}:=\{\mathcal{E}_1(t) + \mathcal{E}_2(t)
+    + \mathcal{E}_3(t) + \mathcal{E}_4(t)\}_{t\geq 0}
+$$
 is a Poisson point process with intensity
 $$\mu N_{t^*} + \nu S_{t^*} + \beta \frac{I_{t^*}}{N_{t^*}} S_{t^*}
     + (\nu + \gamma) I_{t^*},$$
-and the time to the next event is random variable distributed
-$$\Exp(\mu N_{t^*} + \nu S_{t^*}
-    + \beta \frac{I_{t^*}}{N_{t^*}} S_{t^*} + (\nu + \gamma) I_{t^*}).$$
+and the time until the next transition is exponentially distributed
+$$
+    \Exp(\mu N_{t^*} + \nu S_{t^*}
+    + \beta \frac{I_{t^*}}{N_{t^*}} S_{t^*} + (\nu + \gamma) I_{t^*}).
+$$
 
-\begin{theorem}[Probability of $i$th Poisson Process Generating the Next Event]\label{thm:which_ppp}
-    Consider independent Poisson point processes
-    $$\{\N_1(t)\}_{t\geq0},\, \{\N_2(t)\}_{t\geq0},\, \dots,\,
-        \{\N_n(t)\}_{t\geq0}$$
-    having intensities $\lambda_1, \lambda_2, \dots, \lambda_n.$ For fixed
-    $t_0,$ let $\tau_i:=\inf\{t | \N(t_0 + t) - \N(t_0) = 1\}.$
-    Then
-    $$\Pr(\min_i{\tau_i} = \tau_j)
-        = \frac{\lambda_j}{\sum_{i = 1}^n \lambda_i}.$$
-\end{theorem}
-\begin{proof}
-    By Theorem \ref{thm:next_pp_event}, $\tau_i \sim \Exp(\lambda_i).$
-    Therefore \begin{align*}
-        \Pr(\min_i{\tau_i} = \tau_j) = & \int_0^\infty \Pr(\{\tau_i = x\} \cup \bigcup_{j\neq i}\{\tau_j > x\}) \diff x                    \\
-        =                              & \int_0^\infty \Pr(\{\tau_i = x\} \cup \bigcup_{j\neq i}\{\tau_j > x\}) \diff x                    \\
-        =                              & \int_0^\infty \Pr(\tau_i = x)\times \prod_{j\neq i}\Pr(\tau_j > x) \diff x\tag{by independence}   \\
-        =                              & \int_0^\infty \lambda_i\exp(-\lambda_i x) \times \prod_{j\neq i}\exp(-\lambda_j x) \diff x        \\
-        =                              & \lambda_i\int_0^\infty \exp(-(\sum_{i = 1}^n\lambda_j) x) \diff x                                 \\
-        =                              & \lambda_i\left[\frac{\exp(-(\sum_{i = 1}^n\lambda_j) x)}{\sum_{i = 1}^n\lambda_j}\right]_0^\infty \\
-        =                              & \frac{\lambda_i}{\sum_{i = 1}^n\lambda_j}
-    \end{align*}
-\end{proof}
+Therefore simulating the time to the next transition given
+the current number of individuals in each compartment just involves
+simulating from an exponential distribution. 
+Theorem \ref{thm:which_ppp} states that 
+given that a transition occurred, the probability it was due to 
+the process
+$\mathcal{E}_i,$ is proportional to its intensity. As soon as the transition
+occurs, all the intensities for each Poisson process will be updated, since
+the intensities are dependent on the number of individuals in each compartment.
 
-\section{Doob-Gillespie Algorithm}
+\subsection*{Doob-Gillespie Algorithm}
 
-All of this leads naturally to a common method of simulating the stochastic model. The Doob-Gillespie algorithm (often just called the Gillespie algorithm) is an algorithm that simulates a stochastic realisation of a model given a set of starting conditions.
-
-\begin{algorithm}
+\begin{algorithm}[htbp]
     \caption{The Doob-Gillespie Algorithm}\label{alg:doob}
     \begin{algorithmic}
         \State Initialise time $t \gets 0$ and initial state of the model $\mathbf{C}(0) := \{C_1(0), C_2(0), \dots, C_n(0)\}$
         \While{termination condition not met}
-        \State Calculate intensities $\lambda_i$ for all possible events $\mathcal{E}_i$
-        \State Calculate total intensity $\lambda = \sum_i \lambda_i$
-        \State Generate $\Delta t \sim \Exp(\lambda)$
-        \State Choose event $\mathrm{E}_i$ with probability $\frac{\lambda_i}{\lambda}$
+        \State Calculate intensities $\kappa_i$ for all possible events $\mathcal{E}_i$
+        \State Calculate total intensity $\kappa = \sum_i \kappa_i$
+        \State Generate $\Delta t \sim \Exp(\kappa)$
+        \State Choose event $\mathrm{E}_i$ with probability $\frac{\kappa_i}{\kappa}$
         \State Update time $t \gets t + \Delta t$
         \State Update state of $\mathbf{C}(t + \delta t) \gets \mathbf{C}(t) + \text{ change in state due to event } \mathcal{E}_i$
         \EndWhile
     \end{algorithmic}
 \end{algorithm}
 
+All of this leads naturally to a common method of simulating the stochastic 
+model through Algorithm \ref{alg:doob}. 
+The Doob-Gillespie algorithm 
+exploits the local behaviour of the compartments as described, sampling
+an exponential random variable, choosing an event with probabilities 
+proportional to their intensities, updating the model, and updating the 
+intensities given a 
+set of starting conditions \parencite{gillespie_exact_1977}.
+
 \begin{figure}[htbp]
     \includegraphics{doob_plots.pdf}
-    \caption{Exact stochastic simulations of the 3 different models using Algorithm \ref{alg:doob}. The parameters used were identical to those in Figure \ref{fig:ODE_outputs}}\label{fig:doob_outputs}
+    \caption{
+        Exact stochastic simulations of the 3 different models using 
+        Algorithm \ref{alg:doob}. The parameters used were identical to 
+        those in Figure \ref{fig:ODE_outputs}}
+        \label{fig:doob_outputs}
 \end{figure}
 
-\section{\texorpdfstring{$\tau$}{Lg}-leaping}
+Figure \ref{fig:doob_outputs} demonstrates a Doob-Gillespie simulations for the
+models discussed this chapter. Compared to the deterministic ODE simulations
+in Figure \ref{fig:ODE_outputs}, the stochastic simulations still has variation
+even near the equilibria.
 
-$\tau$-leaping exploits the local Poisson point process like behaviour of epidemiological models. Consider the SIS model, when $S_t = I_t = 10000.$ Events happen at a very high rate, meaning the $\Delta t$ found in each step of the Doob-Gillespie algorithm will be very small, but the rates also change a negligible amount after each event (compare $\gamma\times 10000$ to $\gamma\times 10001$ or $\gamma\times 9999$). Therefore we can approximate the number of events in a short time period $\tau$ as a Poisson point process with the total intensity $\lambda = \sum_i \lambda_i$ at time $t,$ with the probability of any one event having the same probability as above of $\frac{\lambda_i}{\lambda}.$ Therefore we have the following algorithm.
+\subsection*{\texorpdfstring{$\tau$}{Lg}-leaping}
+
+Because the Doob-Gillespie algorithm is an exact simulation, when the 
+intensities become large or many people are getting infected, the time step
+$\tau$ can become increasingly small. This can result in simulations taking
+a long time.
+
+$\tau$-leaping - Algorithm \ref{alg:tau_leaping} - further exploits the 
+local Poisson point process like behaviour of
+epidemiological models \parencite{gillespie_approximate_2001}. 
+Consider the SIS model, 
+when $S_t = I_t = 10000.$ Events happen at a very high rate, meaning 
+the $\Delta t$ found in each step of the Doob-Gillespie algorithm will be 
+very small, but the rates also change a negligible amount after each event 
+(compare $\gamma\times 10000$ to $\gamma\times 10001$ or $\gamma\times 9999$). 
+Therefore we can approximate the number of events in a short time period 
+$\tau$ as a Poisson point process with the total intensity 
+$\kappa = \sum_i \kappa_i$ at time $t,$ with the probability of any one 
+event having the same probability as above of $\frac{\kappa_i}{\kappa}.$ 
+Therefore we have the following algorithm.
 
 \begin{algorithm}
-    \caption{$\tau$-Leaping Algorithm}
+    \caption{$\tau$-Leaping Algorithm \cite{gillespie_approximate_2001}}
     \label{alg:tau_leaping}
     \begin{algorithmic}
         \State Initialise time $t \gets 0$ and initial state of the model $\mathbf{C}(0) := \{C_1(0), C_2(0), \dots, C_n(0)\}$
         \While{termination condition not met}
-        \State Calculate intensities $\lambda_i$ for all possible events $\mathcal{E}_i$
-        \State Calculate total intensity $\lambda = \sum_i \lambda_i$
+        \State Calculate intensities $\kappa_i$ for all possible events $\mathcal{E}_i$
+        \State Calculate total intensity $\kappa = \sum_i \kappa_i$
         \State Choose a suitable time step $\tau$ (this can be deterministic or adaptive)
-        \State Calculate Poisson random variable $X \sim \text{Poisson}(\lambda)$
+        \State Calculate Poisson random variable $X \sim \text{Poisson}(\kappa\tau)$
         \For{$i$ in 1 to $X$}
-        \State Choose event $\mathrm{E}_i$ with probability $\frac{\lambda_i}{\lambda}$
+        \State Choose event $\mathrm{E}_i$ with probability $\frac{\kappa_i}{\kappa}$
         \State Update state of $\mathbf{C}(t + \tau) \gets \mathbf{C}(t) + \text{ change in state due to event } \mathcal{E}_i$
         \EndFor
         \State Update time $t \gets t + \tau$

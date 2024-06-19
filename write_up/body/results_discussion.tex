@@ -1,4 +1,8 @@
-\chapter{Results and Discussion}
+\chapter{Results}
+
+We outline the results of the method first by validating that each step of
+the method had plausible outputs, and then by reporting the estimated
+parameters based on the observed data.
 
 \section{Validation}
 
@@ -52,15 +56,18 @@
     % \label{fig:validation}
 \end{figure}
 
-The hyperparameters, reported in Table \ref{tab:trained_hps}, and trained
-using leave one out cross validation
-and expected information acquisition function both
-converge smoothly, as seen in Figures \ref{fig:hyper_train} and \ref{fig:subEI},
-suggesting the gradient descent algorithm is well optimised.
-The violin plot of discrepency function in Figure \ref{fig:violin}
+The final hyperparameters, are reported in Table \ref{tab:trained_hps}.
+To ensure that our expected improvement and hyperparameter optimisation 
+functions converged, we plotted the initial trainings in 
+Figures \ref{fig:hyper_train} and \ref{fig:subEI}. The plots have a 
+smooth curve, demonstrating that both algorithms converged at a good
+rate.
+
+The violin plot of discrepancy function in Figure \ref{fig:violin}
 is well dispersed suggesting a good
-amount of exploration has been done, but the majority of samples are in the
-low discrepency region. This suggests a good exploration exploitation trade-off.
+amount of exploration of the parameter space has been done. A large number
+of samples were in areas of low mean log discrepancy, and so 
+this suggests a good exploration exploitation trade-off.
 
 \begin{figure}[htbp]
     \centering
@@ -74,7 +81,7 @@ low discrepency region. This suggests a good exploration exploitation trade-off.
     \begin{subfigure}[b]{0.5\textwidth}
         \centering
         \includegraphics[width=\textwidth]{
-            ../champagne_GP_images/gamma_L_slice_500_bolfi_updates_log_discrep.pdf
+            ../champagne_GP_images/gamma_L_slice_400_bolfi_updates_log_discrep.pdf
         }
     \end{subfigure}
     \hfill%
@@ -88,7 +95,7 @@ low discrepency region. This suggests a good exploration exploitation trade-off.
     \begin{subfigure}[b]{0.5\textwidth}
         \centering
         \includegraphics[width=\textwidth]{
-            ../champagne_GP_images/lambda_slice_500_bolfi_updates_log_discrep.pdf
+            ../champagne_GP_images/lambda_slice_400_bolfi_updates_log_discrep.pdf
         }
     \end{subfigure}
     \begin{subfigure}[b]{0.5\textwidth}
@@ -101,7 +108,7 @@ low discrepency region. This suggests a good exploration exploitation trade-off.
     \begin{subfigure}[b]{0.5\textwidth}
         \centering
         \includegraphics[width=\textwidth]{
-            ../champagne_GP_images/f_slice_500_bolfi_updates_log_discrep.pdf
+            ../champagne_GP_images/f_slice_400_bolfi_updates_log_discrep.pdf
         }
     \end{subfigure}
     \hfill%
@@ -115,18 +122,19 @@ low discrepency region. This suggests a good exploration exploitation trade-off.
     \begin{subfigure}[b]{0.5\textwidth}
         \centering
         \includegraphics[width=\textwidth]{
-            ../champagne_GP_images/r_slice_500_bolfi_updates_log_discrep.pdf
+            ../champagne_GP_images/r_slice_400_bolfi_updates_log_discrep.pdf
         }
     \end{subfigure}
     \caption{
         The left column of figures is the Gaussian process after initialisation
         $d_\GP^{(0)}(\btheta).$ The black line is $\E(d_\GP^{(0)}(\btheta)),$
         and the red lines are multiple realisations of
-        $d_\GP^{(0)}(\btheta).$ The right column of figures is after 500
+        $d_\GP^{(0)}(\btheta).$ The right column of figures is after 400
         sampling iterations, with the black line being
-        $\E(d_\GP^{(500)}(\btheta)).$
-        The blue dots are realisations of $\ln\mathcal{D}(\bm{\theta}),$ which
-        $d_\GP$ approximates predict the mean of. The parameters are varied
+        $\E(d_\GP^{(400)}(\btheta)).$
+        The blue dots are realisations of $\ln\mathcal{D}(\bm{\theta}).$
+        $d_\GP$ has not been trained on these realisations.
+        The parameters are varied
         univariately, with all other parameters fixed at the true parameters.
     }
     \label{fig:improving_GP}
@@ -144,7 +152,7 @@ low discrepency region. This suggests a good exploration exploitation trade-off.
     \begin{subfigure}[b]{0.5\textwidth}
         \centering
         \includegraphics[width=\textwidth]{
-            ../champagne_GP_images/alpha_slice_500_bolfi_updates_log_discrep.pdf
+            ../champagne_GP_images/alpha_slice_400_bolfi_updates_log_discrep.pdf
         }
     \end{subfigure}
     \hfill%
@@ -158,7 +166,7 @@ low discrepency region. This suggests a good exploration exploitation trade-off.
     \begin{subfigure}[b]{0.5\textwidth}
         \centering
         \includegraphics[width=\textwidth]{
-            ../champagne_GP_images/beta_slice_500_bolfi_updates_log_discrep.pdf
+            ../champagne_GP_images/beta_slice_400_bolfi_updates_log_discrep.pdf
         }
     \end{subfigure}
     \caption{
@@ -168,12 +176,12 @@ low discrepency region. This suggests a good exploration exploitation trade-off.
     \label{fig:treatment_GP_fig}
 \end{figure}
 
-Figure \ref{fig:improving_GP} suggests that after 500 iterations
+Figure \ref{fig:improving_GP} suggests that after 400 iterations
 $d_\GP(\btheta)$ fits to $\E(\ln\D(\btheta))$ well.
 The $\lambda$ slice has the sharpest minimum, whereas $\beta$
 does not appear to have much impact on the discrepancy.
 As the number of iterations increased, the Gaussian process visibly
-improved at fitting to the mean. Interum iterations of $d^{(t)}_\GP(\btheta)$
+improved at fitting to the mean. Interim iterations of $d^{(t)}_\GP(\btheta)$
 can be seen in the appendix.
 
 \section{Parameter estimation}
@@ -209,7 +217,7 @@ can be seen in the appendix.
     \end{subfigure}%
     \caption{
         Final univariate synthetic likelihoods $\hat{L}(\bm{\theta})$ after
-        500 sampling iterations. All values not shown were fixed at the true
+        400 sampling iterations. All values not shown were fixed at the true
         parameters.
     }
     \label{fig:final_synth_lik}
@@ -228,39 +236,54 @@ can be seen in the appendix.
     \begin{tabular}{c | c | c | c}
         Parameter  & True     & MLE     & ML Slice Estimate \\
         \hline
-        $\alpha$   & $0.124$  & $0.153$ & $0.17$            \\
-        $\beta $   & $0.429$  & $0.555$ & $0.52$            \\
+        $\alpha$   & $0.124$  & $0.153$ & $0.02$            \\
+        $\beta $   & $0.429$  & $0.555$ & $0.63$            \\
         $\gamma_L$ & $0.0026$ & $0.006$ & $0.005$           \\
-        $\lambda$  & $0.01$   & $0.01$  & $0.001$           \\
-        $f$        & $0.014$  & $0.024$ & $0.02$            \\
-        $r$        & $0.017$  & $0.023$ & $0.02$            \\
+        $\lambda$  & $0.01$   & $0.01$  & $0.01$            \\
+        $f$        & $0.014$  & $0.024$ & $0.017$           \\
+        $r$        & $0.017$  & $0.023$ & $0.022$           \\
     \end{tabular}
 \end{table}
 
-The synthetic likelihood of each parameter can be seen in Figure
-\ref{fig:final_synth_lik}. Unsurprisingly, $\lambda$ has the sharpest peak
-in the likelihood function. All likelihoods were unimodal.
-The maximum likelihood estimate for $\btheta$ as reported in Table
-\ref{tab:param_est} is very close to the true values of the parameters after
-500 iterations. This suggests that the synthetic likelihood approximates the
-true likelihood well. The maximum likelihood slice estimates were the
-univariate maximum likelihood
-estimates holding all other parameters at the true value. These are the peaks
-in Figure \ref{fig:final_synth_lik}.
-Since the maximum likelihood estimate was close to the true parameters,
-the maximum likelihood slice estimates were also close to the true values.
+For parameter estimation, we typically look at likelihood instead of 
+discrepancy. This is done by inverting 
+that distribution function (see Equation \ref{eq:fin_lik}). 
+In Table \ref{tab:param_est} we present the global maximum 
+likelihood estimate found by finding the maximum synthetic likelihood 
+$\argmax_{\btheta}\hat{L}(\btheta).$
 
-\section{Discussion and Future Work}
+In Figure \ref{fig:final_synth_lik} we show our final likelihood function 
+estimate from the trained Gaussian process.
+For simplicity we only present the likelihood across parameter slices, where 
+the parameter of 
+interest is allowed to vary, while all other parameters are held constant at
+their true values. The maximum likelihood values for each parameter slice
+is also presented in Table \ref{tab:param_est}, but do not vary much from the
+maximum likelihood estimates, and the true values. For this reason, 
+we can be confident that our synthetic likelihood is a good approximation of
+the true likelihood, despite the true likelihood being infeasible to compare
+to. Certain parameters such as $\lambda,$ $r,$ and $\gamma_L$ have sharper 
+likelihood peaks than parameters such as $\alpha$ and $\beta,$ suggesting the
+data we used may lend itself to estimating parameters such as $\lambda$ over
+the treatment parameters, although all likelihood slices calculated were
+unimodal.
+
+\chapter{Discussion}
 
 To our knowledge, the use of the synthetic likelihood as described above
 has not been used to calibrate a malaria model before.
 \Citeauthor{champagne_using_2022} calibrate the model we use
-by find the ODE equilibrium, and fitting a single parameter $\lambda$ to
-incidence data. Not only were we able to effectively
+by finding the ODE equilibrium, and fitting a single parameter $\lambda$ to
+incidence data. 
+Note that this comes with limitations. For example, this relies on data being
+observed when the disease is roughly at equilibria in the population.
+This is not desirable for modelling outbreaks or seasonality effects.
+\Citeauthor{champagne_using_2022}'s approach parameter calibration 
+does not work in these scenarios.
+
+In comparison, not only were we able to effectively
 recover the true $\lambda$ from a synthetic run, we were able to recover
 all model parameters simultaneously.
-A similar method has
-been set out for infectious diseases in \cite{gutmann_bayesian_2016}.
 
 This methodology is very robust to both frequentist and Bayesian inference.
 Under a Bayesian framework,
@@ -284,7 +307,9 @@ that improve on the method outlined in that manuscript.
 
 The most significant change is the choice to model the sample mean as a noisy
 Gaussian process, rather than modelling the discrepancy function as a noisy
-Gaussian process. Doing this does not lock us in to a distributional assumption
+Gaussian process. 
+Changing this assumption means that we are not subject to the distributional 
+assumption of normal noise and constant variance 
 with respect to $\D(\btheta).$ Once we have an approximation for the mean
 as a function of $\btheta,$ we could then choose a distribution that scales
 with the mean. This is analogous to the generalised linear modelling framework.
@@ -323,14 +348,14 @@ $$
 $$ where $\var[\hat{\D}(\btheta)] = \sigma^2(\btheta)$ and
 $\E(\hat{\D}(\btheta)) =\mu(\btheta)$ as required.
 
-The mean and variance don't have a linked structure in the discrepancy function
+The mean and variance do not have a linked structure in the discrepancy function
 which we used for the Champagne model.
 This can be seen particularly in the $\lambda$ slice in Figure
 \ref{fig:improving_GP}.
 For $\btheta$ with $\lambda < 0.03,$ $\var(\ln\D(\btheta))$, is small, and
 $\E(\ln\D(\theta))\approx 0$. However for $\lambda \approx 0.02,$ we also have
 $\E[\ln\D(\theta)] \approx 0,$ but the variance is observably larger. Therefore
-if we had modelled the sample variance of our log discrepency as
+if we had modelled the sample variance of our log discrepancy as
 as a noisy Gaussian process $s^2_\GP(\btheta)$ then we could have approximated
 $\D(\btheta)$ with
 $\hat{\D}(\theta) \sim \LN\left(\E(d_\GP(\btheta)), \sigma^2(\btheta)\right),$
@@ -342,18 +367,26 @@ parameter space, or even mean dependent. Disease model behaviour is heavily
 dependent on the values of the parameters. For example around bifurcation points
 a slight change in parameters may lead to a disease model that dies out some
 of the time, but reaches equilibrium in other runs. Here we would expect that
-$\var[\D(\btheta)]$ to be large. But when $\btheta$ is changed only a small
-amount such that the disease consistently dies out, the $\var[\D(\btheta)]$
+$\var[\D(\btheta)]$ to be large. This threshold is important in disease 
+modelling, and is called $R_0:$ the expected number of secondary cases a single
+infectious individual causes in a completely susceptible population.
+But when $\btheta$ is changed only a small
+amount such that $R_0<1,$ and so 
+the disease consistently dies out, the $\var[\D(\btheta)]$
 will be close to $0.$ Since the model
 run will always end with a disease free population and the summary statistics
 such as incidence or prevalence will always be $0.$ This is likely what is
 happen for very small $\lambda$ in Figure \ref{fig:improving_GP}.
 
-This highlights another problem. Around bifurcation points, it is expected that
-$\E(\D(\btheta))$ behaves erratically. \cite{gutmann_bayesian_2016} use a
-squared exponential kernel for their Gaussian process approximation of
+This highlights another problem. Around bifurcation points such as near where
+$R_0 = 1$, it is expected that
+$\E(\D(\btheta))$ behaves erratically. \Citeauthor{gutmann_bayesian_2016} use a
+squared exponential kernel for their Gaussian process approximation which
 cannot capture this behaviour without
 making any length scales very large.
+On the other hand, a Mat\'ern 5/2 kernel as we used is still smooth, but allows
+enough flexibility that sharp changes in the target function do not require
+overcompensation in the length scales.
 For an example, demonstrating the utility of the Mat\'ern
 kernel over the squared exponential in the case of a non smooth function,
 see \cite{jones_matern_2021}.
@@ -376,7 +409,8 @@ probability. There are multiple issues with this. The first is that
 \cite{brochu_tutorial_2010} wrongly reproduces the result in
 \cite{srinivas_gaussian_2010},
 \footnote{
-    One Python package that implements BOLFI notes this error, see:
+    One Python package that implements the methodology in
+    \cite{gutmann_bayesian_2016} notes this error, see:
     \url{
         https://github.com/elfi-dev/elfi/blob/dev/elfi/methods/bo/acquisition.py
     }
@@ -408,7 +442,7 @@ to the same point repeatedly.
 
 Although we have validated this method on a relatively low dimensional
 $\btheta,$ for models with high dimensionality, it is likely that construction
-of a synthetic likelihood will have greater comparitive benefits
+of a synthetic likelihood will have greater comparative benefits
 to other methods such as approximate Bayesian computation.
 This is because as the dimensionality increases, the curse of dimensionality
 means that randomly drawn points will be increasingly further away on average,
@@ -421,7 +455,7 @@ One way to reduce the computational overhead of this method would be to reduce
 the number of samples were used to calculate the sample mean. This paper used
 30 to ensure convergence to the normal distribution, however less could be
 taken with the trade off of a larger observation variance. The sample mean
-can be calculated in parallel, so the rate limiting step is miminising the
+can be calculated in parallel, so the rate limiting step is minimising the
 acquisition function each iteration. Rather than sampling
 uniformly across a single parameter, multivariate noise could be added to
 $\btheta$ to sample multiple sample means at once.

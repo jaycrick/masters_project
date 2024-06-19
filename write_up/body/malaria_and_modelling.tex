@@ -1,12 +1,44 @@
 \chapter{Malaria and Malaria Models}
 
-\section{Malaria}
-
-Malaria kills around 600,000 people each year, with over 75\% of deaths
+Malaria as an infectious disease has been the focus of mathematical
+modelling efforts for over a century \parencite{smith_ross_2012}.
+Despite ongoing eradication efforts, in 2022
+malaria killed over 600,000 people, with over 75\% of deaths
 occurring in children under 5 years old
-\parencite{world_health_organization_world_2022}.
+\parencite{world_health_organization_world_2022}. Six
+species of the parasite able to infect humans
+\parencite{milner_malaria_2018}. Although \textit{Plasmodium falciparum} is
+responsible for around 90\% of total human malaria deaths, outside of Africa
+\textit{Plasmodium vivax} is the leading cause of malaria infection
+\parencite{zekar_plasmodium_2023, adams_biology_2017}.
+It is likely that death and severe disease attributable to \textit{P.\ vivax}
+has been traditionally underestimated. In view of recent evidence, the
+notion that \textit{P.\ vivax} is benign is unsustainable
+\parencite{cowman_malaria_2016}.
 
-\subsection*{Plasmodium Life Cycle}
+The most common symptom of malaria infection in persons without natural or
+acquired immunity is fever. After treatment, fever will usually subside over a
+few days. In severe cases, malaria can lead to anemia, cerebral malaria (coma),
+and respiratory distress \parencite{cowman_malaria_2016}. However,
+in a population with stable malarial infection, immunity increases with age,
+with the proportion of severe cases negligible after age 10, and asymptomatic
+infection being the dominant infection type beyond age 15
+\parencite{cowman_malaria_2016}.
+
+\subsection*{Lifecycle}
+
+Part of the ongoing interest in modelling malaria is its complicated lifecycle.
+Malaria is a vector borne disease, needing both human (or other vertebrate) and
+mosquito hosts to complete it's lifecycle. Malaria first
+enters the human blood stream via the skin after the
+female mosquito has a blood meal. From the blood stream it proceeds to
+the liver where is proliferates and is released into the blood where it enters
+the red blood cells and reproduces further. Eventually, the
+parasites undergo sexual differentiation, maturing in the bone marrow
+until they are
+released into the blood stream to be consumed by a mosquito during a blood feed
+where it matures into sporozoites ready to reinfect a new vertebrate host
+\parencite{cowman_malaria_2016}.
 
 \begin{figure}[htbp]
     \centering
@@ -19,52 +51,12 @@ occurring in children under 5 years old
     \label{fig:mal_lc}
 \end{figure}
 
-Malaria is a vector borne disease, needing both human (or other vertebrate) and
-mosquito hosts to complete it's lifecycle (Figure \ref{fig:mal_lc}). Six
-species of the unicellular parasite able to infect humans
-\parencite{milner_malaria_2018}. Although \textit{Plasmodium falciparum} is
-responsible for around 90\% of total human malaria deaths, outside of Africa
-\textit{Plasmodium vivax} is the leading cause of malaria infection
-\parencite{zekar_plasmodium_2023, adams_biology_2017}. Sporozoites (a stage of
-the malaria parasite) enter the human blood stream via the skin after the
-female mosquito has a blood meal. From the blood stream they proceed to enter
-into the liver. Once a hepatocyte (liver cell) is invaded, the parasite will
-undergo asexual reproduction into up to 40,000 merozoites per hepatocyte, which
-are released into the blood stream . These merozoites then bind to, and invade
-erythrocytes (red blood cells), once again reproducing 16-32 fold in a process
-called schizogony. At this point, the erythrocyte membrane is ruptured,
-allowing for \textit{Plasmodium} to invade new erythrocytes. Eventually, the
-merozoites undergo sexual differentiation, resulting in the sequestration and
-maturation of male and female gametocytes in the bone marrow, until they are
-released into the blood stream to be consumed by a mosquito during a blood feed
-where it matures into sporozoites ready to reinfect a new vertebrate host when
-the mosquito next takes a blood feed \parencite{cowman_malaria_2016}.
-
-\subsection*{Illness, Treatment, and Immunity}
-
-The most common symptom of malaria infection in persons without natural or
-acquired immunity is fever. After treatment, fever will usually subside over a
-few days. In severe cases, malaria can lead to anemia, cerebral malaria (coma),
-and respiratory distress \parencite{cowman_malaria_2016}.
-
-In a population with stable malarial infection, immunity increases with age,
-with the proportion of severe cases negligible after age 10, and asymptomatic
-infection being the dominant infection type beyond age 15
-\parencite{cowman_malaria_2016}.
-
-\subsection*{Control and Eradication}
-
-Widespread use of DDTs in the mid 20th century led to significant successes in
-some countries towards the control and eradication of malaria. In the 1980s and
-1990s, drug resistant malaria led to a doubling of malaria-attributable death.
-Currently, the control techniques include insecticide treated bed nets, and a
-mixture of antimalarial drugs \parencite{cowman_malaria_2016}.
-
-\subsection*{\textit{Plasmodium vivax}}
-
-Unlike \textit{P.\ falciparum}, \textit{P.\ vivax} has hypnozoites, which are a
+Figure \ref{fig:mal_lc} depicts this lifecycle for \emph{P. vivax} malaria,
+which has an additional stage in
+its lifecycle to \textit{P.\ falciparum}. \emph{P. vivax} malaria can form
+hypnozoites, a
 dormant liver stage of the parasite. These can remain dormant for weeks and
-even months, leading to recurrent infections and illness, possibily until the
+even months, leading to recurrent infections and illness, possibly until the
 conditions for transmission are more favourable. In subtropical/temperate
 areas, the incubation periods can be between 8-12 months, compared to 3-4 weeks
 in tropical regions. \cite{price_plasmodium_2020}. \textit{P.\ vivax} also has
@@ -72,24 +64,17 @@ lower levels of the blood stage parasite during infection, which means
 diagnosis is more difficult, and it has an increased proportion of asymptomatic
 cases \parencite{adams_biology_2017}.
 
-It is likely that death and severe disease attributable to \textit{P.\ vivax}
-has been traditionally underestimated. In view of recent evidence, the old
-notion that \textit{P.\ vivax} is benign has become untenable
-\parencite{cowman_malaria_2016}.
+\section{Mathematical Modelling of Malaria}
 
-\subsection*{Motivating Malaria Models}
-
-Levels of asymptomatic cases and latent parasite (in the case of
+Levels of asymptomatic cases and dormant parasite (in the case of
 \textit{P.\ vivax}) are impossible or difficult to experimentally determine
 without mass testing. By creating a model of the disease, and calibrating the
 model so that it simulates symptomatic case levels reported by health
 authorities, it is possible to estimate these previously `hidden' levels.
-Furthermore, modelling malaria allows for modelling the effect of public health
-interventions such as mass treatment or testing, in order to determine an
-estimate of how effective the intervention may be, before large amounts of
-money are spent on trials.
-
-\section{Malaria Models}
+Furthermore, malaria models allow us to simulate the effects of public health
+interventions such as mass treatment or testing. Malaria models also allow
+us to estimate how economical interventions are likely to be,
+before large amounts of money are spent on trials.
 
 \subsection*{Ross-Macdonald}
 
@@ -127,10 +112,14 @@ money are spent on trials.
     \label{fig:ross_mac}
 \end{figure}
 
-Modelling malaria presents an additional challenge, as the disease is
-transmitted from mosquito to human and human to mosquito, rather than having
-direct human to human transmission. The most simple Ross-Macdonald model is
-depicted in figure \ref{fig:ross_mac}. The ODEs for this model are
+The most basic model capturing the fundamental lifecycle of malaria is
+commonly referred to as the Ross-Macdonald model.
+One such example of such a model was used in \cite{aron_population_1982}, and is
+depicted in Figure \ref{fig:ross_mac}. It accounts for human to
+mosquito and mosquito to human transmission by having compartments for
+susceptible and infected humans ($S_\mathrm{H}$ and $I_\mathrm{H}$), as well as
+susceptible and infected mosquitos ($S_\mathrm{M}$ and $I_\mathrm{M}$).
+The ODEs for this model are
 \begin{align*}
     \frac{\diff S_\mathrm{H}}{\diff t}
     = & \, \gamma_\mathrm{H}I_\mathrm{H}
@@ -147,17 +136,20 @@ depicted in figure \ref{fig:ross_mac}. The ODEs for this model are
     - \gamma_\mathrm{M}I_\mathrm{M}
 \end{align*}
 where $b$ is the biting rate per mosquito, and $T_{\mathrm{HM}}$ is the
-probability of tranmission to a human given a bite by an infectious mosquito,
+probability of transmission to a human given a bite by an infectious mosquito,
 with $T_{\mathrm{MH}}$ being vice-versa. Note that it is
 $\frac{I_\mathrm{H}}{N_\mathrm{H}}$ in the mosquito dynamics. Biologically this
 is assuming the number of blood meals a mosquito takes per day is invariant to
-the size of the human population. Mosquitos don't `recover' from malaria due to
+the size of the human population. Mosquitos do not have a possibility of 
+leaving the infected stage apart from death due to
 their short lifespans, but the births and deaths are mathematically equivalent
 to assuming that the rate of `recovery' amongst mosquitos is
 $\mu_\mathrm{M}I_\mathrm{M}$ per unit time, with no population dynamics.
 
-A Ross-Macdonald style model simplifies the lifecycle of malaria to the
-following four steps \parencite{smith_ross_2012}: \begin{enumerate}
+The broader class of Ross-Macdonald style models simplify the
+lifecycle of malaria to the
+following four steps \parencite{smith_ross_2012}:
+\begin{enumerate}
     \item Malaria is transmitted to human (or vertebrate) via a blood feed.
     \item Malaria proliferates in the human host until it circulates in the
           peripheral blood
@@ -167,6 +159,11 @@ following four steps \parencite{smith_ross_2012}: \begin{enumerate}
 \end{enumerate}
 
 \subsection*{Models of \textit{P.\ Vivax} Malaria}
+
+The basic Ross-Macdonald model does not sufficiently capture the dynamics
+of \textit{P. vivax}, since it does not consider relapses. Therefore
+\textit{P. vivax} specific models have been proposed which introduce
+compartments for dormant liver stage infection.
 
 \subsubsection*{White Model}
 
@@ -210,10 +207,58 @@ following four steps \parencite{smith_ross_2012}: \begin{enumerate}
     \label{fig:white_2}
 \end{figure}
 
-The White model - described in \cite{white_variation_2016} (tropical model) and
-depicted in Figure \ref{fig:white_2} - is characterised by the following
-ordinary differential equations:
+One such model that incorporates a dormant stage is the White model 
+for \textit{P. vivax} depicted in
+Figure \ref{fig:white_2} \parencite[Tropical Model]{white_variation_2016}. 
+The model is comprised of six compartments: \begin{enumerate}
+    \item \textbf{
+              $S_0$ (Susceptible Individuals - No Latent Hypnozoite Liver
+              Stage Infection)
+          }: People in this compartment have no form of malarial infection.
+          These people are susceptible to new malarial infections,
+          and are infected into compartment $I_\mathrm{L}$ (with both blood
+          and liver stage parasites) with rate $\lambda_\mathrm{H}$.
+    \item \textbf{
+              $I_\mathrm{L}$ (Infected Individuals - Both Blood Stage and Latent
+              Hypnozoite Liver Stage Infection)
+          }:  Individuals in this compartment have both an active blood-stage
+          infection, and latent hypnozoite infection in the liver. 
+          Individuals in $I_\mathrm{L}$ can
+          progress to either $I_0$ through the clearance of liver stage
+          infection with rate $\gamma_\mathrm{L},$ or to $S_\mathrm{L}$ through
+          clearance of blood stage infection with rate $r$.
+    \item \textbf{
+              $I_0$ (Infected Individuals - Blood-Stage Infection Only)
+          }: Individuals in $I_0$ have a blood-stage infection with no
+          latent hypnozoite infection in the liver. They are be reinfected into
+          $I_\mathrm{L}$ with rate $\lambda_\mathrm{H}$, relapse with rate $f$.
+          Blood-stage infection is cleared (moving into compartment $S_0$) with
+          rate $r$.
+    \item \textbf{
+              $S_\mathrm{L}$ (Susceptible Individuals -
+              Blood-Stage Infection Only)
+          }: Individuals in $S_\mathrm{L}$ have latent hypnozoite infection in
+          the liver without blood-stage infection. They get novel infection
+          through a mosquito bite into $I_\mathrm{L}$ with rate
+          $\lambda_\mathrm{H}$, or hypnozoite activation with rate $f$.
+          This means that those in $S_\mathrm{L}$ move to compartment
+          $I_\mathrm{L}$ with total rate $\lambda_\mathrm{H} + f.$
+          Alternatively the hypnozoites are cleared from the liver
+          (moving to compartment $S_0$) with rate $\gamma_\mathrm{L}.$
+    \item \textbf{
+              $S_\mathrm{M}$ (Susceptible Mosquitoes)
+          }:
+          Suspectable mosquitoes become infectious at rate
+          $\lambda_\mathrm{M}p.$ They die at rate
+          $g + \lambda_\mathrm{M}(1 - p).$ Since there is a constant mosquito
+          population assumption, mosquitoes are born into this state at rate
+          $g + \lambda_\mathrm{M}.$
+    \item \textbf{$I_\mathrm{M}$ (Infectious Mosquitoes)}:
+          Infectious mosquitos die at rate $g + \lambda_\mathrm{M}(1 - p).$
+\end{enumerate}
 
+The White model is characterised by the following
+ODEs:
 \begin{align*}
     \frac{\diff S_0}{\diff t}
     = & -\lambda_\mathrm{H} S_0 + rI_0 + \gamma_\mathrm{L}S_\mathrm{L} \\
@@ -234,62 +279,15 @@ ordinary differential equations:
     \tag{$I_0 + I_\mathrm{L}=$ total number of bloodstage infections}.
 \end{align*}
 
-It modifies the Ross-Macdonald models, to capture the differences in disease
-progression between \textit{P.\ vivax} and \textit{P.\ falciparum}.
-In particular, the White model includes the dormant liver stage that is
-unique to \textit{P.\ vivax}.
+Note that here each compartment is expressed as a proportion of the population.
 
-The model is comprised of six compartments: \begin{enumerate}
-    \item \textbf{
-              $S_0$ (Susceptible Individuals - No Latent Hypnozoite Liver
-              Stage Infection)
-          }: People in this compartment have no form of malarial infection.
-          These people are susceptible to new malarial infections,
-          and are infected into compartment $I_\mathrm{L}$ (with both blood
-          and liver stage parasites) with rate $\lambda_\mathrm{H}$.
-    \item \textbf{
-              $I_\mathrm{L}$ (Infected Individuals - Both Blood Stage and Latent
-              Hypnozoite Liver Stage Infection)
-          }:  Individuals in this compartment have both an active blood-stage
-          infection, and latent hypnozoite infection in the liver. They can
-          progress to either $I_0$ through the clearance of liver stage
-          infection with rate $\gamma_\mathrm{L},$ or to $S_\mathrm{L}$ through
-          clearance of blood stage infection with rate $r$.
-    \item \textbf{
-              $I_0$ (Infected Individuals - Blood-Stage Infection Only)
-          }: Those in this compartment have a blood-stage infection with no
-          latent hypnozoite infection in the liver. They are be reinfected into
-          $I_\mathrm{L}$ with rate $\lambda_\mathrm{H}$, relapse with rate $f$.
-          Blood-stage infection is cleared (moving into compartment $S_0$) with
-          rate $r$.
-    \item \textbf{
-              $S_\mathrm{L}$ (Susceptible Individuals -
-              Blood-Stage Infection Only)
-          }: Those in this compartment have latent hypnozoite infection in
-          the liver without blood-stage infection. They get novel infection
-          through a mosquito bite into $I_\mathrm{L}$ with rate
-          $\lambda_\mathrm{H}$, or hypnozoite activation with rate $f$.
-          This means that those in $S_\mathrm{L}$ move to compartment
-          $I_\mathrm{L}$ with total rate $\lambda_\mathrm{H} + f.$
-          Alternatively the hypnozoites are cleared from the liver
-          (moving to compartment $S_0$) with rate $\gamma_\mathrm{L}.$
-    \item \textbf{
-              $S_\mathrm{M}$ (Susceptible Mosquitoes)
-          }:
-          Suspectable mosquitoes become infectious at rate
-          $\lambda_\mathrm{M}p.$ They die at rate
-          $g + \lambda_\mathrm{M}(1 - p).$ Since there is a constant mosquito
-          population assumption, mosquitoes are born into this state at rate
-          $g + \lambda_\mathrm{M}.$
-    \item \textbf{$I_\mathrm{M}$ (Infectious Mosquitoes)}:
-          Infectious mosquitos die at rate $g + \lambda_\mathrm{M}(1 - p).$
-\end{enumerate}
-
+The force of infection for humans is defined as
 $\lambda_\mathrm{H} := mabI_\mathrm{M}$ where $m$ is the number of mosquitos
 per human (held constant since there is no birth or death in the human
 dynamics), $a$ is the mosquito biting rate, and $b$ is the probability that a
 human bitten by an infectious mosquito develops an infection.
 
+The force of infection for mosquitos is defined as
 $\lambda_\mathrm{M} := ac(I_0 + I_\mathrm{L})$ where $a$ is defined above,
 and $c$ is the probability that a mosquito bite on an infectious mosquito
 causes the mosquito to become infectious. $g$ can be interpreted as the natural
@@ -307,7 +305,7 @@ where of the mosquitos that would develop malaria after a bite, a proportion
 $1 - p$ die instantly. This applies to both the susceptible and infectious
 mosquitoes. Presumably this approximates a model where mosquitoes are moved
 to an `exposed' compartment for $n$ time, after initial infection,
-however no justification is given in \parencite{white_variation_2016} for
+however no justification is given by \Citeauthor{white_variation_2016} for
 this additional parameter $n$. A more straightforward $SI$ model could be
 constructed that absorbs $c$ and $n$ into the single parameter $c^*$, such
 that it becomes the proportion of mosquito bites on blood stage infectious
@@ -336,7 +334,7 @@ This model does not account for continual depletion of liver stage parasites
 which would vary the rate of relapse over time (through clearance or relapse).
 It also does not directly model any interventions or case importations. The
 lack of population dynamics means the model may only be useful on a small time
-scale. Finally, it doesn't account for any importation of disease from an
+scale. Finally, it does not account for any importation of disease from an
 outside area, so if $S_0 = 1,$ \textit{P.\ vivax} is presumed permanently
 eradicated.
 
@@ -358,10 +356,22 @@ eradicated.
         \draw[->] (I0) edge[in = 80, out = 280, sloped] node [above] {$\lambda I_\mathrm{total} + \delta$} (IL);
         \draw[->] (I0) edge node [midway, label=above:{$r$}] (r2) {} (S0);
     \end{tikzpicture}
-    \caption{Diagram for \textit{P.\ vivax} model described by \cite{champagne_using_2022}. $I_\mathrm{total} = I_0 + I _\mathrm{L}.$ Since the mosquito dynamics have been removed, $\lambda$ now not has no dependencies on the number of infectious mosquitos.}\label{fig:champ_diag}
+    \caption{
+        Diagram for \textit{P.\ vivax} model described by
+        \cite{champagne_using_2022}.
+        $I_\mathrm{total} = I_0 + I _\mathrm{L}.$ Since the mosquito dynamics
+        have been removed, $\lambda$ now not has no dependencies on the number
+        of infectious mosquitos.
+    }
+    \label{fig:champ_diag}
 \end{figure}
 
-The Champagne model - described in \parencite{champagne_using_2022} and diagrammatically depicted in figure \ref{fig:champ_diag} - both simplifies and extends the White model. The model assumes human to human transmission, removing mosquito dynamics, and extends it by adding in a rate of imported cases and treatment of malarial infection. It is characterised by the system of ordinary differential equations
+The Champagne model - described in \parencite{champagne_using_2022} and
+diagrammatically depicted in figure \ref{fig:champ_diag} -
+both simplifies and extends the White model. The model assumes human to
+human transmission, removing mosquito dynamics, and extends it by adding
+in a rate of imported cases and treatment of malarial infection.
+It is characterised by the system of ODEs:
 \begin{align*}
     \frac{\diff I_\mathrm{L}}{\diff t} = & (1 - \alpha)(\lambda I_\mathrm{total} + \delta)(S_0 + S_\mathrm{L}) + (\lambda I_\mathrm{total} + \delta)I_0 + (1 - \alpha)fS_\mathrm{L} - \gamma_\mathrm{L}I_\mathrm{L} - rI_\mathrm{L}  \\
     \frac{\diff I_0}{\diff t} =          & -(\lambda I_\mathrm{total} + \delta)I_0 + \gamma_\mathrm{L}I_\mathrm{L} - rI_0                                                                                                            \\
@@ -369,14 +379,19 @@ The Champagne model - described in \parencite{champagne_using_2022} and diagramm
     \frac{\diff S_0}{\diff t} =          & -(1 - \alpha\beta)(\lambda I_\mathrm{total} + \delta)S_0 + (\lambda I_\mathrm{total} + \delta)\alpha\beta S_\mathrm{L} + \alpha\beta fS_\mathrm{L} + \gamma_\mathrm{L}S_\mathrm{L} + rI_0
 \end{align*} where $I_\mathrm{total} := I_0 + I_\mathrm{L}.$
 
-The compartments have the same interpretation as in the White model, however the rates between compartments are significantly modified.
+The compartments $S_0, I_0, I_\mathrm{L}$ and $S_\mathrm{L}$ 
+have the same interpretation as in the White model,
+however the rates between compartments are significantly modified.
 
-The new parameters are $\lambda:$ the rate of infection,
-$\delta:$ importation rate,
-$\alpha:$ proportion of those infected who clear blood stage
-infections through immediate treatment, and
-$\beta:$ proportion of those cleared of blood stage infection who
-are also cleared of liver stage parasites (radical cure)
+The new parameters are
+\begin{itemize}
+    \item $\lambda:$ the rate of infection
+    \item $\delta:$ importation rate
+    \item $\alpha:$ proportion of those infected who clear blood stage
+          infections through immediate treatment, and
+    \item $\beta:$ proportion of those cleared of blood stage infection who
+          are also cleared of liver stage parasites (radical cure).
+\end{itemize}
 In other words, the proportion of infected individuals $\alpha\beta$ are
 completely cured from liver and blood stage parasites. The model assumes
 treatment clears infection instantaneously. Individuals in $S_\mathrm{L}$ who
@@ -384,4 +399,11 @@ relapse or get a new infection are assumed to be cured with the same
 proportions as new infections from $S_0,$ but individuals in $I_0$ who are
 superinfected are assumed not to seek treatment.
 
-In contrast to the White model, the Champagne model allows analysis of potential treatment interventions, or how much of an impact limiting the importation rate might have on case numbers (through border control/testing). Although the lack of mosquito dynamics simplifies the model and it's running, it is unrealistic. The model still has some of the same problems as the White model, such as not incorporating hypnozoite depletion rates and a lack of population dynamics, meaning all analytic results are done assuming the system is at equilibrium.
+In contrast to the White model, the Champagne model allows analysis of
+potential treatment interventions, or how much of an impact limiting the
+importation rate might have on case numbers (through border control/testing).
+Although the lack of mosquito dynamics simplifies the model and it's running,
+it is unrealistic. The model still has some of the same problems as the White
+model, such as not incorporating hypnozoite depletion rates and a lack of
+population dynamics, meaning all analytic results are done assuming the system
+is at equilibrium.
