@@ -8,21 +8,21 @@ parameters based on the observed data.
 
 \begin{table}[htbp]
     \caption{
-        Final Gaussian process hyperparameters
+        Final optimised Gaussian process hyperparameters
     }
     \label{tab:trained_hps}
     \centering
     \begin{tabular}{c|c}
         Hyperparameter    & Final value \\
-        $\sigma_o^2$      & $0.07$      \\
-        $\sigma_k^2$      & $0.707$     \\
-        $\ell_\alpha$     & $0.324$     \\
-        $\ell_\beta$      & $0.715$     \\
-        $\ell_{\gamma_L}$ & $0.010$     \\
+        $\sigma_o^2$      & $0.064$      \\
+        $\sigma_k^2$      & $0.762$     \\
+        $\ell_\alpha$     & $0.362$     \\
+        $\ell_\beta$      & $1.229$     \\
+        $\ell_{\gamma_L}$ & $0.009$     \\
         $\ell_\lambda$    & $0.006$     \\
         $\ell_f$          & $0.016$     \\
-        $\ell_r$          & $0.016$     \\
-        $m_\GP$           & $0.879$
+        $\ell_r$          & $0.017$     \\
+        $m_\GP$           & $0.881$
     \end{tabular}
 \end{table}
 
@@ -31,7 +31,7 @@ parameters based on the observed data.
     \begin{minipage}[b]{0.33\textwidth}
         \centering
         \includegraphics[width=\textwidth]{discreps_violin.pdf}
-        \caption{$\smtheta$ violin plot}
+        \caption{Sampled $\smtheta$ violin plot}
         \label{fig:violin}
     \end{minipage}
     \begin{minipage}[b]{0.66\textwidth}
@@ -39,13 +39,23 @@ parameters based on the observed data.
         \begin{minipage}[b]{\textwidth}
             \centering
             \includegraphics[width=\textwidth]{hyperparam_loss_log_discrep.pdf}
-            \caption{Hyperparameter training}
+            \caption[{Hyperparameter optimisation validation}]{
+                A plot showing the value of the leave-one-out 
+                cross-validation 
+                log predictive likelihood for each gradient descent
+                iteration.
+            }
             \label{fig:hyper_train}
         \end{minipage}
         \begin{minipage}[b]{\textwidth}
             \centering
             \includegraphics[width=\textwidth]{initial_EI_loss_training.pdf}
-            \caption{Finding $\argmin_{\btheta}\A_\EI(\btheta)$}
+            \caption[{
+                Acquisition function minimisation
+            }]{
+                A plot showing the value of $\argmin_{\btheta}\A_\EI(\btheta)$
+                for each gradient descent iteration.
+            }
             \label{fig:subEI}
         \end{minipage}
     \end{minipage}
@@ -56,11 +66,11 @@ parameters based on the observed data.
     % \label{fig:validation}
 \end{figure}
 
-The final hyperparameters, are reported in Table \ref{tab:trained_hps}.
+The final hyperparameters are reported in Table \ref{tab:trained_hps}.
 To ensure that our expected improvement and hyperparameter optimisation 
-functions converged, we plotted the initial trainings in 
+functions converged, we plotted the initial training in 
 Figures \ref{fig:hyper_train} and \ref{fig:subEI}. The plots have a 
-smooth curve, demonstrating that both algorithms converged at a good
+smooth curve, demonstrating that both algorithms converged at a reasonable
 rate.
 
 The violin plot of discrepancy function in Figure \ref{fig:violin}
@@ -125,7 +135,10 @@ this suggests a good exploration exploitation trade-off.
             ../champagne_GP_images/r_slice_400_bolfi_updates_log_discrep.pdf
         }
     \end{subfigure}
-    \caption{
+    \caption[{
+        Initial and final regressed Gaussian processes for each parameter 
+        except for treatment parameters
+    }]{
         The left column of figures is the Gaussian process after initialisation
         $d_\GP^{(0)}(\btheta).$ The black line is $\E(d_\GP^{(0)}(\btheta)),$
         and the red lines are multiple realisations of
@@ -169,7 +182,10 @@ this suggests a good exploration exploitation trade-off.
             ../champagne_GP_images/beta_slice_400_bolfi_updates_log_discrep.pdf
         }
     \end{subfigure}
-    \caption{
+    \caption[{
+        Initial and final regressed Gaussian processes for both
+        treatment parameters
+    }]{
         Gaussian process approximations of the treatment parameters, as with
         Figure \ref{fig:improving_GP}
     }
@@ -184,7 +200,7 @@ As the number of iterations increased, the Gaussian process visibly
 improved at fitting to the mean. Interim iterations of $d^{(t)}_\GP(\btheta)$
 can be seen in the appendix.
 
-\section{Parameter estimation}
+\section{Parameter Estimates and Synthetic Likelihoods}
 
 \begin{figure}[htbp]
     \centering
@@ -215,7 +231,9 @@ can be seen in the appendix.
         \centering
         \includegraphics[width=\textwidth]{r_slice_synth_likelihood.pdf}
     \end{subfigure}%
-    \caption{
+    \caption[{
+        Synthetic likelihood for all parameters
+    }]{
         Final univariate synthetic likelihoods $\hat{L}(\bm{\theta})$ after
         400 sampling iterations. All values not shown were fixed at the true
         parameters.
@@ -224,7 +242,10 @@ can be seen in the appendix.
 \end{figure}
 
 \begin{table}[htbp]
-    \caption{
+    \caption[{
+        Global and univariate maximum likelihood estimates for all model 
+        parameters
+    }]{
         Estimates of our model parameters.
         The maximum likelihood estimate (MLE) of the true parameters using
         $\hat{L}.$ The maximum slice estimate was the one-dimensional
@@ -236,12 +257,12 @@ can be seen in the appendix.
     \begin{tabular}{c | c | c | c}
         Parameter  & True     & MLE     & ML Slice Estimate \\
         \hline
-        $\alpha$   & $0.124$  & $0.153$ & $0.02$            \\
-        $\beta $   & $0.429$  & $0.555$ & $0.63$            \\
+        $\alpha$   & $0.124$  & $0.049$ & $0.02$            \\
+        $\beta $   & $0.43$   & $0.42$  & $0.64$            \\
         $\gamma_L$ & $0.0026$ & $0.006$ & $0.005$           \\
         $\lambda$  & $0.01$   & $0.01$  & $0.01$            \\
-        $f$        & $0.014$  & $0.024$ & $0.017$           \\
-        $r$        & $0.017$  & $0.023$ & $0.022$           \\
+        $f$        & $0.014$  & $0.018$ & $0.017$           \\
+        $r$        & $0.017$  & $0.024$ & $0.022$           \\
     \end{tabular}
 \end{table}
 
@@ -258,8 +279,8 @@ For simplicity we only present the likelihood across parameter slices, where
 the parameter of 
 interest is allowed to vary, while all other parameters are held constant at
 their true values. The maximum likelihood values for each parameter slice
-is also presented in Table \ref{tab:param_est}, but do not vary much from the
-maximum likelihood estimates, and the true values. For this reason, 
+are also presented in Table \ref{tab:param_est} but do are very similar to the
+maximum likelihood estimates and the true values. For this reason, 
 we can be confident that our synthetic likelihood is a good approximation of
 the true likelihood, despite the true likelihood being infeasible to compare
 to. Certain parameters such as $\lambda,$ $r,$ and $\gamma_L$ have sharper 
@@ -270,15 +291,15 @@ unimodal.
 
 \chapter{Discussion}
 
-To our knowledge, the use of the synthetic likelihood as described above
+To our knowledge, the synthetic likelihood described above
 has not been used to calibrate a malaria model before.
 \Citeauthor{champagne_using_2022} calibrate the model we use
-by finding the ODE equilibrium, and fitting a single parameter $\lambda$ to
+by finding the ODE equilibrium and fitting a single parameter $\lambda$ to
 incidence data. 
-Note that this comes with limitations. For example, this relies on data being
-observed when the disease is roughly at equilibria in the population.
+Note that this comes with limitations. For example, it relies on data being
+observed when the disease is roughly at equilibrum in the population.
 This is not desirable for modelling outbreaks or seasonality effects.
-\Citeauthor{champagne_using_2022}'s approach parameter calibration 
+\Citeauthor{champagne_using_2022}'s approach to parameter calibration 
 does not work in these scenarios.
 
 In comparison, not only were we able to effectively
@@ -288,7 +309,7 @@ all model parameters simultaneously.
 This methodology is very robust to both frequentist and Bayesian inference.
 Under a Bayesian framework,
 since we can evaluate the synthetic likelihood for any $\btheta,$
-we can use a Metropolis Hasting sampler, to obtain samples from a distribution
+we can use a Metropolis Hasting sampler to obtain samples from a distribution
 approximately equal to the posterior distribution $\Pr(\btheta | \by^\obs).$
 Alternatively, standard frequentist inference can also be used on our
 synthetic likelihood $\hat{L}.$ For example, numerically approximating the
@@ -297,47 +318,49 @@ $$
     F(\hat{\theta})
     = -\frac{\partial \ln\hat{L}}{\partial \btheta\partial \btheta^T}(\hat{\btheta})
 $$
-allows us to do hypothesis testing and construct confidence intervals,
+allows us to do hypothesis testing and construct confidence intervals
 since asymptotically $\hat{\btheta} \sim N(\btheta, F^{-1}(\hat{\btheta}))$
 (see \cite{fahrmeir_multivariate_2013}).
 
-Although the likelihood free procedure we outlined for this model closely
-resembles \cite{gutmann_bayesian_2016}, there are a few significant changes
-that improve on the method outlined in that manuscript.
+Although the likelihood-free procedure we outlined for this model closely
+resembles \cite{gutmann_bayesian_2016}, a few significant changes
+improve on the method outlined in that manuscript.
 
 The most significant change is the choice to model the sample mean as a noisy
-Gaussian process, rather than modelling the discrepancy function as a noisy
+Gaussian process rather than modelling the discrepancy function as a noisy
 Gaussian process. 
 Changing this assumption means that we are not subject to the distributional 
 assumption of normal noise and constant variance 
 with respect to $\D(\btheta).$ Once we have an approximation for the mean
-as a function of $\btheta,$ we could then choose a distribution that scales
+as a function of $\btheta,$ we could choose a distribution that scales
 with the mean. This is analogous to the generalised linear modelling framework.
-For example, it may be reasonable to assume that $\D(\btheta)$ follows a
-Gamma distribution. Letting $\mu(\btheta) := \E[\D(\btheta)],$ we can
+For example, assuming that $\D(\btheta)$ follows a
+Gamma distribution may be reasonable. 
+Letting $\mu(\btheta) := \E[\D(\btheta)],$ we can
 approximate $\D(\btheta)$ with
 $
     \hat{\D}(\btheta)
     \sim \mathrm{Gamma}\left(\frac{\mu(\btheta)}{\phi}, \frac{1}{\phi}\right),
 $
 where $\frac{\mu(\btheta)}{\phi}, \frac{1}{\phi}$ are the shape and rate
-parameters. Trivially
+parameters. Trivially,
 $$
     \E[\hat{\D}(\btheta)]
     = \frac{\mu(\btheta)}{\phi}/\frac{1}{\phi} = \mu(\btheta),
 $$
 and for a fixed $\phi,$ $\var[\D(\btheta)] = \phi\mu(\btheta),$ so the variance
 scales linearly with the mean. If this behaviour is observed
-empirically then such a choice will be preferable, since then
-$\hat{L}(\btheta)$ will be a better approximation of the the
-true likelihood. This can be done with any single parameter distribution with
-fixed variance structure.
+empirically, then such a choice will be preferable since then
+$\hat{L}(\btheta)$ will better approximate the
+true likelihood. This can be done with any individual parameter distribution
+with
+a fixed variance structure.
 
-Alternatively the sample variance could also be modelled with a different
-Gaussian process $s^2_\GP(\btheta)$.
-Any two parameter distribution could be moment matched by
+Alternatively, the sample variance could be modelled with a different
+Gaussian process $s^2_\GP(\btheta)$ along with the sample mean.
+Any two-parameter distribution could be moment matched by
 the two Gaussian processes to get a more accurate $\hat{L}(\btheta).$
-Therefore if empirically we observe that $\D(\btheta)$ is approximately Gamma
+Therefore, if empirically we observe that $\D(\btheta)$ is approximately Gamma
 distributed, then we could approximate $\D(\btheta)$ with
 $$
     \hat{\D}(\btheta)
@@ -349,116 +372,119 @@ $$ where $\var[\hat{\D}(\btheta)] = \sigma^2(\btheta)$ and
 $\E(\hat{\D}(\btheta)) =\mu(\btheta)$ as required.
 
 The mean and variance do not have a linked structure in the discrepancy function
-which we used for the Champagne model.
+we used for the Champagne model.
 This can be seen particularly in the $\lambda$ slice in Figure
 \ref{fig:improving_GP}.
 For $\btheta$ with $\lambda < 0.03,$ $\var(\ln\D(\btheta))$, is small, and
-$\E(\ln\D(\theta))\approx 0$. However for $\lambda \approx 0.02,$ we also have
-$\E[\ln\D(\theta)] \approx 0,$ but the variance is observably larger. Therefore
+$\E(\ln\D(\theta))\approx 0$. However, for $\lambda \approx 0.02,$ we also have
+$\E[\ln\D(\theta)] \approx 0,$ but the variance is observably larger. Therefore,
 if we had modelled the sample variance of our log discrepancy as
-as a noisy Gaussian process $s^2_\GP(\btheta)$ then we could have approximated
+a noisy Gaussian process $s^2_\GP(\btheta),$ then we could have approximated
 $\D(\btheta)$ with
 $\hat{\D}(\theta) \sim \LN\left(\E(d_\GP(\btheta)), \sigma^2(\btheta)\right),$
 where $\mu(\btheta) := \E(d_\GP(\btheta))$ and
 $\sigma^2(\btheta) := \E(s^2_\GP(\btheta)).$
 
-Empirically it is not surprising that the variance is not constant across the
-parameter space, or even mean dependent. Disease model behaviour is heavily
-dependent on the values of the parameters. For example around bifurcation points
-a slight change in parameters may lead to a disease model that dies out some
-of the time, but reaches equilibrium in other runs. Here we would expect that
+Empirically, it is not surprising that the variance is not constant across the
+parameter space or even mean dependent. Disease model behaviour is heavily
+dependent on the values of the parameters. For example, around bifurcation points,
+a slight change in parameters may lead to a disease model that dies out 
+sometimes but reaches equilibrium in other runs. Here, we expect
 $\var[\D(\btheta)]$ to be large. This threshold is important in disease 
-modelling, and is called $R_0:$ the expected number of secondary cases a single
+modelling and is called $R_0:$ the expected number of secondary cases a single
 infectious individual causes in a completely susceptible population.
 But when $\btheta$ is changed only a small
 amount such that $R_0<1,$ and so 
 the disease consistently dies out, the $\var[\D(\btheta)]$
 will be close to $0.$ Since the model
-run will always end with a disease free population and the summary statistics
-such as incidence or prevalence will always be $0.$ This is likely what is
-happen for very small $\lambda$ in Figure \ref{fig:improving_GP}.
+run will always end with a disease-free population, the summary statistics,
+such as incidence or prevalence, will always be $0.$ This is likely what
+happens for very small $\lambda$ in Figure \ref{fig:improving_GP}.
 
-This highlights another problem. Around bifurcation points such as near where
-$R_0 = 1$, it is expected that
-$\E(\D(\btheta))$ behaves erratically. \Citeauthor{gutmann_bayesian_2016} use a
-squared exponential kernel for their Gaussian process approximation which
+This highlights another problem. Around bifurcation points, such as near where
+$R_0 = 1$, $\E(\D(\btheta))$ is expected to behave 
+erratically. \Citeauthor{gutmann_bayesian_2016} use a
+squared exponential kernel for their Gaussian process approximation, which
 cannot capture this behaviour without
 making any length scales very large.
-On the other hand, a Mat\'ern 5/2 kernel as we used is still smooth, but allows
+On the other hand, a Mat\'ern 5/2 kernel, as we used, is still smooth but allows
 enough flexibility that sharp changes in the target function do not require
 overcompensation in the length scales.
-For an example, demonstrating the utility of the Mat\'ern
-kernel over the squared exponential in the case of a non smooth function,
+For an example demonstrating the utility of the Mat\'ern
+kernel over the squared exponential in the case of a non-smooth function,
 see \cite{jones_matern_2021}.
 Another possible solution is to use a Student-$t$ process to approximate the
-discrepancy, as it has heavier tails, so is more forgiving to sudden jumps.
+discrepancy, as it has heavier tails, so it is more forgiving to sudden jumps.
 The multivariate Student-$t$ distribution has some properties analogous to
 the multivariate normal distribution. This includes an analytic solution
-to the conditional distribution, similar to Theorem \ref{thm:cond_mvn}. For
-more details see \cite{shah_studentt_2014}.
+to the conditional distribution, similar to Theorem \ref{thm:cond_mvn}; for
+more details, see \cite{shah_studentt_2014}.
 
 \cite{gutmann_bayesian_2016} use the lower confidence bound acquisition
 function, where the
 exploration parameter is the slowly increasing function
 $$\eta_t:= \sqrt{2\ln\left(\frac{t^{2/d + 2}\pi^2}{3\varepsilon}\right)}.$$
-This is chosen because under the exponentiated quadratic kernel, and compact
+This is chosen because, under the squared exponential kernel and compact
 support, the lower confidence bound samples are shown to be no regret with high
 probability. There are multiple issues with this. The first is that
 \Citeauthor{gutmann_bayesian_2016} seem to have inherited this form from
-\cite{brochu_tutorial_2010}. However the citation in
+\cite{brochu_tutorial_2010}. However, the citation in
 \cite{brochu_tutorial_2010} wrongly reproduces the result in
 \cite{srinivas_gaussian_2010},
 \footnote{
     One Python package that implements the methodology in
-    \cite{gutmann_bayesian_2016} notes this error, see:
+    \cite{gutmann_bayesian_2016} notes this error; see
     \url{
         https://github.com/elfi-dev/elfi/blob/dev/elfi/methods/bo/acquisition.py
     }
 } which should be
 $$\eta_t:= \sqrt{2\ln\left(\frac{t^{2d + 2}\pi^2}{3\varepsilon}\right)}.$$
-When we tried both of these exploration parameters, the choice of
-$\varepsilon$ between $(0, 1)$ largely lead to repeated sampling from the same
+When we tried these exploration parameters, the choice of
+$\varepsilon$ between $(0, 1)$ largely led to repeated sampling from the same
 set of parameters, even for very small $\varepsilon.$ This is similar to the
 behaviour reported in \cite{gutmann_bayesian_2016}. Secondly,
 \Citeauthor{gelman_bayesian_2014} do not restrict the parameter space to
-a compact subset of the space, and so theoretical guarantees of no regret are
+a compact subset of the space, so theoretical guarantees of no regret are
 not valid. Finally, \Citeauthor{srinivas_gaussian_2010} find this assuming
 zero mean Gaussian processes. \Citeauthor{gutmann_bayesian_2016} assume
 a quadratic mean prior.
 
-Even though we do consider a compact subset of the parameter space,
-we did not use a zero mean Gaussian process, and we used the Mat\'ern kernel,
-therefore we did not want to use this formulation of the lower confidence bound,
+Even though we consider a compact subset of the parameter space,
+we did not use a zero-mean Gaussian process, and we used the Mat\'ern kernel,
+Therefore, we did not want to use this formulation of the lower confidence bound,
 and instead chose expected improvement.
 
 The quadratic mean assumption in \cite{gutmann_bayesian_2016} is also
-problematic. If the mean of the Gaussian process
-is trained on a set of data which concave near a local
-minimum, no matter which acquisition function is chosen, areas away from the
-local minimum may not be sampled from, since the mean function will dominate
-the predicted behaviour of $\D(\btheta),$ and so exploration will be minimal.
+problematic. Suppose the mean of the Gaussian process
+is trained on a set of concave data near a local
+minimum. In that case, 
+no matter which acquisition function is chosen, areas away from the
+local minimum may not be sampled since the mean function will dominate
+the predicted behaviour of $\D(\btheta),$ so exploration will be minimal.
 This also may explain the behaviour of the acquisition function sampling close
 to the same point repeatedly.
 
 Although we have validated this method on a relatively low dimensional
-$\btheta,$ for models with high dimensionality, it is likely that construction
-of a synthetic likelihood will have greater comparative benefits
-to other methods such as approximate Bayesian computation.
+$\btheta,$ for models with high dimensionality,
+the construction
+of a synthetic likelihood will likely have greater comparative benefits
+than other methods, such as approximate Bayesian computation.
 This is because as the dimensionality increases, the curse of dimensionality
-means that randomly drawn points will be increasingly further away on average,
-and so many more samples from the prior distribution function are likely to
+means that randomly drawn points will be increasingly further away on average.
+Therefore, many more samples from the prior distribution function are likely to
 produce $\D(\btheta) > \epsilon,$ particularly if $\D(\btheta)$ is small in
 a small region. Optimising the acquisition function each time encourages
-efficient sampling from areas that are likely to be beneficial to sample from.
+efficient sampling from areas likely to be beneficial to sample from.
 
 One way to reduce the computational overhead of this method would be to reduce
-the number of samples were used to calculate the sample mean. This paper used
-30 to ensure convergence to the normal distribution, however less could be
-taken with the trade off of a larger observation variance. The sample mean
-can be calculated in parallel, so the rate limiting step is minimising the
-acquisition function each iteration. Rather than sampling
-uniformly across a single parameter, multivariate noise could be added to
-$\btheta$ to sample multiple sample means at once.
+the number of samples used to calculate the sample mean. Our method used
+30 samples to ensure convergence to the normal distribution. However, less 
+could be
+taken with the trade-off of a larger observation variance. The sample mean
+can be calculated in parallel, so the rate-limiting step minimises the
+acquisition function in each iteration. Rather than uniformly sampling
+a single parameter, multivariate noise could be added to
+$\btheta$ to sample multiple sample means simultaneously.
 Resources should be maximally allocated
 to calculate as many $\D(\btheta)$ as feasible in one step, split between
 multiple repeats for the sample mean, and multiple $\btheta$s for better

@@ -1,29 +1,33 @@
 \chapter{Methods}
 
 We now develop a method for calibrating model parameters for a \emph{P. vivax}
-model. In order to validate the method we create a simulation study. This is
-where we simulate our observed data from the model, and then use that data
+model. In order to validate the method, we will create a simulation study. This is
+where we simulate our observed data from the model and then use that data
 to recover the parameters used in creating our observed data.
 
-\section{Creation of Synthetic Data}
+\section{Creation of Simulated Data}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width = \textwidth]{
         ../champagne_GP_images/champagne_simulation.pdf
     }
-    \caption{
-        A Doob-Gillespie Simulation of the model described by
+    \caption[{
+                Gillespie simulation of the Champagne model
+            }]{
+        A Doob-Gillespie simulation of the model described by
         \cite{champagne_using_2022} with $\alpha = 0.4,$ $\beta = 0.4,$
         $\gamma_L = 1 / 223,$ $\lambda = 0.04,$ $f = 1 / 72,$ $r = 1 / 60,$ and
         $\delta = 0.$ The population was 10000, with 100 initial infections
-        (both blood and liver stage $I_L$).
+        (both blood-stage and liver-stage $I_L$).
     }
     \label{fig:champ_doob}
 \end{figure}
 
 \begin{table}[htbp]
-    \caption{
+    \caption[{
+                Champagne model parameters
+            }]{
         The parameters used to simulate a \textit{P. vivax} outbreak using
         the model described by \cite{champagne_using_2022}
     }
@@ -33,41 +37,44 @@ to recover the parameters used in creating our observed data.
         Parameter description                      & Parameter
                                                    & Value      & Units     \\
         \hline
-        effective blood stage treatment proportion & $\alpha$
-                                                   & $0.1235$      & None      \\
-        effective liver stage treatment proportion & $\beta $
-                                                   & $0.429$      & None      \\
-        rate of liver stage disease clearance      & $\gamma_L$
+        effective blood-stage treatment proportion & $\alpha$
+                                                   & $0.1235$   & None      \\
+        effective liver-stage treatment proportion & $\beta $
+                                                   & $0.429$    & None      \\
+        rate of liver-stage disease clearance      & $\gamma_L$
                                                    & $1 / 383$  & $1/$days  \\
         rate of infection                          & $\lambda$
                                                    & $0.01$     & $1/$days  \\
         rate of relapse                            & $f$
                                                    & $1/69$     & $1/$days  \\
-        rate of blood stage disease clearance      & $r$
+        rate of blood-stage disease clearance      & $r$
                                                    & $1/60$     & $1/$days. \\
     \end{tabular}
 \end{table}
 
-We investigated the model by \cite{champagne_using_2022} as described in 
+We investigated the model by \cite{champagne_using_2022}, as described in
 Section
 \ref{sec:champ_mod}. A malaria epidemic was simulated using the Doob-Gillespie
 algorithm shown in Figure \ref{fig:champ_doob}, using a population
-size of 10,000, and initial infected population of 100 (with both liver and blood
-stage infection). The parameters used closely followed those reported in
-\cite{champagne_using_2022}, with the exact parameters used reported in Table
+size of 10,000 and an initial infected population of 100 
+(with both liver-stage and blood-stage
+infection). The parameters used closely followed those reported in
+\cite{champagne_using_2022}, with the exact parameters reported in Table
 \ref{tab:synth_params}. To simplify our analysis, we have assumed that case
-importation is negligible, and therefore we have set $\delta = 0.$
-From initialisation, the simulation was run for 200,000 time steps, 
-after which, the model was
-assumed to have reached steady state behaviour. 
-The number of time steps was chosen as the stopping criteria,
-because the time the model takes to reach a steady state is highly dependent 
-on the scales of the parameters. Time steps adapt with the scale of
+importation is negligible, so we have set $\delta = 0.$
+From initialisation, the simulation was run for 200,000 time steps,
+after which the model was
+assumed to have reached steady state behaviour.
+The number of time steps was chosen as the stopping criteria
+because the time the model takes to reach a steady state is highly dependent
+on the scales of the parameters. Time steps adapt to the scale of
 the parameters.
 
 \begin{table}[htbp]
-    \caption{
-        Observed synthetic data
+    \caption[{
+        Simulated prevalence and incidence data
+    }]{
+        Observed simulated data
         $\by^\obs := \{\iota_\text{obs}, \pi_\text{obs}, i_\text{obs}, p_{obs}\}$
         from the simulation in Figure \ref{fig:champ_doob}.
     }
@@ -89,16 +96,16 @@ the parameters.
 \end{table}
 
 
-Within our assumed model framework, 
-new infections which instantly undergo radical cure do not change the size of
-each compartment. These infections should contribute to our incidence, 
-even though they are not calculated. To account for this, silent infections, 
-we calculated the number of additional infections to be 
+Within our assumed model framework,
+new infections that instantly undergo radical cure do not change the size of
+each compartment. These infections should contribute to our incidence,
+even though they are not calculated. To account for these silent infections,
+we calculated the number of additional infections to be
 Poisson distribution with rate
 $\Delta t \times \alpha \beta \lambda (I_L + I_0) S_0 / N,$ where $\Delta t$ is
 the time between events (one time step).
-The (simulated) observed data was taken to
-be from the simulated case counts (incidence) and prevalence
+The (simulated) observed data was taken as
+the simulated case counts (incidence) and prevalence
 (as the absolute number of people infected) of the
 simulated epidemic, described in Table \ref{tab:obs_data}.
 
@@ -107,13 +114,13 @@ simulated epidemic, described in Table \ref{tab:obs_data}.
 New epidemics were simulated as above, with 200,000 events and at least 30
 days (to allow for calculation of incidence in the first month of the
 epidemic), with parameters
-$\btheta = \{\alpha, \beta, \gamma_L, \lambda, f, r\}$
+$\btheta = \{\alpha, \beta, \gamma_L, \lambda, f, r\}.$
 For each model
 $y(\btheta) = \{\iota, \pi, i, p\}$ was
 calculated with the same method as $\by^\obs,$ where the interpretation of each
 parameter is described in Table \ref{tab:obs_data}.
 
-We defined the discrepancy function to be $L_2$ norm of the relative
+We defined the discrepancy function to be the $L_2$ norm of the relative
 differences
 $$
     \D(\btheta) = \D(\alpha, \beta, \gamma_L, \lambda, f, r)
@@ -127,7 +134,7 @@ $$
 Relative difference was chosen to limit the impact between the scale
 differences of the summary statistics.
 
-\section{Gaussian Process and Initialisation}
+\section{Gaussian Process Model Selection and Initialisation}
 
 We approximated $\E[\ln\D(\btheta)]$ with
 a Gaussian process $d_\GP(\btheta)$ surrogate model.
@@ -136,15 +143,15 @@ $$
     \smtheta := \frac{1}{30}\sum_{j = 1}^{30} \ln\D_j(\btheta)
 $$
 where the $\ln\D_j(\btheta)$s are i.i.d.\ samples generated by model runs.
-Each evaluation of the discrepancy function was run in parallel 
+Each evaluation of the discrepancy function was run in parallel
 using a supercomputer.
 The samples
 $\smtheta$ were assumed to be noisy observations of
 $\E[\ln\D(\btheta)] + \varepsilon,$ where
 $\varepsilon \sim N(0, \sigma_o^2),$ by the central limit theorem.
-$\sigma_o^2$ was assumed to be independent of $\btheta,$ and has the natural
+$\sigma_o^2$ was assumed to be independent of $\btheta$ and has the natural
 interpretation as the variance of the sample mean.
-$d_\GP(\btheta)$ was assumed to have unknown constant mean $m_\GP$, and kernel
+$d_\GP(\btheta)$ was assumed to have an unknown constant mean $m_\GP$, and kernel
 $$
     k(\bm{\theta}_i, \bm{\theta}_i^\prime)
     = \sigma_k^2 (1 + z_i + \frac{z_i^2}{3})\exp(-z_i)
@@ -157,15 +164,18 @@ $$
         \right)^2
     }.
 $$
-This kernel is, a Mat\'ern kernel with $\nu = 5/2$ and automatic
+This kernel is a Mat\'ern kernel with $\nu = 5/2$ and automatic
 relevance determination - i.e.\ each parameter $\theta\in\btheta$ was
 scaled by $\ell_\theta.$ In effect, this assigns each parameter its own
 length hyperparameter. It is important that each parameter has its own length
-scale because each parameter has different scales, and has varying degrees of
+scale because each parameter has different scales and has varying degrees of
 impact on the mean of the log discrepancy.
 
 \begin{table}[htbp]
-    \caption{
+    \caption[{
+                Upper parameter bounds the \Citeauthor{champagne_using_2022}'s
+                \textit{P. vivax} model
+            }]{
         Conservative upper bounds for parameters to be calibrated.
         Values were informed by
         \cite{champagne_using_2022, white_variation_2016}. All lower bounds
@@ -177,9 +187,9 @@ impact on the mean of the log discrepancy.
         Parameter
          & Upper Bound & Unit   \\
         \hline
-        Proportion of treatment clearing blood stage disease $\alpha$
+        The proportion of treatment clearing blood stage disease $\alpha$
          & 1           &        \\
-        Proportion of treatment clearing liver stage disease $\beta$
+        The proportion of treatment clearing liver stage disease $\beta$
          & 1           &        \\
         Rate of liver stage disease clearance $\gamma_L$
          & 1/30        & 1/days \\
@@ -197,7 +207,9 @@ considering values reported in the literature. $d_\GP(\btheta)$ was fit
 over this compact subspace of the whole parameter space.
 
 \begin{table}[htbp]
-    \caption{
+    \caption[{
+                List of hyperparameters optimised
+            }]{
         Hyperparameters used in training $d_\GP(\btheta).$
     }
     \label{tab:hps}
@@ -207,12 +219,12 @@ over this compact subspace of the whole parameter space.
         \hline
         $\sigma_k^2$      & Mat\'ern kernel amplitude                  \\
         $\sigma_o^2$      & Observation variance ($\var(\smtheta)$)    \\
-        $\ell_\alpha$     & Length parameter associate with $\alpha$   \\
-        $\ell_\beta$      & Length parameter associate with $\beta$    \\
-        $\ell_{\gamma_L}$ & Length parameter associate with $\gamma_L$ \\
-        $\ell_\lambda$    & Length parameter associate with $\lambda$  \\
-        $\ell_f$          & Length parameter associate with $f$        \\
-        $\ell_r$          & Length parameter associate with $r$        \\
+        $\ell_\alpha$     & Length parameter associated with $\alpha$   \\
+        $\ell_\beta$      & Length parameter associated with $\beta$    \\
+        $\ell_{\gamma_L}$ & Length parameter associated with $\gamma_L$ \\
+        $\ell_\lambda$    & Length parameter associated with $\lambda$  \\
+        $\ell_f$          & Length parameter associated with $f$        \\
+        $\ell_r$          & Length parameter associated with $r$        \\
         $m_\GP$           & Gaussian process mean
     \end{tabular}
 \end{table}
@@ -221,7 +233,7 @@ Latin hypercube sampling was used to initialise 50 samples of the
 parameter space (scaled to be between zero and the upper bounds described in
 Table \ref{tab:param_bounds}). For each set of parameters,
 $\smtheta$ was generated. The hyper\-parameters described in Table \ref{tab:hps}
-were optimised using leave one out cross validation of the log predictive 
+were optimised using leave-one-out cross-validation of the log predictive
 likelihood described in
 Equation \ref{eq:pred_log_prob}, and $d_\GP^{(0)}(\btheta)$ was
 fit to the samples.
@@ -229,9 +241,7 @@ fit to the samples.
 \section{Bayesian Acquisition and Parameter Updates}
 
 \begin{algorithm}
-    \caption{
-        Gaussian process approximation of $\smtheta$ with Bayesian updating
-    }
+    \caption{ABC-like synthetic likelihood}
     \label{alg:GP_reg}
     \begin{algorithmic}
         \State \textbf{Input:} Initial values for $\btheta$,
@@ -266,7 +276,7 @@ fit to the samples.
 
         \If{$t \mod 50 == 0$} \Comment{Every 50 iterations}
         \State Reoptimise the Gaussian process hyperparameters using
-        leave-one-out cross validation
+        leave-one-out cross-validation
         \EndIf
 
         \State Update $d_\GP^{(t)}(\btheta)$ on the new samples
@@ -275,23 +285,23 @@ fit to the samples.
     \end{algorithmic}
 \end{algorithm}
 
-The Gaussian process was optimised over 500 iterations. Each iteration involved
-minimising the expected improvement and obtaining a new sample $\smtheta.$
+The Gaussian process was optimised over 500 iterations. Each iteration 
+minimises the expected improvement and obtains a new sample $\smtheta.$
 For each iteration, one of the variables $\theta_j \in \btheta$ was chosen, and
 multiple samples of $\smtheta$ were taken using multiple values for $\theta_j.$
-This was in order to improve the values for the length parameters, but
-also to explore the parameter space more widely. This step is highly
+This was done to improve the values for the length parameters and
+explore the parameter space more widely. This step is highly
 parallelisable.
 The hyperparameters were
-reoptimised every 50 iterations, as the number of samples increased. The full
+reoptimised every 50 iterations as the number of samples increased. The full
 procedure is specified in Algorithm \ref{alg:GP_reg}.
 
-Given a the set of previously sampled parameters $\bTheta^\ast,$ and 
+Given the set of previously sampled parameters $\bTheta^\ast,$ and
 $\mu_* := \min_{\btheta^\ast\in\bTheta^\ast}\E(d_\GP(\btheta_\ast)),$
 the expected improvement with exploration
 $$
-        \A_\EI(\btheta)
-        := \E[\min(d_\GP(\btheta) - (\mu^\ast + 0.1), 0)],
+    \A_\EI(\btheta)
+    := \E[\min(d_\GP(\btheta) - (\mu^\ast + 0.1), 0)],
 $$
 was minimised using a gradient descent algorithm. The gradient descent was
 initialised at $\btheta^\dagger,$ where $\btheta^\dagger$ was a
@@ -306,17 +316,17 @@ $$
     = \Pr(\theta_j^\dagger \text{ uniformly distributed}).
 $$
 
-We could have chosen random initialisation but we do not expect it to improve 
-the algorithms success, because for samples where 
+We could have chosen random initialisation, but we do not expect it to improve
+the success of the gradient descent algorithm, because for samples where
 $\A_\EI(\btheta)$ is very small, particularly if
 $d_\GP(\btheta^\ast)$ is
 large, the gradient of $\A$ can be negligible, causing the convergence criteria
 to be met prematurely.
-Furthermore starting only at the current minimum will 
+Furthermore, starting only at the current minimum will
 increase the possibility of being stuck in local minima.
 
-The final fitted Gaussian process 
-$d_\GP^{(500)}(\btheta)$ is an approximation of $\E(\ln\D(\btheta)).$ Since the
+The final fitted Gaussian process
+$d_\GP^{(500)}(\btheta)$ approximates $\E(\ln\D(\btheta)).$ Since the
 variance of the sample mean $\var(\smtheta)$ is estimated by $\sigma_o^2,$ the
 variance of the the log discrepancy function $\ln\D(\btheta)$ is
 approximately $30\sigma_o^2.$ We then used moment matching assuming that
@@ -335,8 +345,8 @@ likelihood $\L(\btheta).$
 Finally, we substitute in our approximation $\hat{\D}$ for $\D,$ to create our
 synthetic likelihood
 \begin{align}
-        \hat{L}(\btheta) := \Pr(\hat{\D}(\btheta) < \epsilon | \btheta).
-        \label{eq:fin_lik}
+    \hat{L}(\btheta) := \Pr(\hat{\D}(\btheta) < \epsilon | \btheta).
+    \label{eq:fin_lik}
 \end{align}
 Since
 $$
@@ -348,10 +358,11 @@ $$
     \hat{L}(\btheta) =\Pr(\ln\hat{\D}(\btheta) < \ln\epsilon | \btheta).
 $$
 
-This final step is the crux of our methodology. By recovering a likelihood
-the standard frequentist and Bayesian methods for parameter estimation are 
-once again usable.
+This final step is the crux of our methodology. By recovering a likelihood,
+the standard frequentist and Bayesian parameter estimation methods will
+be usable.
 
-The Gaussian process and Gaussian process regression was implemented using
-TensorFlow \parencite{abadi_tensorflow_2015}, and all code
+The all Gaussian processes and Gaussian process regression models
+were implemented using
+TensorFlow \parencite{abadi_tensorflow_2015}. All code
 is available at \url{https://github.com/jaycrick/masters_project}.

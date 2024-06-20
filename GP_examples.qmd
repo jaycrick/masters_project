@@ -694,81 +694,6 @@ print(i, j)
 
 ```
 
-
-```{python}
-Adam_optim = tf.keras.optimizers.Adam() # somehow need this again? maybe when you do the optimize function it stores info?
-
-@tf.function()
-def optimize_err():
- with tf.GradientTape() as tape:
-  loss = -my_GP_err.log_prob(cub_obs_vals_err)
- grads = tape.gradient(loss, my_GP_err.trainable_variables)
- Adam_optim.apply_gradients(zip(grads, my_GP_err.trainable_variables))
- return loss
-
-
-num_iters_err = 5000
-
-lls_err = np.zeros(num_iters_err, np.float64)
-for i in range(num_iters_err):
- loss_err = optimize_err()
- lls_err[i] = loss_err
-
-amp_fin_err = my_GP_err.trainable_variables[0].numpy()
-len_fin_err = my_GP_err.trainable_variables[1].numpy()
-obs_var_fin_err = my_GP_err.trainable_variables[2].numpy()
-
-print('Trained parameters:')
-print('amplitude_err: {}'.format(amp_fin))
-print('length_scale_err: {}'.format(len_fin))
-print('observation_noise_variance_err: {}'.format(obs_var_fin_err))
-
-plt.figure(figsize=(7, 4))
-plt.plot(lls_err)
-plt.xlabel("Training iteration")
-plt.ylabel("Log likelihood")
-plt.show()
-```
-
-```{python}
-optimized_kernel_err = tfk.ExponentiatedQuadratic(amp_fin_err, len_fin_err)
-gprm_err = tfd.GaussianProcessRegressionModel(
- kernel=optimized_kernel_err,
- index_points=predictive_index_points_,
- observation_index_points=cub_index_vals_err,
- observations=cub_obs_vals_err,
- observation_noise_variance=obs_var_fin_err,
- predictive_noise_variance=0.)
-
-num_samples_err = 50
-samples_err = gprm_err.sample(num_samples_err, seed = sampling_seed)
-```
-
-```{python}
-plt.figure(figsize=(7, 4))
-plt.plot(
-    predictive_index_points_,
-    cub_fn(predictive_index_points_),
-    c="black",
-    label="Target fn",
-)
-plt.scatter(cub_index_vals_err[:, 0], cub_obs_vals_err, label="Observations")
-for i in range(num_samples_err):
-    plt.plot(
-        predictive_index_points_,
-        samples_err[i, :],
-        c="r",
-        alpha=0.1,
-        label="Posterior Sample" if i == 0 else None,
-    )
-leg = plt.legend(loc="upper right")
-for lh in leg.legend_handles:
-    lh.set_alpha(1)
-plt.xlabel("x")
-plt.ylabel("f(x)")
-plt.show()
-```
-
 # GP with Quadratic Mean Function for Cubic Target Function
 
 ```{python}
@@ -787,7 +712,12 @@ cub_obs_vals_quad = cub_fn(cub_index_vals_quad)
 def custom_mean_fn(x):
  # You can define your own mean function here
  # For example, a linear mean function: return 2.0 * x
- return - x[..., 0]**2
+ return - 3*x[..., 0]**2
+
+def custom_mean_fn_2(x):
+ # You can define your own mean function here
+ # For example, a linear mean function: return 2.0 * x
+ return 3*x[..., 0]**2
 
 my_GP_quad = tfd.GaussianProcess(
  kernel=tfk.ExponentiatedQuadratic(
@@ -843,12 +773,24 @@ gprm_quad = tfd.GaussianProcessRegressionModel(
  predictive_noise_variance=0.,
  mean_fn=custom_mean_fn)
 
+gprm_quad_2 = tfd.GaussianProcessRegressionModel(
+ kernel=optimized_kernel_quad,
+ index_points=predictive_index_points_,
+ observation_index_points=cub_index_vals_quad,
+ observations=cub_obs_vals_quad,
+ predictive_noise_variance=0.,
+ mean_fn=custom_mean_fn_2)
+
 num_samples_quad = 50
 samples_quad = gprm_quad.sample(num_samples_quad, seed = sampling_seed)
+samples_quad_2 = gprm_quad_2.sample(num_samples_quad, seed = sampling_seed)
 ```
 
 ```{python}
-plt.figure(figsize=(7, 4))
+
+predictive_index_points_ = np.linspace(-1.5, 1.5, 200, dtype=np.float64)
+predictive_index_points_ = predictive_index_points_[..., np.newaxis]
+plt.figure(figsize=(4, 2.5))
 plt.plot(
     predictive_index_points_,
     cub_fn(predictive_index_points_),
@@ -864,11 +806,41 @@ for i in range(num_samples_quad):
         alpha=0.1,
         label="Posterior Sample" if i == 0 else None,
     )
-leg = plt.legend(loc="upper right")
-for lh in leg.legend_handles:
-    lh.set_alpha(1)
+# leg = plt.legend(loc="upper right")
+# for lh in leg.legend_handles:
+#     lh.set_alpha(1)
+plt.xlim((-1.2, 1.2))
+plt.ylim((-3, 3))
 plt.xlabel("x")
 plt.ylabel("f(x)")
+plt.savefig("write_up/images/negative_quad_mean_GP.pdf")
+plt.show()
+
+
+plt.figure(figsize=(4, 2.5))
+plt.plot(
+    predictive_index_points_,
+    cub_fn(predictive_index_points_),
+    c="black",
+    label="Target fn",
+)
+plt.scatter(cub_index_vals_quad[:, 0], cub_obs_vals_quad, label="Observations")
+for i in range(num_samples_quad):
+    plt.plot(
+        predictive_index_points_,
+        samples_quad_2[i, :],
+        c="r",
+        alpha=0.1,
+        label="Posterior Sample" if i == 0 else None,
+    )
+# leg = plt.legend(loc="upper right")
+# for lh in leg.legend_handles:
+#     lh.set_alpha(1)
+plt.xlim((-1.2, 1.2))
+plt.ylim((-3, 3))
+plt.xlabel("x")
+plt.ylabel("f(x)")
+plt.savefig("write_up/images/positive_quad_mean_GP.pdf")
 plt.show()
 ```
 

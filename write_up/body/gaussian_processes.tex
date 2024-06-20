@@ -2,19 +2,19 @@
 
 If the distribution of $\D(\btheta)$ was known for all $\btheta,$ then the need
 to sample from the model within Algorithm
-\ref{alg:abc} would be redundant, since $\D(\btheta)$ could be sampled from
+\ref{alg:abc} would be redundant since $\D(\btheta)$ could be sampled
 directly. Moreover, the probability of drawing and accepting a sample
 using this algorithm becomes
 $\Pr(\btheta)\Pr(\D(\btheta) < \epsilon | \btheta).$ Comparing
 this to Bayes' theorem, we can see that $\Pr(\D(\btheta) < \epsilon | \btheta)$
-plays the role of the likelihood. Therefore
+plays the role of the likelihood. Therefore,
 $L(\btheta) := \Pr(\D(\btheta) < \epsilon | \btheta)$
 is an approximation of $\L(\btheta)$ (up to some proportionality constant).
-In reality, we do not know the distribution of $\D(\btheta),$ for all
+In reality, we do not know the distribution of $\D(\btheta)$ for all
 $\btheta,$ but we consider methods to construct
-an approximation $\hat{L}$ of $L$ which we call the synthetic likelihood.
+an approximation $\hat{L}$ of $L,$ which we call the synthetic likelihood.
 The approximation considered is achieved by modelling
-$\D(\btheta)$ using a surrogate model which we introduce this chapter.
+$\D(\btheta)$ using a surrogate model, which we introduce in this chapter.
 
 \section{Gaussian Processes}
 
@@ -33,7 +33,7 @@ Formally, we treat $\E(\D(\beta))$ as a realisation of a Gaussian process.
 
 \begin{definition}[Gaussian Process]\label{def:gp}
     A collection of random variables $\{f(x)\}_{x\in\mathcal{X}}$
-    (where $x$ may be a vector) is a \emph{Gaussian process} if any finite
+    (where $x$ may be a vector) is a \bemph{Gaussian process} if any finite
     subset of the collection of random variables is multivariate normal
     distributed. That is, there is a function $m:\mathcal{X}\to\R$ and
     symmetric kernel $k:\mathcal{X}\times\mathcal{X}\to \R$ such that for all
@@ -52,7 +52,7 @@ Formally, we treat $\E(\D(\beta))$ as a realisation of a Gaussian process.
 \end{definition}
 
 \begin{definition}[Mean Function and Covariance Kernel]\label{def:mean_kernel}
-    The \emph{mean function} and \emph{covariance kernel} are
+    The \bemph{mean function} and \bemph{covariance kernel} are
     $$m(x_i) := \E\left[f(x_i)\right]$$ and
     $$k(x_{i}, x_{i^\prime}) := \cov\left(f(x_i), f(x_{i^\prime})\right).$$
 \end{definition}
@@ -60,7 +60,7 @@ Formally, we treat $\E(\D(\beta))$ as a realisation of a Gaussian process.
 Gaussian processes are simultaneously realised over the whole space
 $\mathcal{X}$ (for example $\R^d$) and are hence collections of
 (uncountably infinite)
-random variables. However the covariance function $k$ is always constructed 
+random variables. However, the covariance function $k$ is always constructed
 such that
 $\corr(x, x^\prime) \to 1$ as $||x - x^\prime||\to 0.$
 This induces a form of continuity in $x$ called mean square continuity which
@@ -68,7 +68,7 @@ is defined in Definition \ref{def:MSC}
 The most famous example of a Gaussian process is Brownian motion.
 
 \begin{definition}[Brownian Motion]
-    $B(t):\R^+ \to \R$ is a \emph{Brownian motion} on $\R$ if\begin{enumerate}
+    $B(t):\R^+ \to \R$ is a \bemph{Brownian motion} on $\R$ if\begin{enumerate}
         \item $B(0) = 0$ almost surely
         \item $B(t_0), B(t_1) - B(t_0), \dots, B(t_n - t_{n-1})$ are
               independent for all $t_0<t_1<t_2<\dots<t_n$
@@ -77,7 +77,7 @@ The most famous example of a Gaussian process is Brownian motion.
     \end{enumerate}
 \end{definition}
 
-Brownian motion has zero mean, covariance kernel $k(s, t) = \min(s, t),$ which
+Brownian motion has zero mean, and covariance kernel $k(s, t) = \min(s, t),$ which
 implies that $\corr(B_s, B_t) = \frac{\min(s, t)}{\sqrt{st}}.$ This is close to
 $1$ as $s$ is close to $t,$ however as $|s-t|\to\infty,$
 $\corr(B_s, B_t) \to 0.$
@@ -90,14 +90,14 @@ in very different functions. One such property to consider is the smoothness of
 the functions, which we describe by mean square differentiability.
 
 \begin{definition}[Mean Square Continuous]\label{def:MSC}
-    A function $f:\R^d\to\R$ is \emph{mean square continuous} at $\bx$
+    A function $f:\R^d\to\R$ is \bemph{mean square continuous} at $\bx$
     in the $i$th direction at $\bx$ if
     $\E(|f(\bx + h\mathbf{e}_i) - f(\bx)|^2)\to 0$ as $|h|\to 0,$
     where $\mathbf{e}_i$ is the unit vector with a 1 in the $i$th coordinate.
 \end{definition}
 
 \begin{definition}[Mean Square Differentiable]
-    A function $f:\R^d\to\R$ is \emph{mean square differentiable} at
+    A function $f:\R^d\to\R$ is \bemph{mean square differentiable} at
     $\bx$ in the $i$th direction with derivative
     $\frac{\partial f(\bx)}{\partial x_i}$ if
     $$
@@ -142,10 +142,11 @@ The Mat\'ern kernel explicitly allows for adjustment of function
 smoothness through a hyperparameter $\nu.$
 
 \begin{definition}[Mat\'ern Kernel]
+    The \bemph{Mat\'ern kernel} is covariance kernel function of the form
     $$k_\nu(x, x^\prime)
         = \sigma^2_k \frac{2^{1 - \nu}}{\Gamma(\nu)}
         \left(\frac{\sqrt{2\nu}||x - x^\prime||}{\ell}\right)^\nu
-        K_\nu\left(-\frac{\sqrt{2\nu}||x - x^\prime||}{\ell}\right)$$
+        K_\nu\left(-\frac{\sqrt{2\nu}||x - x^\prime||}{\ell}\right),$$
     where $K_\nu$ is a modified Bessel function
     (defined in \cite[374]{abramowitz_handbook_2013}). $\nu, \ell,$ and
     $\sigma_k$ are hyperparameters.
@@ -179,7 +180,10 @@ smoothness through a hyperparameter $\nu.$
         \subcaption{Squared Exponential Kernel}
         \label{fig:squared_exp}
     \end{subfigure}%
-    \caption{
+    \caption[
+        Gaussian process realisations with Mat\'ern and squared exponential
+        kernels
+    ]{
         Ten sample realisations from 4 different kernels, with one realisation
         bolded.
         Samples
@@ -189,7 +193,7 @@ smoothness through a hyperparameter $\nu.$
     \label{fig:kernels}
 \end{figure}
 
-Realisations from zero mean Gaussian processes with this kernel are
+Realisations from zero-mean Gaussian processes with this kernel are
 $\lfloor\nu\rfloor$ times mean square differentiable
 \parencite{rasmussen_gaussian_2008}.
 The most common values for $\nu$ are $1/2, 3/2$ and $5/2,$ which result in
@@ -218,7 +222,7 @@ The increasing smoothness of these kernels can be see in Figures
 \ref{fig:mat_one_half}, \ref{fig:mat_three_halves},
 and \ref{fig:mat_five_halves}.
 
-Zero mean Gaussian processes with a Mat\'ern kernel are $n$ times mean square
+Zero-mean Gaussian processes with a Mat\'ern kernel are $n$ times mean square
 differentiable, for all $n < \nu.$ As seen in Figure \ref{fig:kernels}, this
 means that this kernel allows for flexibility in how smooth realised functions
 are.
@@ -230,17 +234,15 @@ the squared exponential
 kernel \parencite[85]{rasmussen_gaussian_2008}.
 
 \begin{definition}[Squared Exponential Kernel]
+    The \bemph{squared exponential kernel} is a covariance kernel with the form
     $$
         k(x, x^\prime)
-        = \sigma^2_k\exp\left(-\frac{||x - x^\prime||^2}{2\ell^2}\right)
-    $$
+        = \sigma^2_k\exp\left(-\frac{||x - x^\prime||^2}{2\ell^2}\right).
+    $$ $\sigma^2_k$ and $\ell$ are hyperparameters.
 \end{definition}
 
 By construction, the squared exponential kernel is infinitely
 mean square differentiable, which can visually be seen in \ref{fig:squared_exp}.
-The squared exponential kernel is considered
-the default kernel in much of the literature,
-
 Despite this being the `default' kernel in much of
 the literature (for example \cite{gutmann_bayesian_2016}), infinite
 differentiability is a very strong condition that may not be appropriate in
@@ -279,23 +281,26 @@ all circumstances.
         \subcaption{$\ell = \sigma^2_k = 2$}
         \label{fig:two_two}
     \end{subfigure}%
-    \caption{
-        Ten realisations of zero mean Gaussian processes with the squared
+    \caption[{
+        Gaussian process realisations with differing length and scale
+        hyperparameters in a squared exponential kernel.
+    }]{
+        Ten realisations of zero-mean Gaussian processes with the squared
         exponential kernel, varying the length and amplitude parameters.
         The samples were generated using the same seed
     }
     \label{fig:length_amp}
 \end{figure}
 
-Both the Mat\'ern and squared quadratic kernels
-(as well as most other common kernels choices), there are two
-hyperparameters $\ell$ and $\sigma^2_k$ which are referred to as length and
+In both the Mat\'ern and squared exponential kernels
+(as well as most other common kernel choices), there are two
+hyperparameters $\ell$ and $\sigma^2_k,$ which are referred to as length and
 amplitude hyperparameters. $\ell$ determines how close two points need
 to be to be highly correlated. Larger values of $\ell$ generates functions with
 higher correlation within a larger neighbourhood,
 as seen in Figure \ref{fig:length_amp}. $\sigma^2_k$ does not impact
 the correlation between $x$ and $x^\prime,$ but scales the correlation
-matrix. In other words, larger $\sigma^2_k$ increase the size but not rate of
+matrix. In other words, larger $\sigma^2_k$ increases the size but not the rate of
 fluctuations. This can be seen comparing Figure \ref{fig:half_half} to Figure
 \ref{fig:half_two}.
 
@@ -304,11 +309,11 @@ $k(x, x^\prime)$ is a valid kernel. We need the formal notions of symmetry and
 positive semi-definite.
 
 \begin{definition}[Symmetric]\label{def:sym_mat}
-    A (square) matrix $\mathbf{A}$ is \emph{symmetric} if $A = A^T$
+    A (square) matrix $\mathbf{A}$ is \bemph{symmetric} if $A = A^T.$
 \end{definition}
 
 \begin{definition}[Positive Semi-Definite]\label{def:pos_def_mat}
-    An $n\times n$ matrix $\mathbf{A}$ is \emph{positive semi-definite} if
+    An $n\times n$ matrix $\mathbf{A}$ is \bemph{positive semi-definite} if
     $\mathbf{v}^T\mathbf{A}\mathbf{v} \geq 0$ for all $\mathbf{v}\in\R^n.$
 \end{definition}
 
@@ -320,8 +325,7 @@ positive semi-definite.
             \vdots      &             & \ddots & \vdots      \\
             k(x_n, x_1) & \cdots      & \cdots & k(x_n, x_n)
         \end{bmatrix}$$ associated with $k$ is symmetric and positive
-    semi-definite for all choices of $(x_1, \dots, x_n),$ for finite $n$
-
+    semi-definite for all choices of $(x_1, \dots, x_n),$ for finite $n.$
 \end{theorem}
 \begin{theorem}
     The Mat\'ern kernel and squared exponential kernels are admissible.
@@ -353,7 +357,7 @@ and has a multivariate normal distribution.
                 m(\bx) \\
                 m(\bx^\ast)
             \end{bmatrix}, \begin{bmatrix}
-                K       & K^{*}  \\
+                K            & K^{*}  \\
                 (K^{\ast})^T & K^{**}
             \end{bmatrix}
         \right),
@@ -373,27 +377,31 @@ and has a multivariate normal distribution.
     multivariate normal,
     $f(\bx^\ast) \sim \MVN(m(\bx^\ast), K).$
     Let the inverse of $\begin{bmatrix}
-            K       & K^{*}  \\
+            K            & K^{*}  \\
             (K^{\ast})^T & K^{**}
-        \end{bmatrix}$ be defined as
+        \end{bmatrix}$ be
     $$
         \begin{bmatrix}
-            \tilde{K}       & \tilde{K}^{\ast}  \\
+            \tilde{K}            & \tilde{K}^{\ast} \\
             (\tilde{K}^{\ast})^T & \tilde{K}^{**}
-        \end{bmatrix} =
-        \begin{bmatrix}
-            (K - K^{\ast} (K^{**})^{-1} (K^{\ast})^T)^{-1}
-             & -(K
-            - K^{\ast} (K^{**})^{-1} (K^{\ast})^T)^{-1} K^{\ast} (K^{**})^{-1} \\
-            -(K^{**})^{-1} (K^{\ast})^T (K
-            - K^{\ast} (K^{**})^{-1} (K^{\ast})^T)^{-1}
-             & (K^{**})^{-1} + (K^{**})^{-1} (K^{\ast})^T (K
-            - K^{\ast} (K^{**})^{-1} (K^{\ast})^T)^{-1} K^{\ast} (K^{**})^{-1}
         \end{bmatrix}
-    $$ by the inverse of a block matrix. Therefore
+    $$
+    where
+
+    \begin{align*}
+        \tilde{K}
+        := & (K - K^{\ast} (K^{**})^{-1} (K^{\ast})^T)^{-1}  \\
+        \tilde{K}^{\ast}
+        := & -(K - K^{\ast} (K^{**})^{-1} (K^{\ast})^T)^{-1}
+        K^{\ast} (K^{**})^{-1}                               \\
+        \tilde{K}^{**}
+        := & (K^{**})^{-1} + (K^{**})^{-1} (K^{\ast})^T (K
+        - K^{\ast} (K^{**})^{-1} (K^{\ast})^T)^{-1} K^{\ast} (K^{**})^{-1}
+    \end{align*}
+    by the inverse of a block matrix. Therefore
     \begin{align*}
         p(f(\bx) | f(\bx^\ast))
-        =       & \frac{p(f(\bx), f(\bx^\ast))}{p(f(\bx^\ast))}              \\
+        =       & \frac{p(f(\bx), f(\bx^\ast))}{p(f(\bx^\ast))}        \\
         \propto & \frac{\exp \left[ -\frac{1}{2} \left(\begin{bmatrix}
                                                                f(\bx) \\
                                                                f(\bx^\ast)
@@ -403,7 +411,7 @@ and has a multivariate normal distribution.
                 m(\bx^\ast)
             \end{bmatrix}
         \right)^\mathrm{T} \begin{bmatrix}
-                               K       & K^{\ast} \\
+                               K            & K^{\ast} \\
                                (K^{\ast})^T & K
                            \end{bmatrix}^{-1} \left(
         \begin{bmatrix}
@@ -431,7 +439,7 @@ and has a multivariate normal distribution.
                 m(\bx^\ast)
             \end{bmatrix}
         \right)^\mathrm{T} \begin{bmatrix}
-                               K       & K^{\ast}  \\
+                               K            & K^{\ast} \\
                                (K^{\ast})^T & K^{**}
                            \end{bmatrix}^{-1} \left(
         \begin{bmatrix}
@@ -445,7 +453,7 @@ and has a multivariate normal distribution.
                 & \hphantom{\exp \left[\right.} \left.
         + \frac{1}{2}(f(\bx^\ast)-m(\bx^\ast))^\mathrm{T}
         (K^{**})^{-1}
-        (f(\bx^\ast)-m(\bx^\ast))\right]                                     \\
+        (f(\bx^\ast)-m(\bx^\ast))\right]                               \\
         =       & \exp \left[
         -\frac{1}{2} \left(
         (f(\bx)-m(\bx))^\mathrm{T}
@@ -455,7 +463,7 @@ and has a multivariate normal distribution.
         -\frac{1}{2} \left( \right.\right.}
         + 2 (f(\bx)-m(\bx))^\mathrm{T}
         \tilde{K}^{\ast}
-        (f(\bx^\ast)-m(\bx^\ast))                                            \\
+        (f(\bx^\ast)-m(\bx^\ast))                                      \\
                 & \hphantom{\exp \left[
         -\frac{1}{2} \left( \right.\right.}
         \left.
@@ -496,9 +504,9 @@ and has a multivariate normal distribution.
     multivariate normal with mean
     \begin{align*}
         - \tilde{K}^{-1}\tilde{K}^{\ast}(f(\bx^\ast) - m(\bx^\ast))
-        = & (K - K^{\ast} (K^{**})^{-1} (K^{\ast})^T)                              \\
+        = & (K - K^{\ast} (K^{**})^{-1} (K^{\ast})^T)                                   \\
           & \times(K - K^{\ast} (K^{**})^{-1} (K^{\ast})^T)^{-1} K^{\ast} (K^{**})^{-1}
-        (f(\bx^\ast) - m(\bx^\ast))                                            \\
+        (f(\bx^\ast) - m(\bx^\ast))                                                     \\
         = & K^{\ast} (K^{**})^{-1}(f(\bx^\ast) - m(\bx^\ast))
     \end{align*}
     and covariance matrix
@@ -538,13 +546,15 @@ and has a multivariate normal distribution.
         \centering
         \includegraphics[width=\textwidth]{cub_GP_8_iters.pdf}
     \end{subfigure}%
-    \caption{
+    \caption[{
+        Gaussian process regression without noise
+    }]{
         Sequence of Gaussian process regressions on the target function
         (black) $f(x) = x(x-1)(x+1),$ after 1, 2, 4, and 8 observations in
         blue. The red lines are new realisations from the conditioned Gaussian
-        process. The Gaussian process was zero mean and had a squared
+        process. The Gaussian process was zero-mean and had a squared
         exponential kernel. The hyperparameters were fixed with $\ell = 2.7$
-        and $\sigma^2_k = 1.1$
+        and $\sigma^2_k = 1.1.$
     }
     \label{fig:no_var_cub_reg}
 \end{figure}
@@ -555,7 +565,7 @@ This can be used in an iterative process where $f(x)$
 may be expensive to compute and by treating $f$ as a Gaussian process
 realisation, the function can be probabilistically interpolated for unobserved
 $f(x).$ Figure \ref{fig:no_var_cub_reg} empirically demonstrates that as
-the number of points that the Gaussian process is conditioned on increases, 
+the number of points that the Gaussian process is conditioned on increases,
 the variance in the sample paths decreases.
 
 \subsection*{Observation Variance}
@@ -605,7 +615,9 @@ $$
         \centering
         \includegraphics[width=\textwidth]{cub_GP_err_16_iters.pdf}
     \end{subfigure}%
-    \caption{
+    \caption[{
+        Gaussian process regression with noise
+    }]{
         Sequence of Gaussian process regressions on the target function
         (black) $f(x) = x(x-1)(x+1),$ after 2, 4, 8, and 16 observations of
         $f(x_i) + \varepsilon_i,$ where $\varepsilon_i$ is i.i.d.\
@@ -613,7 +625,7 @@ $$
         in blue. The red lines are new realisations from the conditioned
         Gaussian process. The Gaussian process was 0 mean and had a squared
         exponential kernel. The hyperparameters were fixed with $\ell = 2.7$
-        and $\sigma^2_k = 1.1$
+        and $\sigma^2_k = 1.1.$
     }
     \label{fig:var_cub_reg}
 \end{figure}
@@ -645,7 +657,7 @@ exponential kernel is the most appropriate kernel.
 \subsection*{Hyperparameters}
 
 The kernel hyperparameters $\ell$ and $\sigma^2_k$ are generally not fixed
-\emph{a prior}. Similarly, the observation variance $\sigma^2_o$
+\emph{a priori}. Similarly, the observation variance $\sigma^2_o$
 may not be known.
 There are two main (frequentist) ways to fit these hyperparameters:
 maximum likelihood estimation, and leave-one-out cross validation.
@@ -657,10 +669,10 @@ $
 $ in the usual way,
 the maximum likelihood estimates are
 \begin{align}
-        \{\hat{\ell}, \hat{\sigma}^2_k, \hat{\sigma}^2_o\} :=
-        \argmax_{\{\ell, \sigma^2_k, \sigma^2_o\}}
-        \mathcal{L}(\ell, \sigma^2_k, \sigma^2_o)
-        \label{eq:MLE_GP}
+    \{\hat{\ell}, \hat{\sigma}^2_k, \hat{\sigma}^2_o\} :=
+    \argmax_{\{\ell, \sigma^2_k, \sigma^2_o\}}
+    \mathcal{L}(\ell, \sigma^2_k, \sigma^2_o)
+    \label{eq:MLE_GP}
 \end{align}
 which is equivalent to minimising
 $$
@@ -678,17 +690,17 @@ constant.
 Leave-one-out cross validation aims to maximise the predictive log
 probability:
 \begin{align}
-        \{\tilde{\ell}, \tilde{\sigma}^2_k, \tilde{\sigma}^2_o\}
-        := \argmax_{\ell, \sigma^2_k, \sigma^2_o} \sum_{i}
-        \ln p(f_i(\bx^\ast) | f_{-i}(\bx^\ast), \ell, \sigma^2_k, \sigma^2_o),
-        \label{eq:pred_log_prob}
+    \{\tilde{\ell}, \tilde{\sigma}^2_k, \tilde{\sigma}^2_o\}
+    := \argmax_{\ell, \sigma^2_k, \sigma^2_o} \sum_{i}
+    \ln p(f_i(\bx^\ast) | f_{-i}(\bx^\ast), \ell, \sigma^2_k, \sigma^2_o),
+    \label{eq:pred_log_prob}
 \end{align}
 where $f_i(\bx^\ast) | f_{-i}(\bx^\ast)$ is the distribution of the
 $i$th element of $f(\bx^\ast)$ conditioned on the rest of the
 observed data excluding that element (represented by $f_{-i}(\bx^\ast)$).
 $f_i(\bx^\ast) | f_{-i}(\bx^\ast)$ can be found by
 Theorem \ref{thm:cond_mvn}. Computationally efficient methods for calculating
-the predictive log probability (Equation \ref{eq:pred_log_prob}) 
+the predictive log probability (Equation \ref{eq:pred_log_prob})
 that avoid having to invert the covariance
 matrix for every summand element exist. In particular it can be shown that
 $f_i(\bx^\ast) | f_{-i}(\bx^\ast)$ has mean
@@ -710,31 +722,54 @@ see \cite{gutmann_bayesian_2016}).
 Finally there is scope for a Bayesian approach to model selection. By setting
 priors on the hyperparameters (sometimes called hyper-priors)
 and using the likelihood as described
-in the maximum likelihood estimation approach (Equation \ref{eq:MLE_GP}), 
+in the maximum likelihood estimation approach (Equation \ref{eq:MLE_GP}),
 a posterior distribution can be
 contrived. Samples could then be taken from the posterior density
 of the hyperparameters. Alternatively a point estimate could be drawn by
 choosing the maximum a posteriori estimate (i.e. the mode of the
 posterior density). Posterior
-samples of the hyperparameters, can then capture some of the model fit 
+samples of the hyperparameters, can then capture some of the model fit
 uncertainty, unlike in a point estimate.
 
-% \subsection*{Mean functions}
+\subsection*{Mean Functions}
 
-% Although in the majority of use cases for Gaussian processes, the mean function
-% is assumed to be zero, it is not necessary for this to be the case. In cases
-% where the discrepancy function has been estimated by a Gaussian process, 
-% the mean function has been assumed to be quadratic, such as in 
-% \parencite{gutmann_bayesian_2016}. Gaussian process regression is relatively
-% resilient to misspecified mean function, however the regression will return to
-% the behaviour of the mean function where there are no points to regress to. 
-% This can be seen in Figure \ref{fig:means}.
+Although in the majority of use cases for Gaussian processes, the mean function
+is assumed to be zero, it is not necessary for this to be the case. In cases
+where the discrepancy function has been estimated by a Gaussian process,
+the mean function has been assumed to be quadratic, such as in
+\parencite{gutmann_bayesian_2016}. Gaussian process regression is relatively
+resilient to misspecified mean function in areas with samples. 
+However, the regression will return to
+the behaviour of the mean function where there are no points to regress to.
 
-% \begin{figure}[htbp]
-%     \missingfigure{GP mean functions}
-%     \label{fig:means}
-%     \caption{different fns}
-% \end{figure}
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{positive_quad_mean_GP.pdf}
+    \end{subfigure}%
+    \hfill%
+    \begin{subfigure}[b]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{negative_quad_mean_GP.pdf}
+    \end{subfigure}
+    \caption[
+        The effect of the mean function on Gaussian processes
+    ]{Gaussian process regressions on the target function (black) 
+    $f(x) = x(x -1)(x+1)$, 4, observations of $f(x_i)$ in blue. The left
+    Gaussian process had mean function $3x^2,$ and the right Gaussian process
+    had mean function $-3x^2.$
+    The red lines are new realisations from the conditioned Gaussian process.}
+    \label{fig:means}
+\end{figure}
+
+This can be seen in Figure \ref{fig:means}. Around the observed data in blue,
+the processes have similar predictions for the function, however
+outside of where the function has
+been observed, both
+Gaussian processes return to their quadratic mean functions.
+Specifying a mean for the Gaussian process may be appropriate, but it must
+be done with caution.
 
 \section{Bayesian Acquisition Functions}
 
@@ -748,7 +783,7 @@ $\E[\D(\btheta)]$ is small since the probability of acceptance elsewhere is
 negligible. Therefore we focus our model sampling where we predict the Gaussian
 process is small, or where the variance of the Gaussian process is large
 (hence the true values are highly uncertain), to avoid unnecessary model runs
-that may be extremely time consuming.
+that may be extremely time-consuming.
 
 These ideas are
 formalised by Bayesian acquisition functions $\A(\btheta)$ which
@@ -763,18 +798,14 @@ function of both the posterior mean and variance, weighted according to a
 constant $\eta.$
 
 \begin{definition}[Lower Confidence Bound]
-    The \emph{lower confidence bound} of a Gaussian process $f$ at $x$ given
+    The \bemph{lower confidence bound} of a Gaussian process $f$ at $x$ given
     some observations $\bx^\ast$ is
     $$
         \A_\mathrm{LCB}(x)
         := \E[f(x) | f(\bx^\ast)]
-        - \eta \sqrt{\mathrm{Var}[f(x) | f(\bx^\ast)]}
+        - \eta \sqrt{\mathrm{Var}[f(x) | f(\bx^\ast)]}.
     $$
 \end{definition}
-
-\begin{figure}
-    \missingfigure{Maybe put in an example of lower confidence bound here.}
-\end{figure}
 
 For example, when $\eta = 1.96,$ $\A_\text{LCB}(x)$ returns the lower
 bound of the 95\% confidence interval at $x.$ In problems where a global
@@ -791,7 +822,7 @@ Generally $\eta(t)$ is chosen to be an increasing function, so that exploration
 is given more weight over time. Some theoretical results regarding optimal
 choice of
 $\eta(t)$ are given in \cite{srinivas_gaussian_2010}, and are highly dependent
-on choice of covariance function and dimensionality of the parameter space.
+on the choice of covariance function and dimensionality of the parameter space.
 
 \subsection*{Probability of Improvement}
 
@@ -799,10 +830,10 @@ The probability of improvement is simply a measure of how probable it is that
 an observation at $x$ is better than the previous best observation.
 
 \begin{definition}
-    The \emph{probability of improvement} of a Gaussian process $f$ at $x$ given
+    The \bemph{probability of improvement} of a Gaussian process $f$ at $x$ given
     some observations $\bx^\ast$ is
     $$
-        \A_\mathrm{PI}(x) := \Pr(f(x) < \mu^\ast)
+        \A_\mathrm{PI}(x) := \Pr(f(x) < \mu^\ast),
     $$
     where $\mu^\ast := \min_{x^\ast\in\bx^\ast}f(x^\ast).$
 \end{definition}
@@ -824,7 +855,7 @@ better (lower) than the current best, it also takes into account how large that
 improvement is likely to be.
 
 \begin{definition}
-    The \emph{expected improvement} of a Gaussian process $f$ at $x$ given
+    The \bemph{expected improvement} of a Gaussian process $f$ at $x$ given
     some observations $\bx^\ast$ is
     $$
         \A_\EI(x)
@@ -835,11 +866,11 @@ The next point to be sampled from $\argmin_{x} A_\EI(x)$ is the point
 where we expect $\mu^\ast$ to have the largest improvement, if it is indeed
 improved.
 \footnote{
-    Bayesian acquisition function are
+    Bayesian acquisition functions are
     conventionally employed to find the maximum of an unknown function,
-    and so generally the expected improvement is maximised.
-    However in the context of $\D_\GP(\btheta),$ we want to find the minimum.
-    Therefore we have reframed the expected improvement 
+    and so generally, the expected improvement is maximised.
+    However, in the context of $\D_\GP(\btheta),$ we want to find the minimum.
+    Therefore we have reframed the expected improvement
     as a function to be minimised.
 }
 Both the probability of improvement and

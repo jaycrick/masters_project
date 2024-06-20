@@ -1,9 +1,0 @@
-1. Check formatting of all headings and subheadings
-2. Check all citations
-3. Short captions for figures and tables
-4. Definitions in bold - what to do?
-5. Equation punctuation.
-6. Check every time I've used \ref have I actually described the figure in the text?
-7. Update all the results parameters with final output
-8. Final two comments from Eamon in discussion section.
-9. CREATE TITLE PAGE AND ACKNOWLEDGEMENTS

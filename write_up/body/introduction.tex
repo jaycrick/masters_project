@@ -7,24 +7,33 @@ deaths, most of which were in children under five
 \parencite{world_health_organization_world_2022}. 
 The majority of malaria-related deaths are attributable to the 
 \textit{Plasmodium falciparum} species of the parasite. 
-However, the literature is increasingly recognising that 
+For this reason, it has been the primary focus of most malaria research. 
+However,
+with declining \textit{P. falciparum} cases, other malaria species, such as
+\textit{P. vivax}, have gained more attention \parencite{price_plasmodium_2020}.
+The literature is increasingly recognising that 
 the amount of death and severe disease attributable to the 
-\textit{Plasmodium vivax} species is 
-likely traditionally underestimated. The malaria lifecycle is complicated, 
-needing both a vertebrate and mosquito host. In addition, \textit{P. vivax} has 
-a dormant stage that causes relapses. 
+\textit{Plasmodium vivax} species has 
+traditionally been underestimated. 
 
 Various countries with endemic malaria have undertaken significant efforts to 
 reduce the burden of or eradicate malaria. Mathematical disease models are 
 increasingly aiding these efforts by helping to understand the spread of the 
 disease and estimate the effectiveness of possible interventions. 
-Malaria models are complex due to the many staged lifecycle, and in 
-particular, \textit{P. vivax} models need to consider relapses, further 
-complicating the model.
+Malaria models are complex due to the many staged lifecycle, as the parasite 
+needs both vertebrate and mosquito hosts. Since malaria is transmitted to humans
+through mosquitos, the transmission of malaria within a country is highly 
+heterogeneous. Forest workers and those who spend time in areas with high
+mosquito density are more likely to contract the disease and may bring
+it back to their local community. \textit{P. vivax} has a dormant liver 
+stage that is absent in \textit{P. falciparum} and can cause relapses, 
+further complicating \textit{P. vivax} models.
 
 To simulate different scenarios using models, modellers must first calibrate
-the model parameters to approximate observed disease dynamics, measured by
-observed data such as case counts or prevalence surveys. Standard techniques
+the model parameters to approximate observed disease dynamics. Calibration
+is done by 
+measuring data such as case counts or current prevalence surveys. 
+Standard techniques
 to calibrate parameters include maximum likelihood estimation and sampling
 from a posterior distribution, which both require a likelihood function. As
 models become increasingly complicated, analytic forms for the likelihood may
@@ -36,12 +45,21 @@ model sometimes behaves differently from the stochastic model.
 Modern
 likelihood-free techniques, such as approximate Bayesian computation, 
 have been designed to
-facilitate a principled method of parameter calibration.
-Various forms of approximate Bayesian computation have been widely adopted, 
-however forms require 
+facilitate a principled parameter calibration method.
+Various forms of approximate Bayesian computation have been widely adopted. 
+However, all forms 
 require large numbers of model runs, which may be unfeasible or undesirable.
 
-Drawing on concepts from approximate Bayesian computation, we aimed to improve
+Non-parametric regression techniques such as Gaussian process regression
+have been developed for a long time and used in statistical 
+modelling for decades (see \cite{diggle_analysis_1994}), However,
+their uses in disease modelling
+have yet to be fully explored. Gaussian processes place a prior 
+distribution over a function space. Observations from the true function can
+create a posterior distribution over the same function space, 
+inherently accounting for uncertainty for unobserved values.
+
+Drawing on concepts from approximate Bayesian computation, we aim to improve
 parameter calibration in malaria models, addressing a recognised need for
 improvement. We do this by training a Gaussian process to predict how close a
 model run will be to observed data. The Gaussian process approximation
@@ -52,15 +70,20 @@ parameter inference.
 The thesis follows the following outline: The literature review in Part I
 discusses fundamental concepts of epidemiological modelling, covering
 deterministic ordinary differential equation models, stochastic models, and
-their simulation methods. It then examines malaria and reviews various malaria
-models. Part I further surveys parameter inference techniques, comparing
+their simulation methods. It then examines and reviews various malaria
+models to assess how \textit{P. vivax} is modelled in the
+current literature. 
+Part I further surveys parameter inference techniques for disease and other
+models, comparing
 frequentist and Bayesian approaches, and ends with discussing likelihood-free
 techniques, particularly approximate Bayesian computation.
-Approximate Bayesian computation then motivates using Gaussian processes to
-develop a synthetic likelihood, which can be used in place of the unknown true
+Approximate Bayesian computation then motivates the use of Gaussian processes 
+regression, which enables the development of a synthetic likelihood. 
+The synthetic likelihood can be used instead of the unknown true
 likelihood to use the traditional parameter calibration techniques in complex
-models. Finally, Part I discusses using Bayesian acquisition functions to train
-the Gaussian process efficiently.
+models. Finally, Part I discusses using Bayesian acquisition functions to 
+efficiently train
+the Gaussian process regression.
 
 Part II applies and extends this methodology by calibrating parameters specific
 to a \textit{P. vivax} model using synthetic observed data. The results and 
